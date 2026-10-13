@@ -397,11 +397,13 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  User: 'User',
   Site: 'Site',
   Employee: 'Employee',
   AbsenceType: 'AbsenceType',
   AbsenceReason: 'AbsenceReason',
   Absence: 'Absence',
+  ApprovalHistory: 'ApprovalHistory',
   PublicHoliday: 'PublicHoliday',
   HolidayWorkCredit: 'HolidayWorkCredit',
   LeaveRule: 'LeaveRule'
@@ -420,10 +422,84 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "site" | "employee" | "absenceType" | "absenceReason" | "absence" | "publicHoliday" | "holidayWorkCredit" | "leaveRule"
+    modelProps: "user" | "site" | "employee" | "absenceType" | "absenceReason" | "absence" | "approvalHistory" | "publicHoliday" | "holidayWorkCredit" | "leaveRule"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    User: {
+      payload: Prisma.$UserPayload<ExtArgs>
+      fields: Prisma.UserFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        findFirst: {
+          args: Prisma.UserFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        findMany: {
+          args: Prisma.UserFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>[]
+        }
+        create: {
+          args: Prisma.UserCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        createMany: {
+          args: Prisma.UserCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>[]
+        }
+        delete: {
+          args: Prisma.UserDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        update: {
+          args: Prisma.UserUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPayload>
+        }
+        aggregate: {
+          args: Prisma.UserAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUser>
+        }
+        groupBy: {
+          args: Prisma.UserGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
     Site: {
       payload: Prisma.$SitePayload<ExtArgs>
       fields: Prisma.SiteFieldRefs
@@ -794,6 +870,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ApprovalHistory: {
+      payload: Prisma.$ApprovalHistoryPayload<ExtArgs>
+      fields: Prisma.ApprovalHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApprovalHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApprovalHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ApprovalHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApprovalHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.ApprovalHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.ApprovalHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.ApprovalHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ApprovalHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ApprovalHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        update: {
+          args: Prisma.ApprovalHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApprovalHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApprovalHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ApprovalHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ApprovalHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ApprovalHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApprovalHistory>
+        }
+        groupBy: {
+          args: Prisma.ApprovalHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApprovalHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
     PublicHoliday: {
       payload: Prisma.$PublicHolidayPayload<ExtArgs>
       fields: Prisma.PublicHolidayFieldRefs
@@ -1055,6 +1205,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  role: 'role',
+  isActive: 'isActive',
+  employeeId: 'employeeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
 export const SiteScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -1062,6 +1226,7 @@ export const SiteScalarFieldEnum = {
   city: 'city',
   timezone: 'timezone',
   weeklyRestDays: 'weeklyRestDays',
+  active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1076,8 +1241,8 @@ export const EmployeeScalarFieldEnum = {
   fullName: 'fullName',
   email: 'email',
   siteId: 'siteId',
-  role: 'role',
   jobTitle: 'jobTitle',
+  department: 'department',
   birthDate: 'birthDate',
   hireDate: 'hireDate',
   active: 'active',
@@ -1145,6 +1310,21 @@ export const AbsenceScalarFieldEnum = {
 export type AbsenceScalarFieldEnum = (typeof AbsenceScalarFieldEnum)[keyof typeof AbsenceScalarFieldEnum]
 
 
+export const ApprovalHistoryScalarFieldEnum = {
+  id: 'id',
+  absenceId: 'absenceId',
+  action: 'action',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  performedByUserId: 'performedByUserId',
+  performedByEmployeeId: 'performedByEmployeeId',
+  comment: 'comment',
+  createdAt: 'createdAt'
+} as const
+
+export type ApprovalHistoryScalarFieldEnum = (typeof ApprovalHistoryScalarFieldEnum)[keyof typeof ApprovalHistoryScalarFieldEnum]
+
+
 export const PublicHolidayScalarFieldEnum = {
   id: 'id',
   date: 'date',
@@ -1165,6 +1345,7 @@ export const HolidayWorkCreditScalarFieldEnum = {
   creditedDays: 'creditedDays',
   consumedDays: 'consumedDays',
   isFullyConsumed: 'isFullyConsumed',
+  recordedByUserId: 'recordedByUserId',
   comment: 'comment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1219,20 +1400,6 @@ export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
  * Reference to a field of type 'String'
  */
 export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
@@ -1243,20 +1410,6 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'String[]'
  */
 export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 
@@ -1278,6 +1431,34 @@ export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 
@@ -1334,6 +1515,20 @@ export type EnumAbsenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'AbsenceStatus[]'
  */
 export type ListEnumAbsenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AbsenceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ApprovalAction'
+ */
+export type EnumApprovalActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalAction'>
+    
+
+
+/**
+ * Reference to a field of type 'ApprovalAction[]'
+ */
+export type ListEnumApprovalActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalAction[]'>
     
 
 
@@ -1515,11 +1710,13 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
  */
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
+  user?: Prisma.UserOmit
   site?: Prisma.SiteOmit
   employee?: Prisma.EmployeeOmit
   absenceType?: Prisma.AbsenceTypeOmit
   absenceReason?: Prisma.AbsenceReasonOmit
   absence?: Prisma.AbsenceOmit
+  approvalHistory?: Prisma.ApprovalHistoryOmit
   publicHoliday?: Prisma.PublicHolidayOmit
   holidayWorkCredit?: Prisma.HolidayWorkCreditOmit
   leaveRule?: Prisma.LeaveRuleOmit

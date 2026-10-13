@@ -42,6 +42,7 @@ export type SiteMinAggregateOutputType = {
   name: string | null
   city: string | null
   timezone: string | null
+  active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +53,7 @@ export type SiteMaxAggregateOutputType = {
   name: string | null
   city: string | null
   timezone: string | null
+  active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -63,6 +65,7 @@ export type SiteCountAggregateOutputType = {
   city: number
   timezone: number
   weeklyRestDays: number
+  active: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -85,6 +88,7 @@ export type SiteMinAggregateInputType = {
   name?: true
   city?: true
   timezone?: true
+  active?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -95,6 +99,7 @@ export type SiteMaxAggregateInputType = {
   name?: true
   city?: true
   timezone?: true
+  active?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -106,6 +111,7 @@ export type SiteCountAggregateInputType = {
   city?: true
   timezone?: true
   weeklyRestDays?: true
+  active?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -204,6 +210,7 @@ export type SiteGroupByOutputType = {
   city: string | null
   timezone: string
   weeklyRestDays: number[]
+  active: boolean
   createdAt: Date
   updatedAt: Date
   _count: SiteCountAggregateOutputType | null
@@ -238,6 +245,7 @@ export type SiteWhereInput = {
   city?: Prisma.StringNullableFilter<"Site"> | string | null
   timezone?: Prisma.StringFilter<"Site"> | string
   weeklyRestDays?: Prisma.IntNullableListFilter<"Site">
+  active?: Prisma.BoolFilter<"Site"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Site"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Site"> | Date | string
   employees?: Prisma.EmployeeListRelationFilter
@@ -250,6 +258,7 @@ export type SiteOrderByWithRelationInput = {
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   timezone?: Prisma.SortOrder
   weeklyRestDays?: Prisma.SortOrder
+  active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   employees?: Prisma.EmployeeOrderByRelationAggregateInput
@@ -265,6 +274,7 @@ export type SiteWhereUniqueInput = Prisma.AtLeast<{
   city?: Prisma.StringNullableFilter<"Site"> | string | null
   timezone?: Prisma.StringFilter<"Site"> | string
   weeklyRestDays?: Prisma.IntNullableListFilter<"Site">
+  active?: Prisma.BoolFilter<"Site"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Site"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Site"> | Date | string
   employees?: Prisma.EmployeeListRelationFilter
@@ -277,6 +287,7 @@ export type SiteOrderByWithAggregationInput = {
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   timezone?: Prisma.SortOrder
   weeklyRestDays?: Prisma.SortOrder
+  active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SiteCountOrderByAggregateInput
@@ -296,6 +307,7 @@ export type SiteScalarWhereWithAggregatesInput = {
   city?: Prisma.StringNullableWithAggregatesFilter<"Site"> | string | null
   timezone?: Prisma.StringWithAggregatesFilter<"Site"> | string
   weeklyRestDays?: Prisma.IntNullableListFilter<"Site">
+  active?: Prisma.BoolWithAggregatesFilter<"Site"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Site"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Site"> | Date | string
 }
@@ -306,6 +318,7 @@ export type SiteCreateInput = {
   city?: string | null
   timezone?: string
   weeklyRestDays?: Prisma.SiteCreateweeklyRestDaysInput | number[]
+  active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   employees?: Prisma.EmployeeCreateNestedManyWithoutSiteInput
@@ -318,6 +331,7 @@ export type SiteUncheckedCreateInput = {
   city?: string | null
   timezone?: string
   weeklyRestDays?: Prisma.SiteCreateweeklyRestDaysInput | number[]
+  active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   employees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutSiteInput
@@ -329,6 +343,7 @@ export type SiteUpdateInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employees?: Prisma.EmployeeUpdateManyWithoutSiteNestedInput
@@ -341,6 +356,7 @@ export type SiteUncheckedUpdateInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employees?: Prisma.EmployeeUncheckedUpdateManyWithoutSiteNestedInput
@@ -353,6 +369,7 @@ export type SiteCreateManyInput = {
   city?: string | null
   timezone?: string
   weeklyRestDays?: Prisma.SiteCreateweeklyRestDaysInput | number[]
+  active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -363,6 +380,7 @@ export type SiteUpdateManyMutationInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -374,6 +392,7 @@ export type SiteUncheckedUpdateManyInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -393,6 +412,7 @@ export type SiteCountOrderByAggregateInput = {
   city?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   weeklyRestDays?: Prisma.SortOrder
+  active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -408,6 +428,7 @@ export type SiteMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   city?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -418,6 +439,7 @@ export type SiteMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   city?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
+  active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -436,21 +458,9 @@ export type SiteCreateweeklyRestDaysInput = {
   set: number[]
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type SiteUpdateweeklyRestDaysInput = {
   set?: number[]
   push?: number | number[]
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -481,6 +491,7 @@ export type SiteCreateWithoutEmployeesInput = {
   city?: string | null
   timezone?: string
   weeklyRestDays?: Prisma.SiteCreateweeklyRestDaysInput | number[]
+  active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -492,6 +503,7 @@ export type SiteUncheckedCreateWithoutEmployeesInput = {
   city?: string | null
   timezone?: string
   weeklyRestDays?: Prisma.SiteCreateweeklyRestDaysInput | number[]
+  active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -518,6 +530,7 @@ export type SiteUpdateWithoutEmployeesInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -529,6 +542,7 @@ export type SiteUncheckedUpdateWithoutEmployeesInput = {
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyRestDays?: Prisma.SiteUpdateweeklyRestDaysInput | number[]
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -571,6 +585,7 @@ export type SiteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   city?: boolean
   timezone?: boolean
   weeklyRestDays?: boolean
+  active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   employees?: boolean | Prisma.Site$employeesArgs<ExtArgs>
@@ -584,6 +599,7 @@ export type SiteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   city?: boolean
   timezone?: boolean
   weeklyRestDays?: boolean
+  active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["site"]>
@@ -595,6 +611,7 @@ export type SiteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   city?: boolean
   timezone?: boolean
   weeklyRestDays?: boolean
+  active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["site"]>
@@ -606,11 +623,12 @@ export type SiteSelectScalar = {
   city?: boolean
   timezone?: boolean
   weeklyRestDays?: boolean
+  active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "city" | "timezone" | "weeklyRestDays" | "createdAt" | "updatedAt", ExtArgs["result"]["site"]>
+export type SiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "city" | "timezone" | "weeklyRestDays" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["site"]>
 export type SiteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employees?: boolean | Prisma.Site$employeesArgs<ExtArgs>
   _count?: boolean | Prisma.SiteCountOutputTypeDefaultArgs<ExtArgs>
@@ -630,6 +648,7 @@ export type $SitePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     city: string | null
     timezone: string
     weeklyRestDays: number[]
+    active: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["site"]>
@@ -1062,6 +1081,7 @@ export interface SiteFieldRefs {
   readonly city: Prisma.FieldRef<"Site", 'String'>
   readonly timezone: Prisma.FieldRef<"Site", 'String'>
   readonly weeklyRestDays: Prisma.FieldRef<"Site", 'Int[]'>
+  readonly active: Prisma.FieldRef<"Site", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Site", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Site", 'DateTime'>
 }

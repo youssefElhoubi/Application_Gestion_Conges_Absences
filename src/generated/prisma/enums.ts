@@ -10,10 +10,10 @@
 */
 
 export const Role = {
-  EMPLOYEE: 'EMPLOYEE',
-  SITE_MANAGER: 'SITE_MANAGER',
-  HR_ADMIN: 'HR_ADMIN',
-  SYSTEM_ADMIN: 'SYSTEM_ADMIN'
+  ADMIN: 'ADMIN',
+  HR_MANAGER: 'HR_MANAGER',
+  SUPERVISOR: 'SUPERVISOR',
+  EMPLOYEE: 'EMPLOYEE'
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
@@ -47,3 +47,14 @@ export const RuleUnit = {
 } as const
 
 export type RuleUnit = (typeof RuleUnit)[keyof typeof RuleUnit]
+
+
+export const ApprovalAction = {
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  CORRECTED: 'CORRECTED'
+} as const
+
+export type ApprovalAction = (typeof ApprovalAction)[keyof typeof ApprovalAction]

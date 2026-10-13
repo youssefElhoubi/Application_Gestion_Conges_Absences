@@ -351,6 +351,7 @@ export type AbsenceWhereInput = {
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   type?: Prisma.XOR<Prisma.AbsenceTypeScalarRelationFilter, Prisma.AbsenceTypeWhereInput>
   reason?: Prisma.XOR<Prisma.AbsenceReasonNullableScalarRelationFilter, Prisma.AbsenceReasonWhereInput> | null
+  approvalHistory?: Prisma.ApprovalHistoryListRelationFilter
 }
 
 export type AbsenceOrderByWithRelationInput = {
@@ -376,6 +377,7 @@ export type AbsenceOrderByWithRelationInput = {
   employee?: Prisma.EmployeeOrderByWithRelationInput
   type?: Prisma.AbsenceTypeOrderByWithRelationInput
   reason?: Prisma.AbsenceReasonOrderByWithRelationInput
+  approvalHistory?: Prisma.ApprovalHistoryOrderByRelationAggregateInput
 }
 
 export type AbsenceWhereUniqueInput = Prisma.AtLeast<{
@@ -404,6 +406,7 @@ export type AbsenceWhereUniqueInput = Prisma.AtLeast<{
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   type?: Prisma.XOR<Prisma.AbsenceTypeScalarRelationFilter, Prisma.AbsenceTypeWhereInput>
   reason?: Prisma.XOR<Prisma.AbsenceReasonNullableScalarRelationFilter, Prisma.AbsenceReasonWhereInput> | null
+  approvalHistory?: Prisma.ApprovalHistoryListRelationFilter
 }, "id">
 
 export type AbsenceOrderByWithAggregationInput = {
@@ -478,6 +481,7 @@ export type AbsenceCreateInput = {
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
+  approvalHistory?: Prisma.ApprovalHistoryCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceUncheckedCreateInput = {
@@ -500,6 +504,7 @@ export type AbsenceUncheckedCreateInput = {
   approvedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceUpdateInput = {
@@ -522,6 +527,7 @@ export type AbsenceUpdateInput = {
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
+  approvalHistory?: Prisma.ApprovalHistoryUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateInput = {
@@ -544,6 +550,7 @@ export type AbsenceUncheckedUpdateInput = {
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceCreateManyInput = {
@@ -703,6 +710,11 @@ export type AbsenceSumOrderByAggregateInput = {
   retainedDays?: Prisma.SortOrder
 }
 
+export type AbsenceScalarRelationFilter = {
+  is?: Prisma.AbsenceWhereInput
+  isNot?: Prisma.AbsenceWhereInput
+}
+
 export type AbsenceCreateNestedManyWithoutEmployeeInput = {
   create?: Prisma.XOR<Prisma.AbsenceCreateWithoutEmployeeInput, Prisma.AbsenceUncheckedCreateWithoutEmployeeInput> | Prisma.AbsenceCreateWithoutEmployeeInput[] | Prisma.AbsenceUncheckedCreateWithoutEmployeeInput[]
   connectOrCreate?: Prisma.AbsenceCreateOrConnectWithoutEmployeeInput | Prisma.AbsenceCreateOrConnectWithoutEmployeeInput[]
@@ -853,6 +865,20 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type AbsenceCreateNestedOneWithoutApprovalHistoryInput = {
+  create?: Prisma.XOR<Prisma.AbsenceCreateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedCreateWithoutApprovalHistoryInput>
+  connectOrCreate?: Prisma.AbsenceCreateOrConnectWithoutApprovalHistoryInput
+  connect?: Prisma.AbsenceWhereUniqueInput
+}
+
+export type AbsenceUpdateOneRequiredWithoutApprovalHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.AbsenceCreateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedCreateWithoutApprovalHistoryInput>
+  connectOrCreate?: Prisma.AbsenceCreateOrConnectWithoutApprovalHistoryInput
+  upsert?: Prisma.AbsenceUpsertWithoutApprovalHistoryInput
+  connect?: Prisma.AbsenceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AbsenceUpdateToOneWithWhereWithoutApprovalHistoryInput, Prisma.AbsenceUpdateWithoutApprovalHistoryInput>, Prisma.AbsenceUncheckedUpdateWithoutApprovalHistoryInput>
+}
+
 export type AbsenceCreateWithoutEmployeeInput = {
   id?: bigint | number
   startDate: Date | string
@@ -872,6 +898,7 @@ export type AbsenceCreateWithoutEmployeeInput = {
   updatedAt?: Date | string
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
+  approvalHistory?: Prisma.ApprovalHistoryCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceUncheckedCreateWithoutEmployeeInput = {
@@ -893,6 +920,7 @@ export type AbsenceUncheckedCreateWithoutEmployeeInput = {
   approvedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceCreateOrConnectWithoutEmployeeInput = {
@@ -965,6 +993,7 @@ export type AbsenceCreateWithoutTypeInput = {
   updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
+  approvalHistory?: Prisma.ApprovalHistoryCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceUncheckedCreateWithoutTypeInput = {
@@ -986,6 +1015,7 @@ export type AbsenceUncheckedCreateWithoutTypeInput = {
   approvedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceCreateOrConnectWithoutTypeInput = {
@@ -1033,6 +1063,7 @@ export type AbsenceCreateWithoutReasonInput = {
   updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
+  approvalHistory?: Prisma.ApprovalHistoryCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceUncheckedCreateWithoutReasonInput = {
@@ -1054,6 +1085,7 @@ export type AbsenceUncheckedCreateWithoutReasonInput = {
   approvedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedCreateNestedManyWithoutAbsenceInput
 }
 
 export type AbsenceCreateOrConnectWithoutReasonInput = {
@@ -1080,6 +1112,110 @@ export type AbsenceUpdateWithWhereUniqueWithoutReasonInput = {
 export type AbsenceUpdateManyWithWhereWithoutReasonInput = {
   where: Prisma.AbsenceScalarWhereInput
   data: Prisma.XOR<Prisma.AbsenceUpdateManyMutationInput, Prisma.AbsenceUncheckedUpdateManyWithoutReasonInput>
+}
+
+export type AbsenceCreateWithoutApprovalHistoryInput = {
+  id?: bigint | number
+  startDate: Date | string
+  endDate: Date | string
+  fraction?: $Enums.Fraction
+  calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  supportingDocumentProvided?: boolean
+  status?: $Enums.AbsenceStatus
+  requestDate?: Date | string
+  comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
+  type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
+  reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
+}
+
+export type AbsenceUncheckedCreateWithoutApprovalHistoryInput = {
+  id?: bigint | number
+  employeeId: string
+  typeId: number
+  reasonId?: number | null
+  startDate: Date | string
+  endDate: Date | string
+  fraction?: $Enums.Fraction
+  calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  supportingDocumentProvided?: boolean
+  status?: $Enums.AbsenceStatus
+  requestDate?: Date | string
+  comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AbsenceCreateOrConnectWithoutApprovalHistoryInput = {
+  where: Prisma.AbsenceWhereUniqueInput
+  create: Prisma.XOR<Prisma.AbsenceCreateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedCreateWithoutApprovalHistoryInput>
+}
+
+export type AbsenceUpsertWithoutApprovalHistoryInput = {
+  update: Prisma.XOR<Prisma.AbsenceUpdateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedUpdateWithoutApprovalHistoryInput>
+  create: Prisma.XOR<Prisma.AbsenceCreateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedCreateWithoutApprovalHistoryInput>
+  where?: Prisma.AbsenceWhereInput
+}
+
+export type AbsenceUpdateToOneWithWhereWithoutApprovalHistoryInput = {
+  where?: Prisma.AbsenceWhereInput
+  data: Prisma.XOR<Prisma.AbsenceUpdateWithoutApprovalHistoryInput, Prisma.AbsenceUncheckedUpdateWithoutApprovalHistoryInput>
+}
+
+export type AbsenceUpdateWithoutApprovalHistoryInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  fraction?: Prisma.EnumFractionFieldUpdateOperationsInput | $Enums.Fraction
+  calculatedWorkingDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  enteredDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  retainedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  supportingDocumentProvided?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
+  requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
+  type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
+  reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
+}
+
+export type AbsenceUncheckedUpdateWithoutApprovalHistoryInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  typeId?: Prisma.IntFieldUpdateOperationsInput | number
+  reasonId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  fraction?: Prisma.EnumFractionFieldUpdateOperationsInput | $Enums.Fraction
+  calculatedWorkingDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  enteredDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  retainedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  supportingDocumentProvided?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
+  requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceCreateManyEmployeeInput = {
@@ -1122,6 +1258,7 @@ export type AbsenceUpdateWithoutEmployeeInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
+  approvalHistory?: Prisma.ApprovalHistoryUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateWithoutEmployeeInput = {
@@ -1143,6 +1280,7 @@ export type AbsenceUncheckedUpdateWithoutEmployeeInput = {
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1206,6 +1344,7 @@ export type AbsenceUpdateWithoutTypeInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
+  approvalHistory?: Prisma.ApprovalHistoryUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateWithoutTypeInput = {
@@ -1227,6 +1366,7 @@ export type AbsenceUncheckedUpdateWithoutTypeInput = {
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateManyWithoutTypeInput = {
@@ -1290,6 +1430,7 @@ export type AbsenceUpdateWithoutReasonInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
+  approvalHistory?: Prisma.ApprovalHistoryUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateWithoutReasonInput = {
@@ -1311,6 +1452,7 @@ export type AbsenceUncheckedUpdateWithoutReasonInput = {
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvalHistory?: Prisma.ApprovalHistoryUncheckedUpdateManyWithoutAbsenceNestedInput
 }
 
 export type AbsenceUncheckedUpdateManyWithoutReasonInput = {
@@ -1334,6 +1476,35 @@ export type AbsenceUncheckedUpdateManyWithoutReasonInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type AbsenceCountOutputType
+ */
+
+export type AbsenceCountOutputType = {
+  approvalHistory: number
+}
+
+export type AbsenceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  approvalHistory?: boolean | AbsenceCountOutputTypeCountApprovalHistoryArgs
+}
+
+/**
+ * AbsenceCountOutputType without action
+ */
+export type AbsenceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AbsenceCountOutputType
+   */
+  select?: Prisma.AbsenceCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AbsenceCountOutputType without action
+ */
+export type AbsenceCountOutputTypeCountApprovalHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalHistoryWhereInput
+}
 
 
 export type AbsenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1359,6 +1530,8 @@ export type AbsenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
   reason?: boolean | Prisma.Absence$reasonArgs<ExtArgs>
+  approvalHistory?: boolean | Prisma.Absence$approvalHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.AbsenceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["absence"]>
 
 export type AbsenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1438,6 +1611,8 @@ export type AbsenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
   reason?: boolean | Prisma.Absence$reasonArgs<ExtArgs>
+  approvalHistory?: boolean | Prisma.Absence$approvalHistoryArgs<ExtArgs>
+  _count?: boolean | Prisma.AbsenceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AbsenceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
@@ -1456,6 +1631,7 @@ export type $AbsencePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     employee: Prisma.$EmployeePayload<ExtArgs>
     type: Prisma.$AbsenceTypePayload<ExtArgs>
     reason: Prisma.$AbsenceReasonPayload<ExtArgs> | null
+    approvalHistory: Prisma.$ApprovalHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: bigint
@@ -1874,6 +2050,7 @@ export interface Prisma__AbsenceClient<T, Null = never, ExtArgs extends runtime.
   employee<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   type<T extends Prisma.AbsenceTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AbsenceTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__AbsenceTypeClient<runtime.Types.Result.GetResult<Prisma.$AbsenceTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reason<T extends Prisma.Absence$reasonArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Absence$reasonArgs<ExtArgs>>): Prisma.Prisma__AbsenceReasonClient<runtime.Types.Result.GetResult<Prisma.$AbsenceReasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  approvalHistory<T extends Prisma.Absence$approvalHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Absence$approvalHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2339,6 +2516,30 @@ export type Absence$reasonArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   include?: Prisma.AbsenceReasonInclude<ExtArgs> | null
   where?: Prisma.AbsenceReasonWhereInput
+}
+
+/**
+ * Absence.approvalHistory
+ */
+export type Absence$approvalHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalHistory
+   */
+  select?: Prisma.ApprovalHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApprovalHistory
+   */
+  omit?: Prisma.ApprovalHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalHistoryInclude<ExtArgs> | null
+  where?: Prisma.ApprovalHistoryWhereInput
+  orderBy?: Prisma.ApprovalHistoryOrderByWithRelationInput | Prisma.ApprovalHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalHistoryScalarFieldEnum | Prisma.ApprovalHistoryScalarFieldEnum[]
 }
 
 /**

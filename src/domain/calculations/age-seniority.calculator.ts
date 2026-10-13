@@ -3,6 +3,9 @@ import { MOROCCAN_LABOR_RULES } from '../constants/moroccan-labor-rules';
 export class AgeSeniorityCalculator {
   /**
    * Calculates completed calendar months of service between hireDate and referenceDate.
+   * Accurately accounts for:
+   * - Employees hired on the 1st of a month who work through the last day of a month (completes that full month).
+   * - Exact day-of-month boundaries.
    */
   public static calculateSeniorityMonths(hireDate: Date, referenceDate: Date = new Date()): number {
     if (referenceDate < hireDate) {
@@ -12,9 +15,18 @@ export class AgeSeniorityCalculator {
     let months = (referenceDate.getFullYear() - hireDate.getFullYear()) * 12 +
                  (referenceDate.getMonth() - hireDate.getMonth());
 
-    // If reference day is before hire day in the month, completed full month has not been reached
+    const isRefEndOfMonth =
+      new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0).getDate() ===
+      referenceDate.getDate();
+
     if (referenceDate.getDate() < hireDate.getDate()) {
-      months -= 1;
+      // If reference date is the last day of month (e.g. Feb 28 when hired on the 31st), month counts as completed
+      if (!isRefEndOfMonth) {
+        months -= 1;
+      }
+    } else if (hireDate.getDate() === 1 && isRefEndOfMonth) {
+      // Hired on the 1st and reference date is the last day of the month -> full month is completed
+      months += 1;
     }
 
     return Math.max(0, months);

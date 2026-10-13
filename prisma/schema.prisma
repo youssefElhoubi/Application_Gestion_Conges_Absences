@@ -12,10 +12,10 @@ datasource db {
 // ============================================================================
 
 enum Role {
+  ADMIN
+  HR_MANAGER
+  SUPERVISOR
   EMPLOYEE
-  SITE_MANAGER
-  HR_ADMIN
-  SYSTEM_ADMIN
 }
 
 enum AbsenceStatus {
@@ -39,9 +39,37 @@ enum RuleUnit {
   RATIO
 }
 
+enum ApprovalAction {
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CANCELLED
+  CORRECTED
+}
+
 // ============================================================================
 // ENTITIES
 // ============================================================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique @db.VarChar(150)
+  passwordHash String    @db.VarChar(255)
+  role         Role      @default(EMPLOYEE)
+  isActive     Boolean   @default(true)
+  employeeId   String?   @unique @db.VarChar(50)
+
+  // Audit columns
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  employee     Employee? @relation(fields: [employeeId], references: [employeeId], onDelete: SetNull)
+  approvalLogs ApprovalHistory[]
+
+  @@index([role, isActive])
+  @@index([employeeId])
+}
 
 model Site {
   id             Int       @id @default(autoincrement())
@@ -50,6 +78,7 @@ model Site {
   city           String?   @db.VarChar(100)
   timezone       String    @default("Africa/Casablanca") @db.VarChar(50)
   weeklyRestDays Int[]     @default([0]) // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  active         Boolean   @default(true)
 
   // Audit columns
   createdAt      DateTime  @default(now()) @db.Timestamptz(6)
@@ -58,20 +87,20 @@ model Site {
   // Relations
   employees      Employee[]
 
-  @@index([city])
+  @@index([city, active])
 }
 
 model Employee {
-  employeeId   String    @id @db.VarChar(50) // Matricule / Registration identifier
+  employeeId   String    @id @db.VarChar(50) // Business matricule (e.g. MAT-00104)
   cin          String    @unique @db.VarChar(20) // National Identity Card (CIN)
   cnssNumber   String?   @unique @db.VarChar(20) // Moroccan Social Security (CNSS)
   fullName     String    @db.VarChar(150)
   email        String    @unique @db.VarChar(150)
   siteId       Int
-  role         Role      @default(EMPLOYEE)
   jobTitle     String?   @db.VarChar(100)
+  department   String?   @db.VarChar(100)
   birthDate    DateTime? @db.Date
-  hireDate     DateTime  @db.Date // Crucial: anchor for dynamic accrual & seniority
+  hireDate     DateTime  @db.Date // Anchor for dynamic statutory accrual & seniority
   active       Boolean   @default(true)
   observation  String?   @db.Text
   managerId    String?   @db.VarChar(50)
@@ -84,6 +113,7 @@ model Employee {
   site               Site                @relation(fields: [siteId], references: [id], onDelete: Restrict)
   manager            Employee?           @relation("ReportingHierarchy", fields: [managerId], references: [employeeId], onDelete: SetNull)
   subordinates       Employee[]          @relation("ReportingHierarchy")
+  user               User?
   absences           Absence[]
   holidayWorkCredits HolidayWorkCredit[]
 
@@ -94,22 +124,22 @@ model Employee {
 }
 
 model AbsenceType {
-  id                     Int       @id @default(autoincrement())
-  code                   String    @unique @db.VarChar(50) // e.g., CONGE_PAYE, MALADIE, RECUPERATION
-  name                   String    @unique @db.VarChar(100)
-  description            String?   @db.VarChar(255)
-  isDeductible           Boolean   @default(true) // Deducts from paid leave balance if true
-  requiresJustification  Boolean   @default(false) // Requires medical certificate or legal proof
-  colorHex               String    @default("#2563eb") @db.VarChar(7)
-  active                 Boolean   @default(true)
+  id                    Int             @id @default(autoincrement())
+  code                  String          @unique @db.VarChar(50) // CONGE_PAYE, EVENEMENT_FAMILIAL, RECUPERATION, ABSENCE_INJUSTIFIEE
+  name                  String          @unique @db.VarChar(100)
+  description           String?         @db.VarChar(255)
+  isDeductible          Boolean         @default(true) // Deducts from paid leave balance if true
+  requiresJustification Boolean         @default(false) // Requires medical certificate / legal act
+  colorHex              String          @default("#2563eb") @db.VarChar(7)
+  active                Boolean         @default(true)
 
   // Audit columns
-  createdAt              DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt              DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt             DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime        @updatedAt @db.Timestamptz(6)
 
   // Relations
-  absences               Absence[]
-  absenceReasons         AbsenceReason[]
+  absences              Absence[]
+  absenceReasons        AbsenceReason[]
 
   @@index([active])
 }
@@ -119,7 +149,7 @@ model AbsenceReason {
   typeId      Int
   code        String      @unique @db.VarChar(50) // e.g., MARIAGE_SALARIE, NAISSANCE_ENFANT
   name        String      @db.VarChar(100)
-  allowedDays Decimal     @db.Decimal(5, 2) // Statutory entitlement cap (e.g., 4.00 for marriage)
+  allowedDays Decimal     @db.Decimal(5, 2) // Statutory entitlement cap (Art. 274)
   active      Boolean     @default(true)
 
   // Audit columns
@@ -135,51 +165,70 @@ model AbsenceReason {
 }
 
 model Absence {
-  id                         BigInt        @id @default(autoincrement())
-  employeeId                 String        @db.VarChar(50)
+  id                         BigInt         @id @default(autoincrement())
+  employeeId                 String         @db.VarChar(50)
   typeId                     Int
   reasonId                   Int?
-  startDate                  DateTime      @db.Date
-  endDate                    DateTime      @db.Date
-  fraction                   Fraction      @default(FULL_DAY)
-  calculatedWorkingDays      Decimal       @db.Decimal(5, 2) // Net statutory working days
-  enteredDays                Decimal       @db.Decimal(5, 2) // Gross calendar days requested
-  retainedDays               Decimal       @db.Decimal(5, 2) // Net days retained for deduction
-  supportingDocumentProvided Boolean       @default(false)
-  status                     AbsenceStatus @default(PENDING)
-  requestDate                DateTime      @default(now()) @db.Timestamptz(6)
-  comment                    String?       @db.Text
-  rejectionReason            String?       @db.VarChar(255)
-  approvedById               String?       @db.VarChar(50)
-  approvedAt                 DateTime?     @db.Timestamptz(6)
+  startDate                  DateTime       @db.Date
+  endDate                    DateTime       @db.Date
+  fraction                   Fraction       @default(FULL_DAY)
+  calculatedWorkingDays      Decimal        @db.Decimal(5, 2) // Net statutory working days
+  enteredDays                Decimal        @db.Decimal(5, 2) // Gross calendar days requested
+  retainedDays               Decimal        @db.Decimal(5, 2) // Net days retained for balance deduction
+  supportingDocumentProvided Boolean        @default(false)
+  status                     AbsenceStatus  @default(PENDING)
+  requestDate                DateTime       @default(now()) @db.Timestamptz(6)
+  comment                    String?        @db.Text
+  rejectionReason            String?        @db.VarChar(255)
+  approvedById               String?        @db.VarChar(50)
+  approvedAt                 DateTime?      @db.Timestamptz(6)
 
   // Audit columns
-  createdAt                  DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt                  DateTime      @updatedAt @db.Timestamptz(6)
+  createdAt                  DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime       @updatedAt @db.Timestamptz(6)
 
   // Relations
-  employee                   Employee      @relation(fields: [employeeId], references: [employeeId], onDelete: Restrict)
-  type                       AbsenceType   @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  employee                   Employee       @relation(fields: [employeeId], references: [employeeId], onDelete: Restrict)
+  type                       AbsenceType    @relation(fields: [typeId], references: [id], onDelete: Restrict)
   reason                     AbsenceReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  approvalHistory            ApprovalHistory[]
 
   // High-performance query indexes
-  @@index([employeeId, startDate, endDate]) // Essential: absence collision & overlap detection
-  @@index([employeeId, status])             // Essential: dynamic balance aggregation
-  @@index([status, startDate])              // Dashboard & calendar month filtration
+  @@index([employeeId, startDate, endDate])
+  @@index([employeeId, status])
+  @@index([status, startDate])
   @@index([typeId])
   @@index([startDate, endDate])
 }
 
+model ApprovalHistory {
+  id                    BigInt         @id @default(autoincrement())
+  absenceId             BigInt
+  action                ApprovalAction
+  fromStatus            AbsenceStatus
+  toStatus              AbsenceStatus
+  performedByUserId     String?        @db.VarChar(50)
+  performedByEmployeeId String?        @db.VarChar(50)
+  comment               String?        @db.Text
+  createdAt             DateTime       @default(now()) @db.Timestamptz(6)
+
+  absence               Absence        @relation(fields: [absenceId], references: [id], onDelete: Cascade)
+  performedByUser       User?          @relation(fields: [performedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([absenceId, createdAt])
+  @@index([performedByUserId])
+}
+
 model PublicHoliday {
-  id          BigInt    @id @default(autoincrement())
-  date        DateTime  @unique @db.Date
-  label       String    @db.VarChar(100) // e.g., "Fête du Trône", "Aïd Al-Fitr"
-  isReligious Boolean   @default(false)
-  comment     String?   @db.VarChar(255)
+  id          BigInt              @id @default(autoincrement())
+  date        DateTime            @unique @db.Date
+  label       String              @db.VarChar(100) // e.g., "Fête du Trône", "Aïd Al-Fitr"
+  isReligious Boolean             @default(false)
+  comment     String?             @db.VarChar(255)
 
   // Audit columns
-  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
 
   // Relations
   holidayWorkCredits HolidayWorkCredit[]
@@ -188,25 +237,26 @@ model PublicHoliday {
 }
 
 model HolidayWorkCredit {
-  id              BigInt        @id @default(autoincrement())
-  employeeId      String        @db.VarChar(50)
-  publicHolidayId BigInt
-  creditedDays    Decimal       @default(1.00) @db.Decimal(5, 2) // Number of recovery days earned
-  consumedDays    Decimal       @default(0.00) @db.Decimal(5, 2) // Portions consumed by recovery leaves
-  isFullyConsumed Boolean       @default(false) // Optimized filter: credits never expire
-  comment         String?       @db.VarChar(255)
+  id                 BigInt        @id @default(autoincrement())
+  employeeId         String        @db.VarChar(50)
+  publicHolidayId    BigInt
+  creditedDays       Decimal       @default(1.00) @db.Decimal(5, 2)
+  consumedDays       Decimal       @default(0.00) @db.Decimal(5, 2)
+  isFullyConsumed    Boolean       @default(false) // Optimized filter: credits never expire
+  recordedByUserId   String?       @db.VarChar(50) // User who granted/corrected this credit
+  comment            String?       @db.VarChar(255)
 
   // Audit columns
-  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
+  createdAt          DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime      @updatedAt @db.Timestamptz(6)
 
   // Relations
-  employee        Employee      @relation(fields: [employeeId], references: [employeeId], onDelete: Restrict)
-  publicHoliday   PublicHoliday @relation(fields: [publicHolidayId], references: [id], onDelete: Restrict)
+  employee           Employee      @relation(fields: [employeeId], references: [employeeId], onDelete: Restrict)
+  publicHoliday      PublicHoliday @relation(fields: [publicHolidayId], references: [id], onDelete: Restrict)
 
   // Constraint: One credit record per employee per worked public holiday
   @@unique([employeeId, publicHolidayId])
-  @@index([employeeId, isFullyConsumed]) // Crucial for dynamic recovery balance sum
+  @@index([employeeId, isFullyConsumed])
 }
 
 model LeaveRule {

@@ -51,11 +51,13 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
   Site: 'Site',
   Employee: 'Employee',
   AbsenceType: 'AbsenceType',
   AbsenceReason: 'AbsenceReason',
   Absence: 'Absence',
+  ApprovalHistory: 'ApprovalHistory',
   PublicHoliday: 'PublicHoliday',
   HolidayWorkCredit: 'HolidayWorkCredit',
   LeaveRule: 'LeaveRule'
@@ -77,6 +79,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  role: 'role',
+  isActive: 'isActive',
+  employeeId: 'employeeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
 export const SiteScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -84,6 +100,7 @@ export const SiteScalarFieldEnum = {
   city: 'city',
   timezone: 'timezone',
   weeklyRestDays: 'weeklyRestDays',
+  active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -98,8 +115,8 @@ export const EmployeeScalarFieldEnum = {
   fullName: 'fullName',
   email: 'email',
   siteId: 'siteId',
-  role: 'role',
   jobTitle: 'jobTitle',
+  department: 'department',
   birthDate: 'birthDate',
   hireDate: 'hireDate',
   active: 'active',
@@ -167,6 +184,21 @@ export const AbsenceScalarFieldEnum = {
 export type AbsenceScalarFieldEnum = (typeof AbsenceScalarFieldEnum)[keyof typeof AbsenceScalarFieldEnum]
 
 
+export const ApprovalHistoryScalarFieldEnum = {
+  id: 'id',
+  absenceId: 'absenceId',
+  action: 'action',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  performedByUserId: 'performedByUserId',
+  performedByEmployeeId: 'performedByEmployeeId',
+  comment: 'comment',
+  createdAt: 'createdAt'
+} as const
+
+export type ApprovalHistoryScalarFieldEnum = (typeof ApprovalHistoryScalarFieldEnum)[keyof typeof ApprovalHistoryScalarFieldEnum]
+
+
 export const PublicHolidayScalarFieldEnum = {
   id: 'id',
   date: 'date',
@@ -187,6 +219,7 @@ export const HolidayWorkCreditScalarFieldEnum = {
   creditedDays: 'creditedDays',
   consumedDays: 'consumedDays',
   isFullyConsumed: 'isFullyConsumed',
+  recordedByUserId: 'recordedByUserId',
   comment: 'comment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
