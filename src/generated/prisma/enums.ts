@@ -9,6 +9,16 @@
 * 🟢 You can import this file directly.
 */
 
+export const Role = {
+  EMPLOYEE: 'EMPLOYEE',
+  SITE_MANAGER: 'SITE_MANAGER',
+  HR_ADMIN: 'HR_ADMIN',
+  SYSTEM_ADMIN: 'SYSTEM_ADMIN'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
 export const AbsenceStatus = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
@@ -21,7 +31,19 @@ export type AbsenceStatus = (typeof AbsenceStatus)[keyof typeof AbsenceStatus]
 
 export const Fraction = {
   FULL_DAY: 'FULL_DAY',
-  HALF_DAY: 'HALF_DAY'
+  HALF_DAY_MORNING: 'HALF_DAY_MORNING',
+  HALF_DAY_AFTERNOON: 'HALF_DAY_AFTERNOON'
 } as const
 
 export type Fraction = (typeof Fraction)[keyof typeof Fraction]
+
+
+export const RuleUnit = {
+  DAYS: 'DAYS',
+  MONTHS: 'MONTHS',
+  YEARS: 'YEARS',
+  PERCENTAGE: 'PERCENTAGE',
+  RATIO: 'RATIO'
+} as const
+
+export type RuleUnit = (typeof RuleUnit)[keyof typeof RuleUnit]

@@ -30,12 +30,14 @@ export type HolidayWorkCreditAvgAggregateOutputType = {
   id: number | null
   publicHolidayId: number | null
   creditedDays: runtime.Decimal | null
+  consumedDays: runtime.Decimal | null
 }
 
 export type HolidayWorkCreditSumAggregateOutputType = {
   id: bigint | null
   publicHolidayId: bigint | null
   creditedDays: runtime.Decimal | null
+  consumedDays: runtime.Decimal | null
 }
 
 export type HolidayWorkCreditMinAggregateOutputType = {
@@ -43,7 +45,11 @@ export type HolidayWorkCreditMinAggregateOutputType = {
   employeeId: string | null
   publicHolidayId: bigint | null
   creditedDays: runtime.Decimal | null
+  consumedDays: runtime.Decimal | null
+  isFullyConsumed: boolean | null
   comment: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type HolidayWorkCreditMaxAggregateOutputType = {
@@ -51,7 +57,11 @@ export type HolidayWorkCreditMaxAggregateOutputType = {
   employeeId: string | null
   publicHolidayId: bigint | null
   creditedDays: runtime.Decimal | null
+  consumedDays: runtime.Decimal | null
+  isFullyConsumed: boolean | null
   comment: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type HolidayWorkCreditCountAggregateOutputType = {
@@ -59,7 +69,11 @@ export type HolidayWorkCreditCountAggregateOutputType = {
   employeeId: number
   publicHolidayId: number
   creditedDays: number
+  consumedDays: number
+  isFullyConsumed: number
   comment: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -68,12 +82,14 @@ export type HolidayWorkCreditAvgAggregateInputType = {
   id?: true
   publicHolidayId?: true
   creditedDays?: true
+  consumedDays?: true
 }
 
 export type HolidayWorkCreditSumAggregateInputType = {
   id?: true
   publicHolidayId?: true
   creditedDays?: true
+  consumedDays?: true
 }
 
 export type HolidayWorkCreditMinAggregateInputType = {
@@ -81,7 +97,11 @@ export type HolidayWorkCreditMinAggregateInputType = {
   employeeId?: true
   publicHolidayId?: true
   creditedDays?: true
+  consumedDays?: true
+  isFullyConsumed?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type HolidayWorkCreditMaxAggregateInputType = {
@@ -89,7 +109,11 @@ export type HolidayWorkCreditMaxAggregateInputType = {
   employeeId?: true
   publicHolidayId?: true
   creditedDays?: true
+  consumedDays?: true
+  isFullyConsumed?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type HolidayWorkCreditCountAggregateInputType = {
@@ -97,7 +121,11 @@ export type HolidayWorkCreditCountAggregateInputType = {
   employeeId?: true
   publicHolidayId?: true
   creditedDays?: true
+  consumedDays?: true
+  isFullyConsumed?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -192,7 +220,11 @@ export type HolidayWorkCreditGroupByOutputType = {
   employeeId: string
   publicHolidayId: bigint
   creditedDays: runtime.Decimal
+  consumedDays: runtime.Decimal
+  isFullyConsumed: boolean
   comment: string | null
+  createdAt: Date
+  updatedAt: Date
   _count: HolidayWorkCreditCountAggregateOutputType | null
   _avg: HolidayWorkCreditAvgAggregateOutputType | null
   _sum: HolidayWorkCreditSumAggregateOutputType | null
@@ -223,7 +255,11 @@ export type HolidayWorkCreditWhereInput = {
   employeeId?: Prisma.StringFilter<"HolidayWorkCredit"> | string
   publicHolidayId?: Prisma.BigIntFilter<"HolidayWorkCredit"> | bigint | number
   creditedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFilter<"HolidayWorkCredit"> | boolean
   comment?: Prisma.StringNullableFilter<"HolidayWorkCredit"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   publicHoliday?: Prisma.XOR<Prisma.PublicHolidayScalarRelationFilter, Prisma.PublicHolidayWhereInput>
 }
@@ -233,30 +269,43 @@ export type HolidayWorkCreditOrderByWithRelationInput = {
   employeeId?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
+  isFullyConsumed?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   employee?: Prisma.EmployeeOrderByWithRelationInput
   publicHoliday?: Prisma.PublicHolidayOrderByWithRelationInput
 }
 
 export type HolidayWorkCreditWhereUniqueInput = Prisma.AtLeast<{
   id?: bigint | number
+  employeeId_publicHolidayId?: Prisma.HolidayWorkCreditEmployeeIdPublicHolidayIdCompoundUniqueInput
   AND?: Prisma.HolidayWorkCreditWhereInput | Prisma.HolidayWorkCreditWhereInput[]
   OR?: Prisma.HolidayWorkCreditWhereInput[]
   NOT?: Prisma.HolidayWorkCreditWhereInput | Prisma.HolidayWorkCreditWhereInput[]
   employeeId?: Prisma.StringFilter<"HolidayWorkCredit"> | string
   publicHolidayId?: Prisma.BigIntFilter<"HolidayWorkCredit"> | bigint | number
   creditedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFilter<"HolidayWorkCredit"> | boolean
   comment?: Prisma.StringNullableFilter<"HolidayWorkCredit"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   publicHoliday?: Prisma.XOR<Prisma.PublicHolidayScalarRelationFilter, Prisma.PublicHolidayWhereInput>
-}, "id">
+}, "id" | "employeeId_publicHolidayId">
 
 export type HolidayWorkCreditOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
+  isFullyConsumed?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.HolidayWorkCreditCountOrderByAggregateInput
   _avg?: Prisma.HolidayWorkCreditAvgOrderByAggregateInput
   _max?: Prisma.HolidayWorkCreditMaxOrderByAggregateInput
@@ -272,13 +321,21 @@ export type HolidayWorkCreditScalarWhereWithAggregatesInput = {
   employeeId?: Prisma.StringWithAggregatesFilter<"HolidayWorkCredit"> | string
   publicHolidayId?: Prisma.BigIntWithAggregatesFilter<"HolidayWorkCredit"> | bigint | number
   creditedDays?: Prisma.DecimalWithAggregatesFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalWithAggregatesFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolWithAggregatesFilter<"HolidayWorkCredit"> | boolean
   comment?: Prisma.StringNullableWithAggregatesFilter<"HolidayWorkCredit"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"HolidayWorkCredit"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"HolidayWorkCredit"> | Date | string
 }
 
 export type HolidayWorkCreditCreateInput = {
   id?: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutHolidayWorkCreditsInput
   publicHoliday: Prisma.PublicHolidayCreateNestedOneWithoutHolidayWorkCreditsInput
 }
@@ -287,14 +344,22 @@ export type HolidayWorkCreditUncheckedCreateInput = {
   id?: bigint | number
   employeeId: string
   publicHolidayId: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput
   publicHoliday?: Prisma.PublicHolidayUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput
 }
@@ -304,21 +369,33 @@ export type HolidayWorkCreditUncheckedUpdateInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   publicHolidayId?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditCreateManyInput = {
   id?: bigint | number
   employeeId: string
   publicHolidayId: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditUncheckedUpdateManyInput = {
@@ -326,7 +403,11 @@ export type HolidayWorkCreditUncheckedUpdateManyInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   publicHolidayId?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditListRelationFilter = {
@@ -339,18 +420,28 @@ export type HolidayWorkCreditOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type HolidayWorkCreditEmployeeIdPublicHolidayIdCompoundUniqueInput = {
+  employeeId: string
+  publicHolidayId: bigint | number
+}
+
 export type HolidayWorkCreditCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
+  isFullyConsumed?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type HolidayWorkCreditAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
 }
 
 export type HolidayWorkCreditMaxOrderByAggregateInput = {
@@ -358,7 +449,11 @@ export type HolidayWorkCreditMaxOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
+  isFullyConsumed?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type HolidayWorkCreditMinOrderByAggregateInput = {
@@ -366,13 +461,18 @@ export type HolidayWorkCreditMinOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
+  isFullyConsumed?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type HolidayWorkCreditSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   publicHolidayId?: Prisma.SortOrder
   creditedDays?: Prisma.SortOrder
+  consumedDays?: Prisma.SortOrder
 }
 
 export type HolidayWorkCreditCreateNestedManyWithoutEmployeeInput = {
@@ -461,16 +561,24 @@ export type HolidayWorkCreditUncheckedUpdateManyWithoutPublicHolidayNestedInput 
 
 export type HolidayWorkCreditCreateWithoutEmployeeInput = {
   id?: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   publicHoliday: Prisma.PublicHolidayCreateNestedOneWithoutHolidayWorkCreditsInput
 }
 
 export type HolidayWorkCreditUncheckedCreateWithoutEmployeeInput = {
   id?: bigint | number
   publicHolidayId: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditCreateOrConnectWithoutEmployeeInput = {
@@ -507,21 +615,33 @@ export type HolidayWorkCreditScalarWhereInput = {
   employeeId?: Prisma.StringFilter<"HolidayWorkCredit"> | string
   publicHolidayId?: Prisma.BigIntFilter<"HolidayWorkCredit"> | bigint | number
   creditedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFilter<"HolidayWorkCredit"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFilter<"HolidayWorkCredit"> | boolean
   comment?: Prisma.StringNullableFilter<"HolidayWorkCredit"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"HolidayWorkCredit"> | Date | string
 }
 
 export type HolidayWorkCreditCreateWithoutPublicHolidayInput = {
   id?: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutHolidayWorkCreditsInput
 }
 
 export type HolidayWorkCreditUncheckedCreateWithoutPublicHolidayInput = {
   id?: bigint | number
   employeeId: string
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditCreateOrConnectWithoutPublicHolidayInput = {
@@ -553,14 +673,22 @@ export type HolidayWorkCreditUpdateManyWithWhereWithoutPublicHolidayInput = {
 export type HolidayWorkCreditCreateManyEmployeeInput = {
   id?: bigint | number
   publicHolidayId: bigint | number
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditUpdateWithoutEmployeeInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   publicHoliday?: Prisma.PublicHolidayUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput
 }
 
@@ -568,27 +696,43 @@ export type HolidayWorkCreditUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   publicHolidayId?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   publicHolidayId?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditCreateManyPublicHolidayInput = {
   id?: bigint | number
   employeeId: string
-  creditedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
+  creditedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type HolidayWorkCreditUpdateWithoutPublicHolidayInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput
 }
 
@@ -596,14 +740,22 @@ export type HolidayWorkCreditUncheckedUpdateWithoutPublicHolidayInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type HolidayWorkCreditUncheckedUpdateManyWithoutPublicHolidayInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   creditedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  consumedDays?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isFullyConsumed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -613,7 +765,11 @@ export type HolidayWorkCreditSelect<ExtArgs extends runtime.Types.Extensions.Int
   employeeId?: boolean
   publicHolidayId?: boolean
   creditedDays?: boolean
+  consumedDays?: boolean
+  isFullyConsumed?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   publicHoliday?: boolean | Prisma.PublicHolidayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["holidayWorkCredit"]>
@@ -623,7 +779,11 @@ export type HolidayWorkCreditSelectCreateManyAndReturn<ExtArgs extends runtime.T
   employeeId?: boolean
   publicHolidayId?: boolean
   creditedDays?: boolean
+  consumedDays?: boolean
+  isFullyConsumed?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   publicHoliday?: boolean | Prisma.PublicHolidayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["holidayWorkCredit"]>
@@ -633,7 +793,11 @@ export type HolidayWorkCreditSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   employeeId?: boolean
   publicHolidayId?: boolean
   creditedDays?: boolean
+  consumedDays?: boolean
+  isFullyConsumed?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   publicHoliday?: boolean | Prisma.PublicHolidayDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["holidayWorkCredit"]>
@@ -643,10 +807,14 @@ export type HolidayWorkCreditSelectScalar = {
   employeeId?: boolean
   publicHolidayId?: boolean
   creditedDays?: boolean
+  consumedDays?: boolean
+  isFullyConsumed?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type HolidayWorkCreditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "publicHolidayId" | "creditedDays" | "comment", ExtArgs["result"]["holidayWorkCredit"]>
+export type HolidayWorkCreditOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "publicHolidayId" | "creditedDays" | "consumedDays" | "isFullyConsumed" | "comment" | "createdAt" | "updatedAt", ExtArgs["result"]["holidayWorkCredit"]>
 export type HolidayWorkCreditInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   publicHoliday?: boolean | Prisma.PublicHolidayDefaultArgs<ExtArgs>
@@ -671,7 +839,11 @@ export type $HolidayWorkCreditPayload<ExtArgs extends runtime.Types.Extensions.I
     employeeId: string
     publicHolidayId: bigint
     creditedDays: runtime.Decimal
+    consumedDays: runtime.Decimal
+    isFullyConsumed: boolean
     comment: string | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["holidayWorkCredit"]>
   composites: {}
 }
@@ -1101,7 +1273,11 @@ export interface HolidayWorkCreditFieldRefs {
   readonly employeeId: Prisma.FieldRef<"HolidayWorkCredit", 'String'>
   readonly publicHolidayId: Prisma.FieldRef<"HolidayWorkCredit", 'BigInt'>
   readonly creditedDays: Prisma.FieldRef<"HolidayWorkCredit", 'Decimal'>
+  readonly consumedDays: Prisma.FieldRef<"HolidayWorkCredit", 'Decimal'>
+  readonly isFullyConsumed: Prisma.FieldRef<"HolidayWorkCredit", 'Boolean'>
   readonly comment: Prisma.FieldRef<"HolidayWorkCredit", 'String'>
+  readonly createdAt: Prisma.FieldRef<"HolidayWorkCredit", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"HolidayWorkCredit", 'DateTime'>
 }
     
 

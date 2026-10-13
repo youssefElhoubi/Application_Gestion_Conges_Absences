@@ -397,14 +397,14 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  Site: 'Site',
   Employee: 'Employee',
+  AbsenceType: 'AbsenceType',
+  AbsenceReason: 'AbsenceReason',
   Absence: 'Absence',
   PublicHoliday: 'PublicHoliday',
   HolidayWorkCredit: 'HolidayWorkCredit',
-  LeaveRule: 'LeaveRule',
-  Site: 'Site',
-  AbsenceType: 'AbsenceType',
-  AbsenceReason: 'AbsenceReason'
+  LeaveRule: 'LeaveRule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -420,10 +420,84 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "employee" | "absence" | "publicHoliday" | "holidayWorkCredit" | "leaveRule" | "site" | "absenceType" | "absenceReason"
+    modelProps: "site" | "employee" | "absenceType" | "absenceReason" | "absence" | "publicHoliday" | "holidayWorkCredit" | "leaveRule"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    Site: {
+      payload: Prisma.$SitePayload<ExtArgs>
+      fields: Prisma.SiteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        findFirst: {
+          args: Prisma.SiteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        findMany: {
+          args: Prisma.SiteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
+        }
+        create: {
+          args: Prisma.SiteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        createMany: {
+          args: Prisma.SiteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
+        }
+        delete: {
+          args: Prisma.SiteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        update: {
+          args: Prisma.SiteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
+        }
+        aggregate: {
+          args: Prisma.SiteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSite>
+        }
+        groupBy: {
+          args: Prisma.SiteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteCountAggregateOutputType> | number
+        }
+      }
+    }
     Employee: {
       payload: Prisma.$EmployeePayload<ExtArgs>
       fields: Prisma.EmployeeFieldRefs
@@ -495,6 +569,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EmployeeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EmployeeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AbsenceType: {
+      payload: Prisma.$AbsenceTypePayload<ExtArgs>
+      fields: Prisma.AbsenceTypeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AbsenceTypeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AbsenceTypeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        findFirst: {
+          args: Prisma.AbsenceTypeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AbsenceTypeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        findMany: {
+          args: Prisma.AbsenceTypeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
+        }
+        create: {
+          args: Prisma.AbsenceTypeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        createMany: {
+          args: Prisma.AbsenceTypeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AbsenceTypeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
+        }
+        delete: {
+          args: Prisma.AbsenceTypeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        update: {
+          args: Prisma.AbsenceTypeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        deleteMany: {
+          args: Prisma.AbsenceTypeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AbsenceTypeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AbsenceTypeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
+        }
+        upsert: {
+          args: Prisma.AbsenceTypeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
+        }
+        aggregate: {
+          args: Prisma.AbsenceTypeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAbsenceType>
+        }
+        groupBy: {
+          args: Prisma.AbsenceTypeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceTypeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AbsenceTypeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceTypeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AbsenceReason: {
+      payload: Prisma.$AbsenceReasonPayload<ExtArgs>
+      fields: Prisma.AbsenceReasonFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AbsenceReasonFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AbsenceReasonFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        findFirst: {
+          args: Prisma.AbsenceReasonFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AbsenceReasonFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        findMany: {
+          args: Prisma.AbsenceReasonFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
+        }
+        create: {
+          args: Prisma.AbsenceReasonCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        createMany: {
+          args: Prisma.AbsenceReasonCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AbsenceReasonCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
+        }
+        delete: {
+          args: Prisma.AbsenceReasonDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        update: {
+          args: Prisma.AbsenceReasonUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        deleteMany: {
+          args: Prisma.AbsenceReasonDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AbsenceReasonUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AbsenceReasonUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
+        }
+        upsert: {
+          args: Prisma.AbsenceReasonUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
+        }
+        aggregate: {
+          args: Prisma.AbsenceReasonAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAbsenceReason>
+        }
+        groupBy: {
+          args: Prisma.AbsenceReasonGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceReasonGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AbsenceReasonCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceReasonCountAggregateOutputType> | number
         }
       }
     }
@@ -794,228 +1016,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Site: {
-      payload: Prisma.$SitePayload<ExtArgs>
-      fields: Prisma.SiteFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.SiteFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.SiteFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        findFirst: {
-          args: Prisma.SiteFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.SiteFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        findMany: {
-          args: Prisma.SiteFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
-        }
-        create: {
-          args: Prisma.SiteCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        createMany: {
-          args: Prisma.SiteCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.SiteCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
-        }
-        delete: {
-          args: Prisma.SiteDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        update: {
-          args: Prisma.SiteUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        deleteMany: {
-          args: Prisma.SiteDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.SiteUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.SiteUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>[]
-        }
-        upsert: {
-          args: Prisma.SiteUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$SitePayload>
-        }
-        aggregate: {
-          args: Prisma.SiteAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateSite>
-        }
-        groupBy: {
-          args: Prisma.SiteGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SiteGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.SiteCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.SiteCountAggregateOutputType> | number
-        }
-      }
-    }
-    AbsenceType: {
-      payload: Prisma.$AbsenceTypePayload<ExtArgs>
-      fields: Prisma.AbsenceTypeFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.AbsenceTypeFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AbsenceTypeFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        findFirst: {
-          args: Prisma.AbsenceTypeFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.AbsenceTypeFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        findMany: {
-          args: Prisma.AbsenceTypeFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
-        }
-        create: {
-          args: Prisma.AbsenceTypeCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        createMany: {
-          args: Prisma.AbsenceTypeCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.AbsenceTypeCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
-        }
-        delete: {
-          args: Prisma.AbsenceTypeDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        update: {
-          args: Prisma.AbsenceTypeUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        deleteMany: {
-          args: Prisma.AbsenceTypeDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.AbsenceTypeUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.AbsenceTypeUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>[]
-        }
-        upsert: {
-          args: Prisma.AbsenceTypeUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceTypePayload>
-        }
-        aggregate: {
-          args: Prisma.AbsenceTypeAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAbsenceType>
-        }
-        groupBy: {
-          args: Prisma.AbsenceTypeGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AbsenceTypeGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.AbsenceTypeCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AbsenceTypeCountAggregateOutputType> | number
-        }
-      }
-    }
-    AbsenceReason: {
-      payload: Prisma.$AbsenceReasonPayload<ExtArgs>
-      fields: Prisma.AbsenceReasonFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.AbsenceReasonFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AbsenceReasonFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        findFirst: {
-          args: Prisma.AbsenceReasonFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.AbsenceReasonFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        findMany: {
-          args: Prisma.AbsenceReasonFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
-        }
-        create: {
-          args: Prisma.AbsenceReasonCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        createMany: {
-          args: Prisma.AbsenceReasonCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.AbsenceReasonCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
-        }
-        delete: {
-          args: Prisma.AbsenceReasonDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        update: {
-          args: Prisma.AbsenceReasonUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        deleteMany: {
-          args: Prisma.AbsenceReasonDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.AbsenceReasonUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.AbsenceReasonUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>[]
-        }
-        upsert: {
-          args: Prisma.AbsenceReasonUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceReasonPayload>
-        }
-        aggregate: {
-          args: Prisma.AbsenceReasonAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAbsenceReason>
-        }
-        groupBy: {
-          args: Prisma.AbsenceReasonGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AbsenceReasonGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.AbsenceReasonCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AbsenceReasonCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -1055,18 +1055,69 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const SiteScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  city: 'city',
+  timezone: 'timezone',
+  weeklyRestDays: 'weeklyRestDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteScalarFieldEnum = (typeof SiteScalarFieldEnum)[keyof typeof SiteScalarFieldEnum]
+
+
 export const EmployeeScalarFieldEnum = {
   employeeId: 'employeeId',
+  cin: 'cin',
+  cnssNumber: 'cnssNumber',
   fullName: 'fullName',
+  email: 'email',
   siteId: 'siteId',
+  role: 'role',
   jobTitle: 'jobTitle',
   birthDate: 'birthDate',
   hireDate: 'hireDate',
   active: 'active',
-  observation: 'observation'
+  observation: 'observation',
+  managerId: 'managerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const AbsenceTypeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  description: 'description',
+  isDeductible: 'isDeductible',
+  requiresJustification: 'requiresJustification',
+  colorHex: 'colorHex',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceTypeScalarFieldEnum = (typeof AbsenceTypeScalarFieldEnum)[keyof typeof AbsenceTypeScalarFieldEnum]
+
+
+export const AbsenceReasonScalarFieldEnum = {
+  id: 'id',
+  typeId: 'typeId',
+  code: 'code',
+  name: 'name',
+  allowedDays: 'allowedDays',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceReasonScalarFieldEnum = (typeof AbsenceReasonScalarFieldEnum)[keyof typeof AbsenceReasonScalarFieldEnum]
 
 
 export const AbsenceScalarFieldEnum = {
@@ -1083,7 +1134,12 @@ export const AbsenceScalarFieldEnum = {
   supportingDocumentProvided: 'supportingDocumentProvided',
   status: 'status',
   requestDate: 'requestDate',
-  comment: 'comment'
+  comment: 'comment',
+  rejectionReason: 'rejectionReason',
+  approvedById: 'approvedById',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type AbsenceScalarFieldEnum = (typeof AbsenceScalarFieldEnum)[keyof typeof AbsenceScalarFieldEnum]
@@ -1093,7 +1149,10 @@ export const PublicHolidayScalarFieldEnum = {
   id: 'id',
   date: 'date',
   label: 'label',
-  comment: 'comment'
+  isReligious: 'isReligious',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PublicHolidayScalarFieldEnum = (typeof PublicHolidayScalarFieldEnum)[keyof typeof PublicHolidayScalarFieldEnum]
@@ -1104,7 +1163,11 @@ export const HolidayWorkCreditScalarFieldEnum = {
   employeeId: 'employeeId',
   publicHolidayId: 'publicHolidayId',
   creditedDays: 'creditedDays',
-  comment: 'comment'
+  consumedDays: 'consumedDays',
+  isFullyConsumed: 'isFullyConsumed',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type HolidayWorkCreditScalarFieldEnum = (typeof HolidayWorkCreditScalarFieldEnum)[keyof typeof HolidayWorkCreditScalarFieldEnum]
@@ -1112,39 +1175,17 @@ export type HolidayWorkCreditScalarFieldEnum = (typeof HolidayWorkCreditScalarFi
 
 export const LeaveRuleScalarFieldEnum = {
   id: 'id',
+  code: 'code',
   name: 'name',
   value: 'value',
   unit: 'unit',
-  description: 'description'
+  description: 'description',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type LeaveRuleScalarFieldEnum = (typeof LeaveRuleScalarFieldEnum)[keyof typeof LeaveRuleScalarFieldEnum]
-
-
-export const SiteScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-} as const
-
-export type SiteScalarFieldEnum = (typeof SiteScalarFieldEnum)[keyof typeof SiteScalarFieldEnum]
-
-
-export const AbsenceTypeScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-} as const
-
-export type AbsenceTypeScalarFieldEnum = (typeof AbsenceTypeScalarFieldEnum)[keyof typeof AbsenceTypeScalarFieldEnum]
-
-
-export const AbsenceReasonScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  typeId: 'typeId',
-  allowedDays: 'allowedDays'
-} as const
-
-export type AbsenceReasonScalarFieldEnum = (typeof AbsenceReasonScalarFieldEnum)[keyof typeof AbsenceReasonScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1178,20 +1219,6 @@ export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 /**
- * Reference to a field of type 'String'
- */
-export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
-    
-
-
-/**
- * Reference to a field of type 'String[]'
- */
-export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1202,6 +1229,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'String'
+ */
+export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
+    
+
+
+/**
+ * Reference to a field of type 'String[]'
+ */
+export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
     
 
 
@@ -1220,9 +1261,37 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'Role'
+ */
+export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+/**
+ * Reference to a field of type 'Role[]'
+ */
+export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -1255,20 +1324,6 @@ export type ListEnumFractionFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 
 
 /**
- * Reference to a field of type 'Decimal'
- */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
-
-
-/**
- * Reference to a field of type 'Decimal[]'
- */
-export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
-
-
-/**
  * Reference to a field of type 'AbsenceStatus'
  */
 export type EnumAbsenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AbsenceStatus'>
@@ -1279,6 +1334,20 @@ export type EnumAbsenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'AbsenceStatus[]'
  */
 export type ListEnumAbsenceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AbsenceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RuleUnit'
+ */
+export type EnumRuleUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'RuleUnit[]'
+ */
+export type ListEnumRuleUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleUnit[]'>
     
 
 
@@ -1446,14 +1515,14 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
  */
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
+  site?: Prisma.SiteOmit
   employee?: Prisma.EmployeeOmit
+  absenceType?: Prisma.AbsenceTypeOmit
+  absenceReason?: Prisma.AbsenceReasonOmit
   absence?: Prisma.AbsenceOmit
   publicHoliday?: Prisma.PublicHolidayOmit
   holidayWorkCredit?: Prisma.HolidayWorkCreditOmit
   leaveRule?: Prisma.LeaveRuleOmit
-  site?: Prisma.SiteOmit
-  absenceType?: Prisma.AbsenceTypeOmit
-  absenceReason?: Prisma.AbsenceReasonOmit
 }
 
 /* Types for Logging */

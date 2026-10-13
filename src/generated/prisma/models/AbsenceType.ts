@@ -36,17 +36,41 @@ export type AbsenceTypeSumAggregateOutputType = {
 
 export type AbsenceTypeMinAggregateOutputType = {
   id: number | null
+  code: string | null
   name: string | null
+  description: string | null
+  isDeductible: boolean | null
+  requiresJustification: boolean | null
+  colorHex: string | null
+  active: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AbsenceTypeMaxAggregateOutputType = {
   id: number | null
+  code: string | null
   name: string | null
+  description: string | null
+  isDeductible: boolean | null
+  requiresJustification: boolean | null
+  colorHex: string | null
+  active: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AbsenceTypeCountAggregateOutputType = {
   id: number
+  code: number
   name: number
+  description: number
+  isDeductible: number
+  requiresJustification: number
+  colorHex: number
+  active: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -61,17 +85,41 @@ export type AbsenceTypeSumAggregateInputType = {
 
 export type AbsenceTypeMinAggregateInputType = {
   id?: true
+  code?: true
   name?: true
+  description?: true
+  isDeductible?: true
+  requiresJustification?: true
+  colorHex?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AbsenceTypeMaxAggregateInputType = {
   id?: true
+  code?: true
   name?: true
+  description?: true
+  isDeductible?: true
+  requiresJustification?: true
+  colorHex?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AbsenceTypeCountAggregateInputType = {
   id?: true
+  code?: true
   name?: true
+  description?: true
+  isDeductible?: true
+  requiresJustification?: true
+  colorHex?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -163,7 +211,15 @@ export type AbsenceTypeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type AbsenceTypeGroupByOutputType = {
   id: number
+  code: string
   name: string
+  description: string | null
+  isDeductible: boolean
+  requiresJustification: boolean
+  colorHex: string
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
   _count: AbsenceTypeCountAggregateOutputType | null
   _avg: AbsenceTypeAvgAggregateOutputType | null
   _sum: AbsenceTypeSumAggregateOutputType | null
@@ -191,31 +247,63 @@ export type AbsenceTypeWhereInput = {
   OR?: Prisma.AbsenceTypeWhereInput[]
   NOT?: Prisma.AbsenceTypeWhereInput | Prisma.AbsenceTypeWhereInput[]
   id?: Prisma.IntFilter<"AbsenceType"> | number
+  code?: Prisma.StringFilter<"AbsenceType"> | string
   name?: Prisma.StringFilter<"AbsenceType"> | string
+  description?: Prisma.StringNullableFilter<"AbsenceType"> | string | null
+  isDeductible?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  requiresJustification?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  colorHex?: Prisma.StringFilter<"AbsenceType"> | string
+  active?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"AbsenceType"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AbsenceType"> | Date | string
   absences?: Prisma.AbsenceListRelationFilter
   absenceReasons?: Prisma.AbsenceReasonListRelationFilter
 }
 
 export type AbsenceTypeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isDeductible?: Prisma.SortOrder
+  requiresJustification?: Prisma.SortOrder
+  colorHex?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   absences?: Prisma.AbsenceOrderByRelationAggregateInput
   absenceReasons?: Prisma.AbsenceReasonOrderByRelationAggregateInput
 }
 
 export type AbsenceTypeWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  code?: string
   name?: string
   AND?: Prisma.AbsenceTypeWhereInput | Prisma.AbsenceTypeWhereInput[]
   OR?: Prisma.AbsenceTypeWhereInput[]
   NOT?: Prisma.AbsenceTypeWhereInput | Prisma.AbsenceTypeWhereInput[]
+  description?: Prisma.StringNullableFilter<"AbsenceType"> | string | null
+  isDeductible?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  requiresJustification?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  colorHex?: Prisma.StringFilter<"AbsenceType"> | string
+  active?: Prisma.BoolFilter<"AbsenceType"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"AbsenceType"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"AbsenceType"> | Date | string
   absences?: Prisma.AbsenceListRelationFilter
   absenceReasons?: Prisma.AbsenceReasonListRelationFilter
-}, "id" | "name">
+}, "id" | "code" | "name">
 
 export type AbsenceTypeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isDeductible?: Prisma.SortOrder
+  requiresJustification?: Prisma.SortOrder
+  colorHex?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.AbsenceTypeCountOrderByAggregateInput
   _avg?: Prisma.AbsenceTypeAvgOrderByAggregateInput
   _max?: Prisma.AbsenceTypeMaxOrderByAggregateInput
@@ -228,57 +316,124 @@ export type AbsenceTypeScalarWhereWithAggregatesInput = {
   OR?: Prisma.AbsenceTypeScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AbsenceTypeScalarWhereWithAggregatesInput | Prisma.AbsenceTypeScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"AbsenceType"> | number
+  code?: Prisma.StringWithAggregatesFilter<"AbsenceType"> | string
   name?: Prisma.StringWithAggregatesFilter<"AbsenceType"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"AbsenceType"> | string | null
+  isDeductible?: Prisma.BoolWithAggregatesFilter<"AbsenceType"> | boolean
+  requiresJustification?: Prisma.BoolWithAggregatesFilter<"AbsenceType"> | boolean
+  colorHex?: Prisma.StringWithAggregatesFilter<"AbsenceType"> | string
+  active?: Prisma.BoolWithAggregatesFilter<"AbsenceType"> | boolean
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"AbsenceType"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AbsenceType"> | Date | string
 }
 
 export type AbsenceTypeCreateInput = {
+  code: string
   name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   absences?: Prisma.AbsenceCreateNestedManyWithoutTypeInput
   absenceReasons?: Prisma.AbsenceReasonCreateNestedManyWithoutTypeInput
 }
 
 export type AbsenceTypeUncheckedCreateInput = {
   id?: number
+  code: string
   name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutTypeInput
   absenceReasons?: Prisma.AbsenceReasonUncheckedCreateNestedManyWithoutTypeInput
 }
 
 export type AbsenceTypeUpdateInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   absences?: Prisma.AbsenceUpdateManyWithoutTypeNestedInput
   absenceReasons?: Prisma.AbsenceReasonUpdateManyWithoutTypeNestedInput
 }
 
 export type AbsenceTypeUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   absences?: Prisma.AbsenceUncheckedUpdateManyWithoutTypeNestedInput
   absenceReasons?: Prisma.AbsenceReasonUncheckedUpdateManyWithoutTypeNestedInput
 }
 
 export type AbsenceTypeCreateManyInput = {
   id?: number
+  code: string
   name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceTypeUpdateManyMutationInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceTypeUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-}
-
-export type AbsenceTypeScalarRelationFilter = {
-  is?: Prisma.AbsenceTypeWhereInput
-  isNot?: Prisma.AbsenceTypeWhereInput
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceTypeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isDeductible?: Prisma.SortOrder
+  requiresJustification?: Prisma.SortOrder
+  colorHex?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceTypeAvgOrderByAggregateInput = {
@@ -287,30 +442,37 @@ export type AbsenceTypeAvgOrderByAggregateInput = {
 
 export type AbsenceTypeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isDeductible?: Prisma.SortOrder
+  requiresJustification?: Prisma.SortOrder
+  colorHex?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceTypeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isDeductible?: Prisma.SortOrder
+  requiresJustification?: Prisma.SortOrder
+  colorHex?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceTypeSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
-export type AbsenceTypeCreateNestedOneWithoutAbsencesInput = {
-  create?: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
-  connectOrCreate?: Prisma.AbsenceTypeCreateOrConnectWithoutAbsencesInput
-  connect?: Prisma.AbsenceTypeWhereUniqueInput
-}
-
-export type AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput = {
-  create?: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
-  connectOrCreate?: Prisma.AbsenceTypeCreateOrConnectWithoutAbsencesInput
-  upsert?: Prisma.AbsenceTypeUpsertWithoutAbsencesInput
-  connect?: Prisma.AbsenceTypeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.AbsenceTypeUpdateToOneWithWhereWithoutAbsencesInput, Prisma.AbsenceTypeUpdateWithoutAbsencesInput>, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
+export type AbsenceTypeScalarRelationFilter = {
+  is?: Prisma.AbsenceTypeWhereInput
+  isNot?: Prisma.AbsenceTypeWhereInput
 }
 
 export type AbsenceTypeCreateNestedOneWithoutAbsenceReasonsInput = {
@@ -327,52 +489,44 @@ export type AbsenceTypeUpdateOneRequiredWithoutAbsenceReasonsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AbsenceTypeUpdateToOneWithWhereWithoutAbsenceReasonsInput, Prisma.AbsenceTypeUpdateWithoutAbsenceReasonsInput>, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsenceReasonsInput>
 }
 
-export type AbsenceTypeCreateWithoutAbsencesInput = {
-  name: string
-  absenceReasons?: Prisma.AbsenceReasonCreateNestedManyWithoutTypeInput
+export type AbsenceTypeCreateNestedOneWithoutAbsencesInput = {
+  create?: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
+  connectOrCreate?: Prisma.AbsenceTypeCreateOrConnectWithoutAbsencesInput
+  connect?: Prisma.AbsenceTypeWhereUniqueInput
 }
 
-export type AbsenceTypeUncheckedCreateWithoutAbsencesInput = {
-  id?: number
-  name: string
-  absenceReasons?: Prisma.AbsenceReasonUncheckedCreateNestedManyWithoutTypeInput
-}
-
-export type AbsenceTypeCreateOrConnectWithoutAbsencesInput = {
-  where: Prisma.AbsenceTypeWhereUniqueInput
-  create: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
-}
-
-export type AbsenceTypeUpsertWithoutAbsencesInput = {
-  update: Prisma.XOR<Prisma.AbsenceTypeUpdateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
-  create: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
-  where?: Prisma.AbsenceTypeWhereInput
-}
-
-export type AbsenceTypeUpdateToOneWithWhereWithoutAbsencesInput = {
-  where?: Prisma.AbsenceTypeWhereInput
-  data: Prisma.XOR<Prisma.AbsenceTypeUpdateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
-}
-
-export type AbsenceTypeUpdateWithoutAbsencesInput = {
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  absenceReasons?: Prisma.AbsenceReasonUpdateManyWithoutTypeNestedInput
-}
-
-export type AbsenceTypeUncheckedUpdateWithoutAbsencesInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  absenceReasons?: Prisma.AbsenceReasonUncheckedUpdateManyWithoutTypeNestedInput
+export type AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput = {
+  create?: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
+  connectOrCreate?: Prisma.AbsenceTypeCreateOrConnectWithoutAbsencesInput
+  upsert?: Prisma.AbsenceTypeUpsertWithoutAbsencesInput
+  connect?: Prisma.AbsenceTypeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AbsenceTypeUpdateToOneWithWhereWithoutAbsencesInput, Prisma.AbsenceTypeUpdateWithoutAbsencesInput>, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
 }
 
 export type AbsenceTypeCreateWithoutAbsenceReasonsInput = {
+  code: string
   name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   absences?: Prisma.AbsenceCreateNestedManyWithoutTypeInput
 }
 
 export type AbsenceTypeUncheckedCreateWithoutAbsenceReasonsInput = {
   id?: number
+  code: string
   name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
   absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutTypeInput
 }
 
@@ -393,14 +547,100 @@ export type AbsenceTypeUpdateToOneWithWhereWithoutAbsenceReasonsInput = {
 }
 
 export type AbsenceTypeUpdateWithoutAbsenceReasonsInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   absences?: Prisma.AbsenceUpdateManyWithoutTypeNestedInput
 }
 
 export type AbsenceTypeUncheckedUpdateWithoutAbsenceReasonsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   absences?: Prisma.AbsenceUncheckedUpdateManyWithoutTypeNestedInput
+}
+
+export type AbsenceTypeCreateWithoutAbsencesInput = {
+  code: string
+  name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  absenceReasons?: Prisma.AbsenceReasonCreateNestedManyWithoutTypeInput
+}
+
+export type AbsenceTypeUncheckedCreateWithoutAbsencesInput = {
+  id?: number
+  code: string
+  name: string
+  description?: string | null
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  absenceReasons?: Prisma.AbsenceReasonUncheckedCreateNestedManyWithoutTypeInput
+}
+
+export type AbsenceTypeCreateOrConnectWithoutAbsencesInput = {
+  where: Prisma.AbsenceTypeWhereUniqueInput
+  create: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
+}
+
+export type AbsenceTypeUpsertWithoutAbsencesInput = {
+  update: Prisma.XOR<Prisma.AbsenceTypeUpdateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
+  create: Prisma.XOR<Prisma.AbsenceTypeCreateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedCreateWithoutAbsencesInput>
+  where?: Prisma.AbsenceTypeWhereInput
+}
+
+export type AbsenceTypeUpdateToOneWithWhereWithoutAbsencesInput = {
+  where?: Prisma.AbsenceTypeWhereInput
+  data: Prisma.XOR<Prisma.AbsenceTypeUpdateWithoutAbsencesInput, Prisma.AbsenceTypeUncheckedUpdateWithoutAbsencesInput>
+}
+
+export type AbsenceTypeUpdateWithoutAbsencesInput = {
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  absenceReasons?: Prisma.AbsenceReasonUpdateManyWithoutTypeNestedInput
+}
+
+export type AbsenceTypeUncheckedUpdateWithoutAbsencesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDeductible?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresJustification?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  colorHex?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  absenceReasons?: Prisma.AbsenceReasonUncheckedUpdateManyWithoutTypeNestedInput
 }
 
 
@@ -445,7 +685,15 @@ export type AbsenceTypeCountOutputTypeCountAbsenceReasonsArgs<ExtArgs extends ru
 
 export type AbsenceTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
+  description?: boolean
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   absences?: boolean | Prisma.AbsenceType$absencesArgs<ExtArgs>
   absenceReasons?: boolean | Prisma.AbsenceType$absenceReasonsArgs<ExtArgs>
   _count?: boolean | Prisma.AbsenceTypeCountOutputTypeDefaultArgs<ExtArgs>
@@ -453,20 +701,44 @@ export type AbsenceTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type AbsenceTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
+  description?: boolean
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["absenceType"]>
 
 export type AbsenceTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
+  description?: boolean
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["absenceType"]>
 
 export type AbsenceTypeSelectScalar = {
   id?: boolean
+  code?: boolean
   name?: boolean
+  description?: boolean
+  isDeductible?: boolean
+  requiresJustification?: boolean
+  colorHex?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type AbsenceTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name", ExtArgs["result"]["absenceType"]>
+export type AbsenceTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "description" | "isDeductible" | "requiresJustification" | "colorHex" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["absenceType"]>
 export type AbsenceTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   absences?: boolean | Prisma.AbsenceType$absencesArgs<ExtArgs>
   absenceReasons?: boolean | Prisma.AbsenceType$absenceReasonsArgs<ExtArgs>
@@ -483,7 +755,15 @@ export type $AbsenceTypePayload<ExtArgs extends runtime.Types.Extensions.Interna
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    code: string
     name: string
+    description: string | null
+    isDeductible: boolean
+    requiresJustification: boolean
+    colorHex: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["absenceType"]>
   composites: {}
 }
@@ -910,7 +1190,15 @@ export interface Prisma__AbsenceTypeClient<T, Null = never, ExtArgs extends runt
  */
 export interface AbsenceTypeFieldRefs {
   readonly id: Prisma.FieldRef<"AbsenceType", 'Int'>
+  readonly code: Prisma.FieldRef<"AbsenceType", 'String'>
   readonly name: Prisma.FieldRef<"AbsenceType", 'String'>
+  readonly description: Prisma.FieldRef<"AbsenceType", 'String'>
+  readonly isDeductible: Prisma.FieldRef<"AbsenceType", 'Boolean'>
+  readonly requiresJustification: Prisma.FieldRef<"AbsenceType", 'Boolean'>
+  readonly colorHex: Prisma.FieldRef<"AbsenceType", 'String'>
+  readonly active: Prisma.FieldRef<"AbsenceType", 'Boolean'>
+  readonly createdAt: Prisma.FieldRef<"AbsenceType", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"AbsenceType", 'DateTime'>
 }
     
 

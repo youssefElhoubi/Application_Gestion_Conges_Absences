@@ -36,35 +36,56 @@ export type EmployeeSumAggregateOutputType = {
 
 export type EmployeeMinAggregateOutputType = {
   employeeId: string | null
+  cin: string | null
+  cnssNumber: string | null
   fullName: string | null
+  email: string | null
   siteId: number | null
+  role: $Enums.Role | null
   jobTitle: string | null
   birthDate: Date | null
   hireDate: Date | null
   active: boolean | null
   observation: string | null
+  managerId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type EmployeeMaxAggregateOutputType = {
   employeeId: string | null
+  cin: string | null
+  cnssNumber: string | null
   fullName: string | null
+  email: string | null
   siteId: number | null
+  role: $Enums.Role | null
   jobTitle: string | null
   birthDate: Date | null
   hireDate: Date | null
   active: boolean | null
   observation: string | null
+  managerId: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type EmployeeCountAggregateOutputType = {
   employeeId: number
+  cin: number
+  cnssNumber: number
   fullName: number
+  email: number
   siteId: number
+  role: number
   jobTitle: number
   birthDate: number
   hireDate: number
   active: number
   observation: number
+  managerId: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -79,35 +100,56 @@ export type EmployeeSumAggregateInputType = {
 
 export type EmployeeMinAggregateInputType = {
   employeeId?: true
+  cin?: true
+  cnssNumber?: true
   fullName?: true
+  email?: true
   siteId?: true
+  role?: true
   jobTitle?: true
   birthDate?: true
   hireDate?: true
   active?: true
   observation?: true
+  managerId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type EmployeeMaxAggregateInputType = {
   employeeId?: true
+  cin?: true
+  cnssNumber?: true
   fullName?: true
+  email?: true
   siteId?: true
+  role?: true
   jobTitle?: true
   birthDate?: true
   hireDate?: true
   active?: true
   observation?: true
+  managerId?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type EmployeeCountAggregateInputType = {
   employeeId?: true
+  cin?: true
+  cnssNumber?: true
   fullName?: true
+  email?: true
   siteId?: true
+  role?: true
   jobTitle?: true
   birthDate?: true
   hireDate?: true
   active?: true
   observation?: true
+  managerId?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -199,13 +241,20 @@ export type EmployeeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type EmployeeGroupByOutputType = {
   employeeId: string
+  cin: string
+  cnssNumber: string | null
   fullName: string
-  siteId: number | null
+  email: string
+  siteId: number
+  role: $Enums.Role
   jobTitle: string | null
   birthDate: Date | null
-  hireDate: Date | null
+  hireDate: Date
   active: boolean
   observation: string | null
+  managerId: string | null
+  createdAt: Date
+  updatedAt: Date
   _count: EmployeeCountAggregateOutputType | null
   _avg: EmployeeAvgAggregateOutputType | null
   _sum: EmployeeSumAggregateOutputType | null
@@ -233,58 +282,92 @@ export type EmployeeWhereInput = {
   OR?: Prisma.EmployeeWhereInput[]
   NOT?: Prisma.EmployeeWhereInput | Prisma.EmployeeWhereInput[]
   employeeId?: Prisma.StringFilter<"Employee"> | string
+  cin?: Prisma.StringFilter<"Employee"> | string
+  cnssNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   fullName?: Prisma.StringFilter<"Employee"> | string
-  siteId?: Prisma.IntNullableFilter<"Employee"> | number | null
+  email?: Prisma.StringFilter<"Employee"> | string
+  siteId?: Prisma.IntFilter<"Employee"> | number
+  role?: Prisma.EnumRoleFilter<"Employee"> | $Enums.Role
   jobTitle?: Prisma.StringNullableFilter<"Employee"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
-  hireDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
+  hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   active?: Prisma.BoolFilter<"Employee"> | boolean
   observation?: Prisma.StringNullableFilter<"Employee"> | string | null
-  site?: Prisma.XOR<Prisma.SiteNullableScalarRelationFilter, Prisma.SiteWhereInput> | null
+  managerId?: Prisma.StringNullableFilter<"Employee"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+  site?: Prisma.XOR<Prisma.SiteScalarRelationFilter, Prisma.SiteWhereInput>
+  manager?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
+  subordinates?: Prisma.EmployeeListRelationFilter
   absences?: Prisma.AbsenceListRelationFilter
   holidayWorkCredits?: Prisma.HolidayWorkCreditListRelationFilter
 }
 
 export type EmployeeOrderByWithRelationInput = {
   employeeId?: Prisma.SortOrder
+  cin?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  siteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrder
+  siteId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   jobTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  hireDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  hireDate?: Prisma.SortOrder
   active?: Prisma.SortOrder
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
+  managerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   site?: Prisma.SiteOrderByWithRelationInput
+  manager?: Prisma.EmployeeOrderByWithRelationInput
+  subordinates?: Prisma.EmployeeOrderByRelationAggregateInput
   absences?: Prisma.AbsenceOrderByRelationAggregateInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditOrderByRelationAggregateInput
 }
 
 export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   employeeId?: string
+  cin?: string
+  cnssNumber?: string
+  email?: string
   AND?: Prisma.EmployeeWhereInput | Prisma.EmployeeWhereInput[]
   OR?: Prisma.EmployeeWhereInput[]
   NOT?: Prisma.EmployeeWhereInput | Prisma.EmployeeWhereInput[]
   fullName?: Prisma.StringFilter<"Employee"> | string
-  siteId?: Prisma.IntNullableFilter<"Employee"> | number | null
+  siteId?: Prisma.IntFilter<"Employee"> | number
+  role?: Prisma.EnumRoleFilter<"Employee"> | $Enums.Role
   jobTitle?: Prisma.StringNullableFilter<"Employee"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
-  hireDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
+  hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   active?: Prisma.BoolFilter<"Employee"> | boolean
   observation?: Prisma.StringNullableFilter<"Employee"> | string | null
-  site?: Prisma.XOR<Prisma.SiteNullableScalarRelationFilter, Prisma.SiteWhereInput> | null
+  managerId?: Prisma.StringNullableFilter<"Employee"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+  site?: Prisma.XOR<Prisma.SiteScalarRelationFilter, Prisma.SiteWhereInput>
+  manager?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
+  subordinates?: Prisma.EmployeeListRelationFilter
   absences?: Prisma.AbsenceListRelationFilter
   holidayWorkCredits?: Prisma.HolidayWorkCreditListRelationFilter
-}, "employeeId">
+}, "employeeId" | "cin" | "cnssNumber" | "email">
 
 export type EmployeeOrderByWithAggregationInput = {
   employeeId?: Prisma.SortOrder
+  cin?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   fullName?: Prisma.SortOrder
-  siteId?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrder
+  siteId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   jobTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  hireDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  hireDate?: Prisma.SortOrder
   active?: Prisma.SortOrder
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
+  managerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.EmployeeCountOrderByAggregateInput
   _avg?: Prisma.EmployeeAvgOrderByAggregateInput
   _max?: Prisma.EmployeeMaxOrderByAggregateInput
@@ -297,143 +380,156 @@ export type EmployeeScalarWhereWithAggregatesInput = {
   OR?: Prisma.EmployeeScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EmployeeScalarWhereWithAggregatesInput | Prisma.EmployeeScalarWhereWithAggregatesInput[]
   employeeId?: Prisma.StringWithAggregatesFilter<"Employee"> | string
+  cin?: Prisma.StringWithAggregatesFilter<"Employee"> | string
+  cnssNumber?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   fullName?: Prisma.StringWithAggregatesFilter<"Employee"> | string
-  siteId?: Prisma.IntNullableWithAggregatesFilter<"Employee"> | number | null
+  email?: Prisma.StringWithAggregatesFilter<"Employee"> | string
+  siteId?: Prisma.IntWithAggregatesFilter<"Employee"> | number
+  role?: Prisma.EnumRoleWithAggregatesFilter<"Employee"> | $Enums.Role
   jobTitle?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   birthDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Employee"> | Date | string | null
-  hireDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Employee"> | Date | string | null
+  hireDate?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
   active?: Prisma.BoolWithAggregatesFilter<"Employee"> | boolean
   observation?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
+  managerId?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
 }
 
 export type EmployeeCreateInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
+  email: string
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
-  site?: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  site: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  manager?: Prisma.EmployeeCreateNestedOneWithoutSubordinatesInput
+  subordinates?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
   absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
-  siteId?: number | null
+  email: string
+  siteId: number
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subordinates?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
   absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUpdateInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  site?: Prisma.SiteUpdateOneWithoutEmployeesNestedInput
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  site?: Prisma.SiteUpdateOneRequiredWithoutEmployeesNestedInput
+  manager?: Prisma.EmployeeUpdateOneWithoutSubordinatesNestedInput
+  subordinates?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
   absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  siteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subordinates?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
   absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
-  siteId?: number | null
+  email: string
+  siteId: number
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type EmployeeUpdateManyMutationInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EmployeeUncheckedUpdateManyInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  siteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-}
-
-export type EmployeeCountOrderByAggregateInput = {
-  employeeId?: Prisma.SortOrder
-  fullName?: Prisma.SortOrder
-  siteId?: Prisma.SortOrder
-  jobTitle?: Prisma.SortOrder
-  birthDate?: Prisma.SortOrder
-  hireDate?: Prisma.SortOrder
-  active?: Prisma.SortOrder
-  observation?: Prisma.SortOrder
-}
-
-export type EmployeeAvgOrderByAggregateInput = {
-  siteId?: Prisma.SortOrder
-}
-
-export type EmployeeMaxOrderByAggregateInput = {
-  employeeId?: Prisma.SortOrder
-  fullName?: Prisma.SortOrder
-  siteId?: Prisma.SortOrder
-  jobTitle?: Prisma.SortOrder
-  birthDate?: Prisma.SortOrder
-  hireDate?: Prisma.SortOrder
-  active?: Prisma.SortOrder
-  observation?: Prisma.SortOrder
-}
-
-export type EmployeeMinOrderByAggregateInput = {
-  employeeId?: Prisma.SortOrder
-  fullName?: Prisma.SortOrder
-  siteId?: Prisma.SortOrder
-  jobTitle?: Prisma.SortOrder
-  birthDate?: Prisma.SortOrder
-  hireDate?: Prisma.SortOrder
-  active?: Prisma.SortOrder
-  observation?: Prisma.SortOrder
-}
-
-export type EmployeeSumOrderByAggregateInput = {
-  siteId?: Prisma.SortOrder
-}
-
-export type EmployeeScalarRelationFilter = {
-  is?: Prisma.EmployeeWhereInput
-  isNot?: Prisma.EmployeeWhereInput
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type EmployeeListRelationFilter = {
@@ -446,56 +542,76 @@ export type EmployeeOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
+export type EmployeeNullableScalarRelationFilter = {
+  is?: Prisma.EmployeeWhereInput | null
+  isNot?: Prisma.EmployeeWhereInput | null
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type EmployeeCountOrderByAggregateInput = {
+  employeeId?: Prisma.SortOrder
+  cin?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  siteId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  jobTitle?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
+  hireDate?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  observation?: Prisma.SortOrder
+  managerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type EmployeeAvgOrderByAggregateInput = {
+  siteId?: Prisma.SortOrder
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
+export type EmployeeMaxOrderByAggregateInput = {
+  employeeId?: Prisma.SortOrder
+  cin?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  siteId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  jobTitle?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
+  hireDate?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  observation?: Prisma.SortOrder
+  managerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type EmployeeMinOrderByAggregateInput = {
+  employeeId?: Prisma.SortOrder
+  cin?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  siteId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  jobTitle?: Prisma.SortOrder
+  birthDate?: Prisma.SortOrder
+  hireDate?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  observation?: Prisma.SortOrder
+  managerId?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
-export type EmployeeCreateNestedOneWithoutAbsencesInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAbsencesInput
-  connect?: Prisma.EmployeeWhereUniqueInput
+export type EmployeeSumOrderByAggregateInput = {
+  siteId?: Prisma.SortOrder
 }
 
-export type EmployeeUpdateOneRequiredWithoutAbsencesNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAbsencesInput
-  upsert?: Prisma.EmployeeUpsertWithoutAbsencesInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutAbsencesInput, Prisma.EmployeeUpdateWithoutAbsencesInput>, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
-}
-
-export type EmployeeCreateNestedOneWithoutHolidayWorkCreditsInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-}
-
-export type EmployeeUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput = {
-  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
-  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput
-  upsert?: Prisma.EmployeeUpsertWithoutHolidayWorkCreditsInput
-  connect?: Prisma.EmployeeWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutHolidayWorkCreditsInput, Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput>, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
+export type EmployeeScalarRelationFilter = {
+  is?: Prisma.EmployeeWhereInput
+  isNot?: Prisma.EmployeeWhereInput
 }
 
 export type EmployeeCreateNestedManyWithoutSiteInput = {
@@ -540,154 +656,140 @@ export type EmployeeUncheckedUpdateManyWithoutSiteNestedInput = {
   deleteMany?: Prisma.EmployeeScalarWhereInput | Prisma.EmployeeScalarWhereInput[]
 }
 
-export type EmployeeCreateWithoutAbsencesInput = {
-  employeeId: string
-  fullName: string
-  jobTitle?: string | null
-  birthDate?: Date | string | null
-  hireDate?: Date | string | null
-  active?: boolean
-  observation?: string | null
-  site?: Prisma.SiteCreateNestedOneWithoutEmployeesInput
-  holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
+export type EmployeeCreateNestedOneWithoutSubordinatesInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutSubordinatesInput, Prisma.EmployeeUncheckedCreateWithoutSubordinatesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutSubordinatesInput
+  connect?: Prisma.EmployeeWhereUniqueInput
 }
 
-export type EmployeeUncheckedCreateWithoutAbsencesInput = {
-  employeeId: string
-  fullName: string
-  siteId?: number | null
-  jobTitle?: string | null
-  birthDate?: Date | string | null
-  hireDate?: Date | string | null
-  active?: boolean
-  observation?: string | null
-  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
+export type EmployeeCreateNestedManyWithoutManagerInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput> | Prisma.EmployeeCreateWithoutManagerInput[] | Prisma.EmployeeUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutManagerInput | Prisma.EmployeeCreateOrConnectWithoutManagerInput[]
+  createMany?: Prisma.EmployeeCreateManyManagerInputEnvelope
+  connect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
 }
 
-export type EmployeeCreateOrConnectWithoutAbsencesInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
+export type EmployeeUncheckedCreateNestedManyWithoutManagerInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput> | Prisma.EmployeeCreateWithoutManagerInput[] | Prisma.EmployeeUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutManagerInput | Prisma.EmployeeCreateOrConnectWithoutManagerInput[]
+  createMany?: Prisma.EmployeeCreateManyManagerInputEnvelope
+  connect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
 }
 
-export type EmployeeUpsertWithoutAbsencesInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutAbsencesInput, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
-  where?: Prisma.EmployeeWhereInput
+export type EnumRoleFieldUpdateOperationsInput = {
+  set?: $Enums.Role
 }
 
-export type EmployeeUpdateToOneWithWhereWithoutAbsencesInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutAbsencesInput, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
-export type EmployeeUpdateWithoutAbsencesInput = {
-  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  site?: Prisma.SiteUpdateOneWithoutEmployeesNestedInput
-  holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
-export type EmployeeUncheckedUpdateWithoutAbsencesInput = {
-  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  siteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
+export type EmployeeUpdateOneWithoutSubordinatesNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutSubordinatesInput, Prisma.EmployeeUncheckedCreateWithoutSubordinatesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutSubordinatesInput
+  upsert?: Prisma.EmployeeUpsertWithoutSubordinatesInput
+  disconnect?: Prisma.EmployeeWhereInput | boolean
+  delete?: Prisma.EmployeeWhereInput | boolean
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutSubordinatesInput, Prisma.EmployeeUpdateWithoutSubordinatesInput>, Prisma.EmployeeUncheckedUpdateWithoutSubordinatesInput>
 }
 
-export type EmployeeCreateWithoutHolidayWorkCreditsInput = {
-  employeeId: string
-  fullName: string
-  jobTitle?: string | null
-  birthDate?: Date | string | null
-  hireDate?: Date | string | null
-  active?: boolean
-  observation?: string | null
-  site?: Prisma.SiteCreateNestedOneWithoutEmployeesInput
-  absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
+export type EmployeeUpdateManyWithoutManagerNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput> | Prisma.EmployeeCreateWithoutManagerInput[] | Prisma.EmployeeUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutManagerInput | Prisma.EmployeeCreateOrConnectWithoutManagerInput[]
+  upsert?: Prisma.EmployeeUpsertWithWhereUniqueWithoutManagerInput | Prisma.EmployeeUpsertWithWhereUniqueWithoutManagerInput[]
+  createMany?: Prisma.EmployeeCreateManyManagerInputEnvelope
+  set?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  delete?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  connect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  update?: Prisma.EmployeeUpdateWithWhereUniqueWithoutManagerInput | Prisma.EmployeeUpdateWithWhereUniqueWithoutManagerInput[]
+  updateMany?: Prisma.EmployeeUpdateManyWithWhereWithoutManagerInput | Prisma.EmployeeUpdateManyWithWhereWithoutManagerInput[]
+  deleteMany?: Prisma.EmployeeScalarWhereInput | Prisma.EmployeeScalarWhereInput[]
 }
 
-export type EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput = {
-  employeeId: string
-  fullName: string
-  siteId?: number | null
-  jobTitle?: string | null
-  birthDate?: Date | string | null
-  hireDate?: Date | string | null
-  active?: boolean
-  observation?: string | null
-  absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
+export type EmployeeUncheckedUpdateManyWithoutManagerNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput> | Prisma.EmployeeCreateWithoutManagerInput[] | Prisma.EmployeeUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutManagerInput | Prisma.EmployeeCreateOrConnectWithoutManagerInput[]
+  upsert?: Prisma.EmployeeUpsertWithWhereUniqueWithoutManagerInput | Prisma.EmployeeUpsertWithWhereUniqueWithoutManagerInput[]
+  createMany?: Prisma.EmployeeCreateManyManagerInputEnvelope
+  set?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  delete?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  connect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
+  update?: Prisma.EmployeeUpdateWithWhereUniqueWithoutManagerInput | Prisma.EmployeeUpdateWithWhereUniqueWithoutManagerInput[]
+  updateMany?: Prisma.EmployeeUpdateManyWithWhereWithoutManagerInput | Prisma.EmployeeUpdateManyWithWhereWithoutManagerInput[]
+  deleteMany?: Prisma.EmployeeScalarWhereInput | Prisma.EmployeeScalarWhereInput[]
 }
 
-export type EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput = {
-  where: Prisma.EmployeeWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
+export type EmployeeCreateNestedOneWithoutAbsencesInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAbsencesInput
+  connect?: Prisma.EmployeeWhereUniqueInput
 }
 
-export type EmployeeUpsertWithoutHolidayWorkCreditsInput = {
-  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
-  create: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
-  where?: Prisma.EmployeeWhereInput
+export type EmployeeUpdateOneRequiredWithoutAbsencesNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAbsencesInput
+  upsert?: Prisma.EmployeeUpsertWithoutAbsencesInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutAbsencesInput, Prisma.EmployeeUpdateWithoutAbsencesInput>, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
 }
 
-export type EmployeeUpdateToOneWithWhereWithoutHolidayWorkCreditsInput = {
-  where?: Prisma.EmployeeWhereInput
-  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
+export type EmployeeCreateNestedOneWithoutHolidayWorkCreditsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
 }
 
-export type EmployeeUpdateWithoutHolidayWorkCreditsInput = {
-  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  site?: Prisma.SiteUpdateOneWithoutEmployeesNestedInput
-  absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
-}
-
-export type EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput = {
-  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  fullName?: Prisma.StringFieldUpdateOperationsInput | string
-  siteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
+export type EmployeeUpdateOneRequiredWithoutHolidayWorkCreditsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput
+  upsert?: Prisma.EmployeeUpsertWithoutHolidayWorkCreditsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutHolidayWorkCreditsInput, Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput>, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
 }
 
 export type EmployeeCreateWithoutSiteInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
+  email: string
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  manager?: Prisma.EmployeeCreateNestedOneWithoutSubordinatesInput
+  subordinates?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
   absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutSiteInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
+  email: string
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subordinates?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
   absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
 }
@@ -723,57 +825,522 @@ export type EmployeeScalarWhereInput = {
   OR?: Prisma.EmployeeScalarWhereInput[]
   NOT?: Prisma.EmployeeScalarWhereInput | Prisma.EmployeeScalarWhereInput[]
   employeeId?: Prisma.StringFilter<"Employee"> | string
+  cin?: Prisma.StringFilter<"Employee"> | string
+  cnssNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   fullName?: Prisma.StringFilter<"Employee"> | string
-  siteId?: Prisma.IntNullableFilter<"Employee"> | number | null
+  email?: Prisma.StringFilter<"Employee"> | string
+  siteId?: Prisma.IntFilter<"Employee"> | number
+  role?: Prisma.EnumRoleFilter<"Employee"> | $Enums.Role
   jobTitle?: Prisma.StringNullableFilter<"Employee"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
-  hireDate?: Prisma.DateTimeNullableFilter<"Employee"> | Date | string | null
+  hireDate?: Prisma.DateTimeFilter<"Employee"> | Date | string
   active?: Prisma.BoolFilter<"Employee"> | boolean
   observation?: Prisma.StringNullableFilter<"Employee"> | string | null
+  managerId?: Prisma.StringNullableFilter<"Employee"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+}
+
+export type EmployeeCreateWithoutSubordinatesInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  site: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  manager?: Prisma.EmployeeCreateNestedOneWithoutSubordinatesInput
+  absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutSubordinatesInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  siteId: number
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutSubordinatesInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutSubordinatesInput, Prisma.EmployeeUncheckedCreateWithoutSubordinatesInput>
+}
+
+export type EmployeeCreateWithoutManagerInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  site: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  subordinates?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
+  absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutManagerInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  siteId: number
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subordinates?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
+  absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutManagerInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput>
+}
+
+export type EmployeeCreateManyManagerInputEnvelope = {
+  data: Prisma.EmployeeCreateManyManagerInput | Prisma.EmployeeCreateManyManagerInput[]
+  skipDuplicates?: boolean
+}
+
+export type EmployeeUpsertWithoutSubordinatesInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutSubordinatesInput, Prisma.EmployeeUncheckedUpdateWithoutSubordinatesInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutSubordinatesInput, Prisma.EmployeeUncheckedCreateWithoutSubordinatesInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutSubordinatesInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutSubordinatesInput, Prisma.EmployeeUncheckedUpdateWithoutSubordinatesInput>
+}
+
+export type EmployeeUpdateWithoutSubordinatesInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  site?: Prisma.SiteUpdateOneRequiredWithoutEmployeesNestedInput
+  manager?: Prisma.EmployeeUpdateOneWithoutSubordinatesNestedInput
+  absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutSubordinatesInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUpsertWithWhereUniqueWithoutManagerInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutManagerInput, Prisma.EmployeeUncheckedUpdateWithoutManagerInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutManagerInput, Prisma.EmployeeUncheckedCreateWithoutManagerInput>
+}
+
+export type EmployeeUpdateWithWhereUniqueWithoutManagerInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutManagerInput, Prisma.EmployeeUncheckedUpdateWithoutManagerInput>
+}
+
+export type EmployeeUpdateManyWithWhereWithoutManagerInput = {
+  where: Prisma.EmployeeScalarWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateManyMutationInput, Prisma.EmployeeUncheckedUpdateManyWithoutManagerInput>
+}
+
+export type EmployeeCreateWithoutAbsencesInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  site: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  manager?: Prisma.EmployeeCreateNestedOneWithoutSubordinatesInput
+  subordinates?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutAbsencesInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  siteId: number
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subordinates?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutAbsencesInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
+}
+
+export type EmployeeUpsertWithoutAbsencesInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutAbsencesInput, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAbsencesInput, Prisma.EmployeeUncheckedCreateWithoutAbsencesInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutAbsencesInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutAbsencesInput, Prisma.EmployeeUncheckedUpdateWithoutAbsencesInput>
+}
+
+export type EmployeeUpdateWithoutAbsencesInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  site?: Prisma.SiteUpdateOneRequiredWithoutEmployeesNestedInput
+  manager?: Prisma.EmployeeUpdateOneWithoutSubordinatesNestedInput
+  subordinates?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutAbsencesInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subordinates?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutHolidayWorkCreditsInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  site: Prisma.SiteCreateNestedOneWithoutEmployeesInput
+  manager?: Prisma.EmployeeCreateNestedOneWithoutSubordinatesInput
+  subordinates?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
+  absences?: Prisma.AbsenceCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  siteId: number
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subordinates?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
+  absences?: Prisma.AbsenceUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutHolidayWorkCreditsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
+}
+
+export type EmployeeUpsertWithoutHolidayWorkCreditsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedCreateWithoutHolidayWorkCreditsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutHolidayWorkCreditsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutHolidayWorkCreditsInput, Prisma.EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput>
+}
+
+export type EmployeeUpdateWithoutHolidayWorkCreditsInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  site?: Prisma.SiteUpdateOneRequiredWithoutEmployeesNestedInput
+  manager?: Prisma.EmployeeUpdateOneWithoutSubordinatesNestedInput
+  subordinates?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
+  absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutHolidayWorkCreditsInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subordinates?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
+  absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManySiteInput = {
   employeeId: string
+  cin: string
+  cnssNumber?: string | null
   fullName: string
+  email: string
+  role?: $Enums.Role
   jobTitle?: string | null
   birthDate?: Date | string | null
-  hireDate?: Date | string | null
+  hireDate: Date | string
   active?: boolean
   observation?: string | null
+  managerId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type EmployeeUpdateWithoutSiteInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  manager?: Prisma.EmployeeUpdateOneWithoutSubordinatesNestedInput
+  subordinates?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
   absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutSiteInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subordinates?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
   absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutSiteInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EmployeeCreateManyManagerInput = {
+  employeeId: string
+  cin: string
+  cnssNumber?: string | null
+  fullName: string
+  email: string
+  siteId: number
+  role?: $Enums.Role
+  jobTitle?: string | null
+  birthDate?: Date | string | null
+  hireDate: Date | string
+  active?: boolean
+  observation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeUpdateWithoutManagerInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  site?: Prisma.SiteUpdateOneRequiredWithoutEmployeesNestedInput
+  subordinates?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
+  absences?: Prisma.AbsenceUpdateManyWithoutEmployeeNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutManagerInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subordinates?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
+  absences?: Prisma.AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput
+  holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateManyWithoutManagerInput = {
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  cin?: Prisma.StringFieldUpdateOperationsInput | string
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  siteId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  jobTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -782,11 +1349,13 @@ export type EmployeeUncheckedUpdateManyWithoutSiteInput = {
  */
 
 export type EmployeeCountOutputType = {
+  subordinates: number
   absences: number
   holidayWorkCredits: number
 }
 
 export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  subordinates?: boolean | EmployeeCountOutputTypeCountSubordinatesArgs
   absences?: boolean | EmployeeCountOutputTypeCountAbsencesArgs
   holidayWorkCredits?: boolean | EmployeeCountOutputTypeCountHolidayWorkCreditsArgs
 }
@@ -799,6 +1368,13 @@ export type EmployeeCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ext
    * Select specific fields to fetch from the EmployeeCountOutputType
    */
   select?: Prisma.EmployeeCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountSubordinatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeWhereInput
 }
 
 /**
@@ -818,14 +1394,23 @@ export type EmployeeCountOutputTypeCountHolidayWorkCreditsArgs<ExtArgs extends r
 
 export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   employeeId?: boolean
+  cin?: boolean
+  cnssNumber?: boolean
   fullName?: boolean
+  email?: boolean
   siteId?: boolean
+  role?: boolean
   jobTitle?: boolean
   birthDate?: boolean
   hireDate?: boolean
   active?: boolean
   observation?: boolean
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  managerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
+  subordinates?: boolean | Prisma.Employee$subordinatesArgs<ExtArgs>
   absences?: boolean | Prisma.Employee$absencesArgs<ExtArgs>
   holidayWorkCredits?: boolean | Prisma.Employee$holidayWorkCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
@@ -833,69 +1418,105 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
 
 export type EmployeeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   employeeId?: boolean
+  cin?: boolean
+  cnssNumber?: boolean
   fullName?: boolean
+  email?: boolean
   siteId?: boolean
+  role?: boolean
   jobTitle?: boolean
   birthDate?: boolean
   hireDate?: boolean
   active?: boolean
   observation?: boolean
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  managerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
 export type EmployeeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   employeeId?: boolean
+  cin?: boolean
+  cnssNumber?: boolean
   fullName?: boolean
+  email?: boolean
   siteId?: boolean
+  role?: boolean
   jobTitle?: boolean
   birthDate?: boolean
   hireDate?: boolean
   active?: boolean
   observation?: boolean
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  managerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
 export type EmployeeSelectScalar = {
   employeeId?: boolean
+  cin?: boolean
+  cnssNumber?: boolean
   fullName?: boolean
+  email?: boolean
   siteId?: boolean
+  role?: boolean
   jobTitle?: boolean
   birthDate?: boolean
   hireDate?: boolean
   active?: boolean
   observation?: boolean
+  managerId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"employeeId" | "fullName" | "siteId" | "jobTitle" | "birthDate" | "hireDate" | "active" | "observation", ExtArgs["result"]["employee"]>
+export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"employeeId" | "cin" | "cnssNumber" | "fullName" | "email" | "siteId" | "role" | "jobTitle" | "birthDate" | "hireDate" | "active" | "observation" | "managerId" | "createdAt" | "updatedAt", ExtArgs["result"]["employee"]>
 export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
+  subordinates?: boolean | Prisma.Employee$subordinatesArgs<ExtArgs>
   absences?: boolean | Prisma.Employee$absencesArgs<ExtArgs>
   holidayWorkCredits?: boolean | Prisma.Employee$holidayWorkCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EmployeeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
 }
 export type EmployeeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  site?: boolean | Prisma.Employee$siteArgs<ExtArgs>
+  site?: boolean | Prisma.SiteDefaultArgs<ExtArgs>
+  manager?: boolean | Prisma.Employee$managerArgs<ExtArgs>
 }
 
 export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Employee"
   objects: {
-    site: Prisma.$SitePayload<ExtArgs> | null
+    site: Prisma.$SitePayload<ExtArgs>
+    manager: Prisma.$EmployeePayload<ExtArgs> | null
+    subordinates: Prisma.$EmployeePayload<ExtArgs>[]
     absences: Prisma.$AbsencePayload<ExtArgs>[]
     holidayWorkCredits: Prisma.$HolidayWorkCreditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     employeeId: string
+    cin: string
+    cnssNumber: string | null
     fullName: string
-    siteId: number | null
+    email: string
+    siteId: number
+    role: $Enums.Role
     jobTitle: string | null
     birthDate: Date | null
-    hireDate: Date | null
+    hireDate: Date
     active: boolean
     observation: string | null
+    managerId: string | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["employee"]>
   composites: {}
 }
@@ -1290,7 +1911,9 @@ readonly fields: EmployeeFieldRefs;
  */
 export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  site<T extends Prisma.Employee$siteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$siteArgs<ExtArgs>>): Prisma.Prisma__SiteClient<runtime.Types.Result.GetResult<Prisma.$SitePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  site<T extends Prisma.SiteDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SiteDefaultArgs<ExtArgs>>): Prisma.Prisma__SiteClient<runtime.Types.Result.GetResult<Prisma.$SitePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  manager<T extends Prisma.Employee$managerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$managerArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  subordinates<T extends Prisma.Employee$subordinatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$subordinatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   absences<T extends Prisma.Employee$absencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$absencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AbsencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   holidayWorkCredits<T extends Prisma.Employee$holidayWorkCreditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$holidayWorkCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HolidayWorkCreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1323,13 +1946,20 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
  */
 export interface EmployeeFieldRefs {
   readonly employeeId: Prisma.FieldRef<"Employee", 'String'>
+  readonly cin: Prisma.FieldRef<"Employee", 'String'>
+  readonly cnssNumber: Prisma.FieldRef<"Employee", 'String'>
   readonly fullName: Prisma.FieldRef<"Employee", 'String'>
+  readonly email: Prisma.FieldRef<"Employee", 'String'>
   readonly siteId: Prisma.FieldRef<"Employee", 'Int'>
+  readonly role: Prisma.FieldRef<"Employee", 'Role'>
   readonly jobTitle: Prisma.FieldRef<"Employee", 'String'>
   readonly birthDate: Prisma.FieldRef<"Employee", 'DateTime'>
   readonly hireDate: Prisma.FieldRef<"Employee", 'DateTime'>
   readonly active: Prisma.FieldRef<"Employee", 'Boolean'>
   readonly observation: Prisma.FieldRef<"Employee", 'String'>
+  readonly managerId: Prisma.FieldRef<"Employee", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Employee", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Employee", 'DateTime'>
 }
     
 
@@ -1731,22 +2361,46 @@ export type EmployeeDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
- * Employee.site
+ * Employee.manager
  */
-export type Employee$siteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Employee$managerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Site
+   * Select specific fields to fetch from the Employee
    */
-  select?: Prisma.SiteSelect<ExtArgs> | null
+  select?: Prisma.EmployeeSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Site
+   * Omit specific fields from the Employee
    */
-  omit?: Prisma.SiteOmit<ExtArgs> | null
+  omit?: Prisma.EmployeeOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.SiteInclude<ExtArgs> | null
-  where?: Prisma.SiteWhereInput
+  include?: Prisma.EmployeeInclude<ExtArgs> | null
+  where?: Prisma.EmployeeWhereInput
+}
+
+/**
+ * Employee.subordinates
+ */
+export type Employee$subordinatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Employee
+   */
+  select?: Prisma.EmployeeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Employee
+   */
+  omit?: Prisma.EmployeeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeInclude<ExtArgs> | null
+  where?: Prisma.EmployeeWhereInput
+  orderBy?: Prisma.EmployeeOrderByWithRelationInput | Prisma.EmployeeOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeScalarFieldEnum | Prisma.EmployeeScalarFieldEnum[]
 }
 
 /**

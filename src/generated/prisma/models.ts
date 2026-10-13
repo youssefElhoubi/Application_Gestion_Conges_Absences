@@ -8,12 +8,12 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Site'
 export type * from './models/Employee'
+export type * from './models/AbsenceType'
+export type * from './models/AbsenceReason'
 export type * from './models/Absence'
 export type * from './models/PublicHoliday'
 export type * from './models/HolidayWorkCredit'
 export type * from './models/LeaveRule'
-export type * from './models/Site'
-export type * from './models/AbsenceType'
-export type * from './models/AbsenceReason'
 export type * from './commonInputTypes'

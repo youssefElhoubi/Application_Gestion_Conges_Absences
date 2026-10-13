@@ -31,8 +31,8 @@ export * from "./enums"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Employees
- * const employees = await prisma.employee.findMany()
+ * // Fetch zero or more Sites
+ * const sites = await prisma.site.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -42,10 +42,25 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
+ * Model Site
+ * 
+ */
+export type Site = Prisma.SiteModel
+/**
  * Model Employee
  * 
  */
 export type Employee = Prisma.EmployeeModel
+/**
+ * Model AbsenceType
+ * 
+ */
+export type AbsenceType = Prisma.AbsenceTypeModel
+/**
+ * Model AbsenceReason
+ * 
+ */
+export type AbsenceReason = Prisma.AbsenceReasonModel
 /**
  * Model Absence
  * 
@@ -66,18 +81,3 @@ export type HolidayWorkCredit = Prisma.HolidayWorkCreditModel
  * 
  */
 export type LeaveRule = Prisma.LeaveRuleModel
-/**
- * Model Site
- * 
- */
-export type Site = Prisma.SiteModel
-/**
- * Model AbsenceType
- * 
- */
-export type AbsenceType = Prisma.AbsenceTypeModel
-/**
- * Model AbsenceReason
- * 
- */
-export type AbsenceReason = Prisma.AbsenceReasonModel

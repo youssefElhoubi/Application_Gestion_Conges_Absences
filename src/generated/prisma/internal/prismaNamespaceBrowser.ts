@@ -51,14 +51,14 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  Site: 'Site',
   Employee: 'Employee',
+  AbsenceType: 'AbsenceType',
+  AbsenceReason: 'AbsenceReason',
   Absence: 'Absence',
   PublicHoliday: 'PublicHoliday',
   HolidayWorkCredit: 'HolidayWorkCredit',
-  LeaveRule: 'LeaveRule',
-  Site: 'Site',
-  AbsenceType: 'AbsenceType',
-  AbsenceReason: 'AbsenceReason'
+  LeaveRule: 'LeaveRule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -77,18 +77,69 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const SiteScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  city: 'city',
+  timezone: 'timezone',
+  weeklyRestDays: 'weeklyRestDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteScalarFieldEnum = (typeof SiteScalarFieldEnum)[keyof typeof SiteScalarFieldEnum]
+
+
 export const EmployeeScalarFieldEnum = {
   employeeId: 'employeeId',
+  cin: 'cin',
+  cnssNumber: 'cnssNumber',
   fullName: 'fullName',
+  email: 'email',
   siteId: 'siteId',
+  role: 'role',
   jobTitle: 'jobTitle',
   birthDate: 'birthDate',
   hireDate: 'hireDate',
   active: 'active',
-  observation: 'observation'
+  observation: 'observation',
+  managerId: 'managerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const AbsenceTypeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  description: 'description',
+  isDeductible: 'isDeductible',
+  requiresJustification: 'requiresJustification',
+  colorHex: 'colorHex',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceTypeScalarFieldEnum = (typeof AbsenceTypeScalarFieldEnum)[keyof typeof AbsenceTypeScalarFieldEnum]
+
+
+export const AbsenceReasonScalarFieldEnum = {
+  id: 'id',
+  typeId: 'typeId',
+  code: 'code',
+  name: 'name',
+  allowedDays: 'allowedDays',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceReasonScalarFieldEnum = (typeof AbsenceReasonScalarFieldEnum)[keyof typeof AbsenceReasonScalarFieldEnum]
 
 
 export const AbsenceScalarFieldEnum = {
@@ -105,7 +156,12 @@ export const AbsenceScalarFieldEnum = {
   supportingDocumentProvided: 'supportingDocumentProvided',
   status: 'status',
   requestDate: 'requestDate',
-  comment: 'comment'
+  comment: 'comment',
+  rejectionReason: 'rejectionReason',
+  approvedById: 'approvedById',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type AbsenceScalarFieldEnum = (typeof AbsenceScalarFieldEnum)[keyof typeof AbsenceScalarFieldEnum]
@@ -115,7 +171,10 @@ export const PublicHolidayScalarFieldEnum = {
   id: 'id',
   date: 'date',
   label: 'label',
-  comment: 'comment'
+  isReligious: 'isReligious',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PublicHolidayScalarFieldEnum = (typeof PublicHolidayScalarFieldEnum)[keyof typeof PublicHolidayScalarFieldEnum]
@@ -126,7 +185,11 @@ export const HolidayWorkCreditScalarFieldEnum = {
   employeeId: 'employeeId',
   publicHolidayId: 'publicHolidayId',
   creditedDays: 'creditedDays',
-  comment: 'comment'
+  consumedDays: 'consumedDays',
+  isFullyConsumed: 'isFullyConsumed',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type HolidayWorkCreditScalarFieldEnum = (typeof HolidayWorkCreditScalarFieldEnum)[keyof typeof HolidayWorkCreditScalarFieldEnum]
@@ -134,39 +197,17 @@ export type HolidayWorkCreditScalarFieldEnum = (typeof HolidayWorkCreditScalarFi
 
 export const LeaveRuleScalarFieldEnum = {
   id: 'id',
+  code: 'code',
   name: 'name',
   value: 'value',
   unit: 'unit',
-  description: 'description'
+  description: 'description',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type LeaveRuleScalarFieldEnum = (typeof LeaveRuleScalarFieldEnum)[keyof typeof LeaveRuleScalarFieldEnum]
-
-
-export const SiteScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-} as const
-
-export type SiteScalarFieldEnum = (typeof SiteScalarFieldEnum)[keyof typeof SiteScalarFieldEnum]
-
-
-export const AbsenceTypeScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-} as const
-
-export type AbsenceTypeScalarFieldEnum = (typeof AbsenceTypeScalarFieldEnum)[keyof typeof AbsenceTypeScalarFieldEnum]
-
-
-export const AbsenceReasonScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  typeId: 'typeId',
-  allowedDays: 'allowedDays'
-} as const
-
-export type AbsenceReasonScalarFieldEnum = (typeof AbsenceReasonScalarFieldEnum)[keyof typeof AbsenceReasonScalarFieldEnum]
 
 
 export const SortOrder = {

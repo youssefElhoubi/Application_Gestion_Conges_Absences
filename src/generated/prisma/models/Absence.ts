@@ -59,6 +59,11 @@ export type AbsenceMinAggregateOutputType = {
   status: $Enums.AbsenceStatus | null
   requestDate: Date | null
   comment: string | null
+  rejectionReason: string | null
+  approvedById: string | null
+  approvedAt: Date | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AbsenceMaxAggregateOutputType = {
@@ -76,6 +81,11 @@ export type AbsenceMaxAggregateOutputType = {
   status: $Enums.AbsenceStatus | null
   requestDate: Date | null
   comment: string | null
+  rejectionReason: string | null
+  approvedById: string | null
+  approvedAt: Date | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AbsenceCountAggregateOutputType = {
@@ -93,6 +103,11 @@ export type AbsenceCountAggregateOutputType = {
   status: number
   requestDate: number
   comment: number
+  rejectionReason: number
+  approvedById: number
+  approvedAt: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -130,6 +145,11 @@ export type AbsenceMinAggregateInputType = {
   status?: true
   requestDate?: true
   comment?: true
+  rejectionReason?: true
+  approvedById?: true
+  approvedAt?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AbsenceMaxAggregateInputType = {
@@ -147,6 +167,11 @@ export type AbsenceMaxAggregateInputType = {
   status?: true
   requestDate?: true
   comment?: true
+  rejectionReason?: true
+  approvedById?: true
+  approvedAt?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AbsenceCountAggregateInputType = {
@@ -164,6 +189,11 @@ export type AbsenceCountAggregateInputType = {
   status?: true
   requestDate?: true
   comment?: true
+  rejectionReason?: true
+  approvedById?: true
+  approvedAt?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -268,6 +298,11 @@ export type AbsenceGroupByOutputType = {
   status: $Enums.AbsenceStatus
   requestDate: Date
   comment: string | null
+  rejectionReason: string | null
+  approvedById: string | null
+  approvedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
   _count: AbsenceCountAggregateOutputType | null
   _avg: AbsenceAvgAggregateOutputType | null
   _sum: AbsenceSumAggregateOutputType | null
@@ -308,6 +343,11 @@ export type AbsenceWhereInput = {
   status?: Prisma.EnumAbsenceStatusFilter<"Absence"> | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFilter<"Absence"> | Date | string
   comment?: Prisma.StringNullableFilter<"Absence"> | string | null
+  rejectionReason?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedById?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedAt?: Prisma.DateTimeNullableFilter<"Absence"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   type?: Prisma.XOR<Prisma.AbsenceTypeScalarRelationFilter, Prisma.AbsenceTypeWhereInput>
   reason?: Prisma.XOR<Prisma.AbsenceReasonNullableScalarRelationFilter, Prisma.AbsenceReasonWhereInput> | null
@@ -328,6 +368,11 @@ export type AbsenceOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   requestDate?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   employee?: Prisma.EmployeeOrderByWithRelationInput
   type?: Prisma.AbsenceTypeOrderByWithRelationInput
   reason?: Prisma.AbsenceReasonOrderByWithRelationInput
@@ -351,6 +396,11 @@ export type AbsenceWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumAbsenceStatusFilter<"Absence"> | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFilter<"Absence"> | Date | string
   comment?: Prisma.StringNullableFilter<"Absence"> | string | null
+  rejectionReason?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedById?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedAt?: Prisma.DateTimeNullableFilter<"Absence"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   type?: Prisma.XOR<Prisma.AbsenceTypeScalarRelationFilter, Prisma.AbsenceTypeWhereInput>
   reason?: Prisma.XOR<Prisma.AbsenceReasonNullableScalarRelationFilter, Prisma.AbsenceReasonWhereInput> | null
@@ -371,6 +421,11 @@ export type AbsenceOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   requestDate?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.AbsenceCountOrderByAggregateInput
   _avg?: Prisma.AbsenceAvgOrderByAggregateInput
   _max?: Prisma.AbsenceMaxOrderByAggregateInput
@@ -396,20 +451,30 @@ export type AbsenceScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumAbsenceStatusWithAggregatesFilter<"Absence"> | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeWithAggregatesFilter<"Absence"> | Date | string
   comment?: Prisma.StringNullableWithAggregatesFilter<"Absence"> | string | null
+  rejectionReason?: Prisma.StringNullableWithAggregatesFilter<"Absence"> | string | null
+  approvedById?: Prisma.StringNullableWithAggregatesFilter<"Absence"> | string | null
+  approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Absence"> | Date | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Absence"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Absence"> | Date | string
 }
 
 export type AbsenceCreateInput = {
   id?: bigint | number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
@@ -422,14 +487,19 @@ export type AbsenceUncheckedCreateInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceUpdateInput = {
@@ -444,6 +514,11 @@ export type AbsenceUpdateInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
@@ -464,6 +539,11 @@ export type AbsenceUncheckedUpdateInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceCreateManyInput = {
@@ -473,14 +553,19 @@ export type AbsenceCreateManyInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceUpdateManyMutationInput = {
@@ -495,6 +580,11 @@ export type AbsenceUpdateManyMutationInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceUncheckedUpdateManyInput = {
@@ -512,6 +602,11 @@ export type AbsenceUncheckedUpdateManyInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceListRelationFilter = {
@@ -539,6 +634,11 @@ export type AbsenceCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   requestDate?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  rejectionReason?: Prisma.SortOrder
+  approvedById?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceAvgOrderByAggregateInput = {
@@ -565,6 +665,11 @@ export type AbsenceMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   requestDate?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  rejectionReason?: Prisma.SortOrder
+  approvedById?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceMinOrderByAggregateInput = {
@@ -582,6 +687,11 @@ export type AbsenceMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   requestDate?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  rejectionReason?: Prisma.SortOrder
+  approvedById?: Prisma.SortOrder
+  approvedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AbsenceSumOrderByAggregateInput = {
@@ -633,42 +743,6 @@ export type AbsenceUncheckedUpdateManyWithoutEmployeeNestedInput = {
   update?: Prisma.AbsenceUpdateWithWhereUniqueWithoutEmployeeInput | Prisma.AbsenceUpdateWithWhereUniqueWithoutEmployeeInput[]
   updateMany?: Prisma.AbsenceUpdateManyWithWhereWithoutEmployeeInput | Prisma.AbsenceUpdateManyWithWhereWithoutEmployeeInput[]
   deleteMany?: Prisma.AbsenceScalarWhereInput | Prisma.AbsenceScalarWhereInput[]
-}
-
-export type BigIntFieldUpdateOperationsInput = {
-  set?: bigint | number
-  increment?: bigint | number
-  decrement?: bigint | number
-  multiply?: bigint | number
-  divide?: bigint | number
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type EnumFractionFieldUpdateOperationsInput = {
-  set?: $Enums.Fraction
-}
-
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
-export type EnumAbsenceStatusFieldUpdateOperationsInput = {
-  set?: $Enums.AbsenceStatus
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type AbsenceCreateNestedManyWithoutTypeInput = {
@@ -755,18 +829,47 @@ export type AbsenceUncheckedUpdateManyWithoutReasonNestedInput = {
   deleteMany?: Prisma.AbsenceScalarWhereInput | Prisma.AbsenceScalarWhereInput[]
 }
 
+export type BigIntFieldUpdateOperationsInput = {
+  set?: bigint | number
+  increment?: bigint | number
+  decrement?: bigint | number
+  multiply?: bigint | number
+  divide?: bigint | number
+}
+
+export type EnumFractionFieldUpdateOperationsInput = {
+  set?: $Enums.Fraction
+}
+
+export type EnumAbsenceStatusFieldUpdateOperationsInput = {
+  set?: $Enums.AbsenceStatus
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type AbsenceCreateWithoutEmployeeInput = {
   id?: bigint | number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
 }
@@ -777,14 +880,19 @@ export type AbsenceUncheckedCreateWithoutEmployeeInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceCreateOrConnectWithoutEmployeeInput = {
@@ -831,20 +939,30 @@ export type AbsenceScalarWhereInput = {
   status?: Prisma.EnumAbsenceStatusFilter<"Absence"> | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFilter<"Absence"> | Date | string
   comment?: Prisma.StringNullableFilter<"Absence"> | string | null
+  rejectionReason?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedById?: Prisma.StringNullableFilter<"Absence"> | string | null
+  approvedAt?: Prisma.DateTimeNullableFilter<"Absence"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Absence"> | Date | string
 }
 
 export type AbsenceCreateWithoutTypeInput = {
   id?: bigint | number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   reason?: Prisma.AbsenceReasonCreateNestedOneWithoutAbsencesInput
 }
@@ -855,14 +973,19 @@ export type AbsenceUncheckedCreateWithoutTypeInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceCreateOrConnectWithoutTypeInput = {
@@ -895,14 +1018,19 @@ export type AbsenceCreateWithoutReasonInput = {
   id?: bigint | number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   employee: Prisma.EmployeeCreateNestedOneWithoutAbsencesInput
   type: Prisma.AbsenceTypeCreateNestedOneWithoutAbsencesInput
 }
@@ -913,14 +1041,19 @@ export type AbsenceUncheckedCreateWithoutReasonInput = {
   typeId: number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceCreateOrConnectWithoutReasonInput = {
@@ -955,14 +1088,19 @@ export type AbsenceCreateManyEmployeeInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceUpdateWithoutEmployeeInput = {
@@ -977,6 +1115,11 @@ export type AbsenceUpdateWithoutEmployeeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
 }
@@ -995,6 +1138,11 @@ export type AbsenceUncheckedUpdateWithoutEmployeeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1011,6 +1159,11 @@ export type AbsenceUncheckedUpdateManyWithoutEmployeeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceCreateManyTypeInput = {
@@ -1019,14 +1172,19 @@ export type AbsenceCreateManyTypeInput = {
   reasonId?: number | null
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceUpdateWithoutTypeInput = {
@@ -1041,6 +1199,11 @@ export type AbsenceUpdateWithoutTypeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   reason?: Prisma.AbsenceReasonUpdateOneWithoutAbsencesNestedInput
 }
@@ -1059,6 +1222,11 @@ export type AbsenceUncheckedUpdateWithoutTypeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceUncheckedUpdateManyWithoutTypeInput = {
@@ -1075,6 +1243,11 @@ export type AbsenceUncheckedUpdateManyWithoutTypeInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceCreateManyReasonInput = {
@@ -1083,14 +1256,19 @@ export type AbsenceCreateManyReasonInput = {
   typeId: number
   startDate: Date | string
   endDate: Date | string
-  fraction: $Enums.Fraction
+  fraction?: $Enums.Fraction
   calculatedWorkingDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   enteredDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   retainedDays: runtime.Decimal | runtime.DecimalJsLike | number | string
   supportingDocumentProvided?: boolean
-  status: $Enums.AbsenceStatus
+  status?: $Enums.AbsenceStatus
   requestDate?: Date | string
   comment?: string | null
+  rejectionReason?: string | null
+  approvedById?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AbsenceUpdateWithoutReasonInput = {
@@ -1105,6 +1283,11 @@ export type AbsenceUpdateWithoutReasonInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutAbsencesNestedInput
   type?: Prisma.AbsenceTypeUpdateOneRequiredWithoutAbsencesNestedInput
 }
@@ -1123,6 +1306,11 @@ export type AbsenceUncheckedUpdateWithoutReasonInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AbsenceUncheckedUpdateManyWithoutReasonInput = {
@@ -1139,6 +1327,11 @@ export type AbsenceUncheckedUpdateManyWithoutReasonInput = {
   status?: Prisma.EnumAbsenceStatusFieldUpdateOperationsInput | $Enums.AbsenceStatus
   requestDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1158,6 +1351,11 @@ export type AbsenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   requestDate?: boolean
   comment?: boolean
+  rejectionReason?: boolean
+  approvedById?: boolean
+  approvedAt?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
   reason?: boolean | Prisma.Absence$reasonArgs<ExtArgs>
@@ -1178,6 +1376,11 @@ export type AbsenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   requestDate?: boolean
   comment?: boolean
+  rejectionReason?: boolean
+  approvedById?: boolean
+  approvedAt?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
   reason?: boolean | Prisma.Absence$reasonArgs<ExtArgs>
@@ -1198,6 +1401,11 @@ export type AbsenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   requestDate?: boolean
   comment?: boolean
+  rejectionReason?: boolean
+  approvedById?: boolean
+  approvedAt?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
   reason?: boolean | Prisma.Absence$reasonArgs<ExtArgs>
@@ -1218,9 +1426,14 @@ export type AbsenceSelectScalar = {
   status?: boolean
   requestDate?: boolean
   comment?: boolean
+  rejectionReason?: boolean
+  approvedById?: boolean
+  approvedAt?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type AbsenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "typeId" | "reasonId" | "startDate" | "endDate" | "fraction" | "calculatedWorkingDays" | "enteredDays" | "retainedDays" | "supportingDocumentProvided" | "status" | "requestDate" | "comment", ExtArgs["result"]["absence"]>
+export type AbsenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "typeId" | "reasonId" | "startDate" | "endDate" | "fraction" | "calculatedWorkingDays" | "enteredDays" | "retainedDays" | "supportingDocumentProvided" | "status" | "requestDate" | "comment" | "rejectionReason" | "approvedById" | "approvedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["absence"]>
 export type AbsenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   type?: boolean | Prisma.AbsenceTypeDefaultArgs<ExtArgs>
@@ -1259,6 +1472,11 @@ export type $AbsencePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     status: $Enums.AbsenceStatus
     requestDate: Date
     comment: string | null
+    rejectionReason: string | null
+    approvedById: string | null
+    approvedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["absence"]>
   composites: {}
 }
@@ -1699,6 +1917,11 @@ export interface AbsenceFieldRefs {
   readonly status: Prisma.FieldRef<"Absence", 'AbsenceStatus'>
   readonly requestDate: Prisma.FieldRef<"Absence", 'DateTime'>
   readonly comment: Prisma.FieldRef<"Absence", 'String'>
+  readonly rejectionReason: Prisma.FieldRef<"Absence", 'String'>
+  readonly approvedById: Prisma.FieldRef<"Absence", 'String'>
+  readonly approvedAt: Prisma.FieldRef<"Absence", 'DateTime'>
+  readonly createdAt: Prisma.FieldRef<"Absence", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Absence", 'DateTime'>
 }
     
 

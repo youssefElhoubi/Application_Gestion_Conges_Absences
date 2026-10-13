@@ -38,21 +38,30 @@ export type PublicHolidayMinAggregateOutputType = {
   id: bigint | null
   date: Date | null
   label: string | null
+  isReligious: boolean | null
   comment: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PublicHolidayMaxAggregateOutputType = {
   id: bigint | null
   date: Date | null
   label: string | null
+  isReligious: boolean | null
   comment: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type PublicHolidayCountAggregateOutputType = {
   id: number
   date: number
   label: number
+  isReligious: number
   comment: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -69,21 +78,30 @@ export type PublicHolidayMinAggregateInputType = {
   id?: true
   date?: true
   label?: true
+  isReligious?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type PublicHolidayMaxAggregateInputType = {
   id?: true
   date?: true
   label?: true
+  isReligious?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type PublicHolidayCountAggregateInputType = {
   id?: true
   date?: true
   label?: true
+  isReligious?: true
   comment?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -177,7 +195,10 @@ export type PublicHolidayGroupByOutputType = {
   id: bigint
   date: Date
   label: string
+  isReligious: boolean
   comment: string | null
+  createdAt: Date
+  updatedAt: Date
   _count: PublicHolidayCountAggregateOutputType | null
   _avg: PublicHolidayAvgAggregateOutputType | null
   _sum: PublicHolidaySumAggregateOutputType | null
@@ -207,7 +228,10 @@ export type PublicHolidayWhereInput = {
   id?: Prisma.BigIntFilter<"PublicHoliday"> | bigint | number
   date?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
   label?: Prisma.StringFilter<"PublicHoliday"> | string
+  isReligious?: Prisma.BoolFilter<"PublicHoliday"> | boolean
   comment?: Prisma.StringNullableFilter<"PublicHoliday"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditListRelationFilter
 }
 
@@ -215,26 +239,35 @@ export type PublicHolidayOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   label?: Prisma.SortOrder
+  isReligious?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   holidayWorkCredits?: Prisma.HolidayWorkCreditOrderByRelationAggregateInput
 }
 
 export type PublicHolidayWhereUniqueInput = Prisma.AtLeast<{
   id?: bigint | number
+  date?: Date | string
   AND?: Prisma.PublicHolidayWhereInput | Prisma.PublicHolidayWhereInput[]
   OR?: Prisma.PublicHolidayWhereInput[]
   NOT?: Prisma.PublicHolidayWhereInput | Prisma.PublicHolidayWhereInput[]
-  date?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
   label?: Prisma.StringFilter<"PublicHoliday"> | string
+  isReligious?: Prisma.BoolFilter<"PublicHoliday"> | boolean
   comment?: Prisma.StringNullableFilter<"PublicHoliday"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"PublicHoliday"> | Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditListRelationFilter
-}, "id">
+}, "id" | "date">
 
 export type PublicHolidayOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   label?: Prisma.SortOrder
+  isReligious?: Prisma.SortOrder
   comment?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.PublicHolidayCountOrderByAggregateInput
   _avg?: Prisma.PublicHolidayAvgOrderByAggregateInput
   _max?: Prisma.PublicHolidayMaxOrderByAggregateInput
@@ -249,14 +282,20 @@ export type PublicHolidayScalarWhereWithAggregatesInput = {
   id?: Prisma.BigIntWithAggregatesFilter<"PublicHoliday"> | bigint | number
   date?: Prisma.DateTimeWithAggregatesFilter<"PublicHoliday"> | Date | string
   label?: Prisma.StringWithAggregatesFilter<"PublicHoliday"> | string
+  isReligious?: Prisma.BoolWithAggregatesFilter<"PublicHoliday"> | boolean
   comment?: Prisma.StringNullableWithAggregatesFilter<"PublicHoliday"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"PublicHoliday"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PublicHoliday"> | Date | string
 }
 
 export type PublicHolidayCreateInput = {
   id?: bigint | number
   date: Date | string
   label: string
+  isReligious?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditCreateNestedManyWithoutPublicHolidayInput
 }
 
@@ -264,7 +303,10 @@ export type PublicHolidayUncheckedCreateInput = {
   id?: bigint | number
   date: Date | string
   label: string
+  isReligious?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedCreateNestedManyWithoutPublicHolidayInput
 }
 
@@ -272,7 +314,10 @@ export type PublicHolidayUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditUpdateManyWithoutPublicHolidayNestedInput
 }
 
@@ -280,7 +325,10 @@ export type PublicHolidayUncheckedUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   holidayWorkCredits?: Prisma.HolidayWorkCreditUncheckedUpdateManyWithoutPublicHolidayNestedInput
 }
 
@@ -288,28 +336,40 @@ export type PublicHolidayCreateManyInput = {
   id?: bigint | number
   date: Date | string
   label: string
+  isReligious?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PublicHolidayUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PublicHolidayUncheckedUpdateManyInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PublicHolidayCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   label?: Prisma.SortOrder
+  isReligious?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PublicHolidayAvgOrderByAggregateInput = {
@@ -320,14 +380,20 @@ export type PublicHolidayMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   label?: Prisma.SortOrder
+  isReligious?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PublicHolidayMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   date?: Prisma.SortOrder
   label?: Prisma.SortOrder
+  isReligious?: Prisma.SortOrder
   comment?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type PublicHolidaySumOrderByAggregateInput = {
@@ -357,14 +423,20 @@ export type PublicHolidayCreateWithoutHolidayWorkCreditsInput = {
   id?: bigint | number
   date: Date | string
   label: string
+  isReligious?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PublicHolidayUncheckedCreateWithoutHolidayWorkCreditsInput = {
   id?: bigint | number
   date: Date | string
   label: string
+  isReligious?: boolean
   comment?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PublicHolidayCreateOrConnectWithoutHolidayWorkCreditsInput = {
@@ -387,14 +459,20 @@ export type PublicHolidayUpdateWithoutHolidayWorkCreditsInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PublicHolidayUncheckedUpdateWithoutHolidayWorkCreditsInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
+  isReligious?: Prisma.BoolFieldUpdateOperationsInput | boolean
   comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -432,7 +510,10 @@ export type PublicHolidaySelect<ExtArgs extends runtime.Types.Extensions.Interna
   id?: boolean
   date?: boolean
   label?: boolean
+  isReligious?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   holidayWorkCredits?: boolean | Prisma.PublicHoliday$holidayWorkCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.PublicHolidayCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["publicHoliday"]>
@@ -441,24 +522,33 @@ export type PublicHolidaySelectCreateManyAndReturn<ExtArgs extends runtime.Types
   id?: boolean
   date?: boolean
   label?: boolean
+  isReligious?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["publicHoliday"]>
 
 export type PublicHolidaySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   date?: boolean
   label?: boolean
+  isReligious?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["publicHoliday"]>
 
 export type PublicHolidaySelectScalar = {
   id?: boolean
   date?: boolean
   label?: boolean
+  isReligious?: boolean
   comment?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type PublicHolidayOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "date" | "label" | "comment", ExtArgs["result"]["publicHoliday"]>
+export type PublicHolidayOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "date" | "label" | "isReligious" | "comment" | "createdAt" | "updatedAt", ExtArgs["result"]["publicHoliday"]>
 export type PublicHolidayInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   holidayWorkCredits?: boolean | Prisma.PublicHoliday$holidayWorkCreditsArgs<ExtArgs>
   _count?: boolean | Prisma.PublicHolidayCountOutputTypeDefaultArgs<ExtArgs>
@@ -475,7 +565,10 @@ export type $PublicHolidayPayload<ExtArgs extends runtime.Types.Extensions.Inter
     id: bigint
     date: Date
     label: string
+    isReligious: boolean
     comment: string | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["publicHoliday"]>
   composites: {}
 }
@@ -903,7 +996,10 @@ export interface PublicHolidayFieldRefs {
   readonly id: Prisma.FieldRef<"PublicHoliday", 'BigInt'>
   readonly date: Prisma.FieldRef<"PublicHoliday", 'DateTime'>
   readonly label: Prisma.FieldRef<"PublicHoliday", 'String'>
+  readonly isReligious: Prisma.FieldRef<"PublicHoliday", 'Boolean'>
   readonly comment: Prisma.FieldRef<"PublicHoliday", 'String'>
+  readonly createdAt: Prisma.FieldRef<"PublicHoliday", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"PublicHoliday", 'DateTime'>
 }
     
 

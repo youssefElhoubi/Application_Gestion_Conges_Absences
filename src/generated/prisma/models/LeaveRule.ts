@@ -38,26 +38,38 @@ export type LeaveRuleSumAggregateOutputType = {
 
 export type LeaveRuleMinAggregateOutputType = {
   id: bigint | null
+  code: string | null
   name: string | null
   value: runtime.Decimal | null
-  unit: string | null
+  unit: $Enums.RuleUnit | null
   description: string | null
+  active: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type LeaveRuleMaxAggregateOutputType = {
   id: bigint | null
+  code: string | null
   name: string | null
   value: runtime.Decimal | null
-  unit: string | null
+  unit: $Enums.RuleUnit | null
   description: string | null
+  active: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type LeaveRuleCountAggregateOutputType = {
   id: number
+  code: number
   name: number
   value: number
   unit: number
   description: number
+  active: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -74,26 +86,38 @@ export type LeaveRuleSumAggregateInputType = {
 
 export type LeaveRuleMinAggregateInputType = {
   id?: true
+  code?: true
   name?: true
   value?: true
   unit?: true
   description?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type LeaveRuleMaxAggregateInputType = {
   id?: true
+  code?: true
   name?: true
   value?: true
   unit?: true
   description?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type LeaveRuleCountAggregateInputType = {
   id?: true
+  code?: true
   name?: true
   value?: true
   unit?: true
   description?: true
+  active?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -185,10 +209,14 @@ export type LeaveRuleGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type LeaveRuleGroupByOutputType = {
   id: bigint
+  code: string
   name: string
   value: runtime.Decimal
-  unit: string
+  unit: $Enums.RuleUnit
   description: string | null
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
   _count: LeaveRuleCountAggregateOutputType | null
   _avg: LeaveRuleAvgAggregateOutputType | null
   _sum: LeaveRuleSumAggregateOutputType | null
@@ -216,37 +244,53 @@ export type LeaveRuleWhereInput = {
   OR?: Prisma.LeaveRuleWhereInput[]
   NOT?: Prisma.LeaveRuleWhereInput | Prisma.LeaveRuleWhereInput[]
   id?: Prisma.BigIntFilter<"LeaveRule"> | bigint | number
+  code?: Prisma.StringFilter<"LeaveRule"> | string
   name?: Prisma.StringFilter<"LeaveRule"> | string
   value?: Prisma.DecimalFilter<"LeaveRule"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFilter<"LeaveRule"> | string
+  unit?: Prisma.EnumRuleUnitFilter<"LeaveRule"> | $Enums.RuleUnit
   description?: Prisma.StringNullableFilter<"LeaveRule"> | string | null
+  active?: Prisma.BoolFilter<"LeaveRule"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"LeaveRule"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"LeaveRule"> | Date | string
 }
 
 export type LeaveRuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type LeaveRuleWhereUniqueInput = Prisma.AtLeast<{
   id?: bigint | number
+  code?: string
   AND?: Prisma.LeaveRuleWhereInput | Prisma.LeaveRuleWhereInput[]
   OR?: Prisma.LeaveRuleWhereInput[]
   NOT?: Prisma.LeaveRuleWhereInput | Prisma.LeaveRuleWhereInput[]
   name?: Prisma.StringFilter<"LeaveRule"> | string
   value?: Prisma.DecimalFilter<"LeaveRule"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFilter<"LeaveRule"> | string
+  unit?: Prisma.EnumRuleUnitFilter<"LeaveRule"> | $Enums.RuleUnit
   description?: Prisma.StringNullableFilter<"LeaveRule"> | string | null
-}, "id">
+  active?: Prisma.BoolFilter<"LeaveRule"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"LeaveRule"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"LeaveRule"> | Date | string
+}, "id" | "code">
 
 export type LeaveRuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.LeaveRuleCountOrderByAggregateInput
   _avg?: Prisma.LeaveRuleAvgOrderByAggregateInput
   _max?: Prisma.LeaveRuleMaxOrderByAggregateInput
@@ -259,74 +303,110 @@ export type LeaveRuleScalarWhereWithAggregatesInput = {
   OR?: Prisma.LeaveRuleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.LeaveRuleScalarWhereWithAggregatesInput | Prisma.LeaveRuleScalarWhereWithAggregatesInput[]
   id?: Prisma.BigIntWithAggregatesFilter<"LeaveRule"> | bigint | number
+  code?: Prisma.StringWithAggregatesFilter<"LeaveRule"> | string
   name?: Prisma.StringWithAggregatesFilter<"LeaveRule"> | string
   value?: Prisma.DecimalWithAggregatesFilter<"LeaveRule"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringWithAggregatesFilter<"LeaveRule"> | string
+  unit?: Prisma.EnumRuleUnitWithAggregatesFilter<"LeaveRule"> | $Enums.RuleUnit
   description?: Prisma.StringNullableWithAggregatesFilter<"LeaveRule"> | string | null
+  active?: Prisma.BoolWithAggregatesFilter<"LeaveRule"> | boolean
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveRule"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveRule"> | Date | string
 }
 
 export type LeaveRuleCreateInput = {
   id?: bigint | number
+  code: string
   name: string
   value: runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit: string
+  unit?: $Enums.RuleUnit
   description?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type LeaveRuleUncheckedCreateInput = {
   id?: bigint | number
+  code: string
   name: string
   value: runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit: string
+  unit?: $Enums.RuleUnit
   description?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type LeaveRuleUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumRuleUnitFieldUpdateOperationsInput | $Enums.RuleUnit
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type LeaveRuleUncheckedUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumRuleUnitFieldUpdateOperationsInput | $Enums.RuleUnit
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type LeaveRuleCreateManyInput = {
   id?: bigint | number
+  code: string
   name: string
   value: runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit: string
+  unit?: $Enums.RuleUnit
   description?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type LeaveRuleUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumRuleUnitFieldUpdateOperationsInput | $Enums.RuleUnit
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type LeaveRuleUncheckedUpdateManyInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumRuleUnitFieldUpdateOperationsInput | $Enums.RuleUnit
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type LeaveRuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type LeaveRuleAvgOrderByAggregateInput = {
@@ -336,18 +416,26 @@ export type LeaveRuleAvgOrderByAggregateInput = {
 
 export type LeaveRuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type LeaveRuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  active?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type LeaveRuleSumOrderByAggregateInput = {
@@ -355,51 +443,75 @@ export type LeaveRuleSumOrderByAggregateInput = {
   value?: Prisma.SortOrder
 }
 
+export type EnumRuleUnitFieldUpdateOperationsInput = {
+  set?: $Enums.RuleUnit
+}
+
 
 
 export type LeaveRuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
   value?: boolean
   unit?: boolean
   description?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["leaveRule"]>
 
 export type LeaveRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
   value?: boolean
   unit?: boolean
   description?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["leaveRule"]>
 
 export type LeaveRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  code?: boolean
   name?: boolean
   value?: boolean
   unit?: boolean
   description?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["leaveRule"]>
 
 export type LeaveRuleSelectScalar = {
   id?: boolean
+  code?: boolean
   name?: boolean
   value?: boolean
   unit?: boolean
   description?: boolean
+  active?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type LeaveRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "value" | "unit" | "description", ExtArgs["result"]["leaveRule"]>
+export type LeaveRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "value" | "unit" | "description" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveRule"]>
 
 export type $LeaveRulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "LeaveRule"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: bigint
+    code: string
     name: string
     value: runtime.Decimal
-    unit: string
+    unit: $Enums.RuleUnit
     description: string | null
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["leaveRule"]>
   composites: {}
 }
@@ -824,10 +936,14 @@ export interface Prisma__LeaveRuleClient<T, Null = never, ExtArgs extends runtim
  */
 export interface LeaveRuleFieldRefs {
   readonly id: Prisma.FieldRef<"LeaveRule", 'BigInt'>
+  readonly code: Prisma.FieldRef<"LeaveRule", 'String'>
   readonly name: Prisma.FieldRef<"LeaveRule", 'String'>
   readonly value: Prisma.FieldRef<"LeaveRule", 'Decimal'>
-  readonly unit: Prisma.FieldRef<"LeaveRule", 'String'>
+  readonly unit: Prisma.FieldRef<"LeaveRule", 'RuleUnit'>
   readonly description: Prisma.FieldRef<"LeaveRule", 'String'>
+  readonly active: Prisma.FieldRef<"LeaveRule", 'Boolean'>
+  readonly createdAt: Prisma.FieldRef<"LeaveRule", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"LeaveRule", 'DateTime'>
 }
     
 
