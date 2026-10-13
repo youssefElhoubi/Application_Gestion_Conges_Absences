@@ -7,9 +7,105 @@ datasource db {
     provider = "postgresql"
 }
 
-model User {
-    id        Int      @id @default(autoincrement())
-    name      String
-    email     String   @unique
-    createdAt DateTime @default(now())
+model Employee {
+    employeeId  String    @id
+    fullName    String
+    siteId      Int?
+    jobTitle    String?
+    birthDate   DateTime?
+    hireDate    DateTime?
+    active      Boolean   @default(true)
+    observation String?
+
+    site               Site?               @relation(fields: [siteId], references: [id])
+    absences           Absence[]
+    holidayWorkCredits HolidayWorkCredit[]
+}
+
+model Absence {
+    id                         BigInt        @id @default(autoincrement())
+    employeeId                 String
+    typeId                     Int
+    reasonId                   Int?
+    startDate                  DateTime
+    endDate                    DateTime
+    fraction                   Fraction
+    calculatedWorkingDays      Decimal       @db.Decimal(10, 2)
+    enteredDays                Decimal       @db.Decimal(10, 2)
+    retainedDays               Decimal       @db.Decimal(10, 2)
+    supportingDocumentProvided Boolean       @default(false)
+    status                     AbsenceStatus
+    requestDate                DateTime      @default(now())
+    comment                    String?
+
+    employee Employee       @relation(fields: [employeeId], references: [employeeId])
+    type     AbsenceType    @relation(fields: [typeId], references: [id])
+    reason   AbsenceReason? @relation(fields: [reasonId], references: [id])
+}
+
+model PublicHoliday {
+    id      BigInt   @id @default(autoincrement())
+    date    DateTime
+    label   String
+    comment String?
+
+    holidayWorkCredits HolidayWorkCredit[]
+}
+
+model HolidayWorkCredit {
+    id              BigInt  @id @default(autoincrement())
+    employeeId      String
+    publicHolidayId BigInt
+    creditedDays    Decimal @db.Decimal(10, 2)
+    comment         String?
+
+    employee      Employee      @relation(fields: [employeeId], references: [employeeId])
+    publicHoliday PublicHoliday @relation(fields: [publicHolidayId], references: [id])
+}
+
+model LeaveRule {
+    id          BigInt  @id @default(autoincrement())
+    name        String
+    value       Decimal @db.Decimal(10, 2)
+    unit        String
+    description String?
+}
+
+model Site {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+
+    employees Employee[]
+}
+
+model AbsenceType {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+
+    absences       Absence[]
+    absenceReasons AbsenceReason[]
+}
+
+model AbsenceReason {
+    id          Int     @id @default(autoincrement())
+    name        String
+    typeId      Int
+    allowedDays Decimal @db.Decimal(10, 2)
+
+    type     AbsenceType @relation(fields: [typeId], references: [id])
+    absences Absence[]
+
+    @@unique([name, typeId])
+}
+
+enum AbsenceStatus {
+    PENDING
+    APPROVED
+    REJECTED
+    CANCELLED
+}
+
+enum Fraction {
+    FULL_DAY
+    HALF_DAY
 }
