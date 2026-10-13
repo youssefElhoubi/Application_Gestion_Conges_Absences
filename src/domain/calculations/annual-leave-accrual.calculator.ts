@@ -3,21 +3,26 @@ import { AgeSeniorityCalculator } from './age-seniority.calculator';
 
 export interface AccrualCalculationResult {
   serviceMonths: number;
-  isEntitlementUnlocked: boolean; // True only if serviceMonths >= 6
-  monthlyRateApplied: number;     // 1.5 or 2.0
+  serviceYears: number;
+  isEntitlementUnlocked: boolean; // True only if serviceMonths >= 6 (Art. 231)
+  monthlyRateApplied: number;     // 1.5 (adult) or 2.0 (minor)
   isMinorRate: boolean;
-  rawAccruedDays: number;
+  baseAccruedDays: number;        // Base monthly accrual
+  seniorityBonusDays: number;     // Art. 232: +1.5 days per 5 years of service
+  rawTotalAccruedDays: number;    // base + bonus before cap
   cappedAccruedDays: number;       // Capped at 30 days/year
   isYearlyCapReached: boolean;
+  usableAccruedDays: number;      // 0 if entitlement locked, cappedAccruedDays if unlocked
 }
 
 export class AnnualLeaveAccrualCalculator {
   /**
-   * Computes annual leave accrual according to Moroccan Labor Law:
-   * - Adult: 1.5 days/month
-   * - Minor (<18): 2.0 days/month
-   * - Entitlement starts after 6 months seniority
-   * - Maximum yearly balance capped at 30 days
+   * Computes statutory annual leave acquisition under Moroccan Labor Law:
+   * - Adult (>= 18): 1.5 working days / month of service (Art. 231)
+   * - Minor (< 18): 2.0 working days / month of service (Art. 231)
+   * - Seniority Increment: +1.5 working days per 5 completed years of service (Art. 232)
+   * - Entitlement gate: Acquisition opens for consumption only after 6 months of continuous service (Art. 231)
+   * - Statutory ceiling: Maximum 30 working days per year (Art. 232)
    */
   public static calculateAccrual(
     hireDate: Date,
@@ -26,10 +31,11 @@ export class AnnualLeaveAccrualCalculator {
     referenceYearStart?: Date
   ): AccrualCalculationResult {
     const serviceMonths = AgeSeniorityCalculator.calculateSeniorityMonths(hireDate, referenceDate);
+    const serviceYears = AgeSeniorityCalculator.calculateSeniorityYears(hireDate, referenceDate);
     const isEntitlementUnlocked =
       serviceMonths >= MOROCCAN_LABOR_RULES.ANNUAL_LEAVE.MINIMUM_SENIORITY_MONTHS_ENTITLEMENT;
 
-    // Determine months worked in current reference year (or default 12-month rolling window)
+    // Determine months worked in current reference annual cycle (up to 12 months)
     const yearStart = referenceYearStart ?? new Date(referenceDate.getFullYear(), 0, 1);
     const effectiveStartForYear = hireDate > yearStart ? hireDate : yearStart;
     const monthsInCurrentYear = Math.min(
@@ -38,7 +44,7 @@ export class AnnualLeaveAccrualCalculator {
     );
 
     // Calculate month-by-month to accurately handle minor-to-adult transition
-    let rawAccruedDays = 0;
+    let baseAccruedDays = 0;
     let isCurrentlyMinor = false;
     let latestRate: number = MOROCCAN_LABOR_RULES.ANNUAL_LEAVE.ADULT_RATE_PER_MONTH;
 
@@ -51,29 +57,42 @@ export class AnnualLeaveAccrualCalculator {
         ? MOROCCAN_LABOR_RULES.ANNUAL_LEAVE.MINOR_RATE_PER_MONTH
         : MOROCCAN_LABOR_RULES.ANNUAL_LEAVE.ADULT_RATE_PER_MONTH;
 
-      rawAccruedDays += rate;
+      baseAccruedDays += rate;
       if (m === monthsInCurrentYear - 1) {
         isCurrentlyMinor = minorInMonth;
         latestRate = rate;
       }
     }
 
-    // Round to 2 decimal places
-    rawAccruedDays = Math.round(rawAccruedDays * 100) / 100;
+    baseAccruedDays = Math.round(baseAccruedDays * 100) / 100;
 
-    // Apply statutory cap: maximum yearly balance = 30 days
+    // Seniority Bonus (Article 232): +1.5 days for each 5-year tier
+    const seniorityFiveYearBlocks = Math.floor(serviceYears / 5);
+    const seniorityBonusDays = seniorityFiveYearBlocks * 1.5;
+
+    // Total before cap
+    const rawTotalAccruedDays = baseAccruedDays + seniorityBonusDays;
+
+    // Statutory Cap: 30 days max
     const cap = MOROCCAN_LABOR_RULES.ANNUAL_LEAVE.MAX_YEARLY_BALANCE_CAP;
-    const cappedAccruedDays = Math.min(rawAccruedDays, cap);
-    const isYearlyCapReached = rawAccruedDays >= cap;
+    const cappedAccruedDays = Math.min(rawTotalAccruedDays, cap);
+    const isYearlyCapReached = rawTotalAccruedDays >= cap;
+
+    // Usable balance: 0 if < 6 months seniority, else cappedAccruedDays
+    const usableAccruedDays = isEntitlementUnlocked ? cappedAccruedDays : 0.0;
 
     return {
       serviceMonths,
+      serviceYears,
       isEntitlementUnlocked,
       monthlyRateApplied: latestRate,
       isMinorRate: isCurrentlyMinor,
-      rawAccruedDays,
-      cappedAccruedDays,
+      baseAccruedDays,
+      seniorityBonusDays,
+      rawTotalAccruedDays: Math.round(rawTotalAccruedDays * 100) / 100,
+      cappedAccruedDays: Math.round(cappedAccruedDays * 100) / 100,
       isYearlyCapReached,
+      usableAccruedDays: Math.round(usableAccruedDays * 100) / 100,
     };
   }
 }

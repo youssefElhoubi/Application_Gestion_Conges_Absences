@@ -106,7 +106,9 @@ export class MoroccanLeaveEdgeCases {
       scenarioName: '30-Day Yearly Balance Cap',
       description: 'Guarantees that no employee accrues more than the legal statutory ceiling of 30 days per year.',
       evaluationResult: {
-        rawAccruedDays: accrual.rawAccruedDays,
+        rawTotalAccruedDays: accrual.rawTotalAccruedDays,
+        baseAccruedDays: accrual.baseAccruedDays,
+        seniorityBonusDays: accrual.seniorityBonusDays,
         cappedAccruedDays: accrual.cappedAccruedDays,
         isYearlyCapReached: accrual.isYearlyCapReached,
       },
