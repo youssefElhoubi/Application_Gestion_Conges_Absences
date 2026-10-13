@@ -1,16 +1,22 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # Step 1: Install dependencies
 FROM base AS deps
+
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Copy package files and Prisma schema
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-# Install dependencies and generate Prisma client
-RUN npm ci
+# Prisma 7 requires its config file during CLI operations
+COPY prisma.config.ts ./
+
+RUN npm i
+
+# Only used during client generation; no real database connection is made
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mydb?schema=public"
+
 RUN npx prisma generate
 
 # Step 2: Build the application
