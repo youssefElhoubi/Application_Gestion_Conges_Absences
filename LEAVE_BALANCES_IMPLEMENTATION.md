@@ -367,12 +367,66 @@ To implement the Leave Balances and Counters module without regressions or break
 
 ---
 
-## 11. Next Safe Task
+---
 
-> **Employee Profile Balance Details Remediation (`src/app/employees/[id]/page.tsx`)**
-> 
-> *Note: Explicitly deferred per instructions — will be started when requested.*
-> 1. Consume `CounterApiClient.getEmployeeCounters(employeeId)` on `/employees/[id]`.
-> 2. Remediate legacy DTO fields to authoritative `DynamicBalanceResult` metrics (`netAvailableBalance`, `statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`).
-> 3. Display the Moroccan Labor Code calculation breakdown (monthly rate, minority status, seniority increment, 30-day cap, 6-month statutory gate).
+## 11. Completed Implementation: Employee-Specific Leave Balance Details Page
+
+### 11.1 Route & Architectural Integration
+- **Route:** `src/app/leave-balances/[id]/page.tsx` (`/leave-balances/[id]`).
+- **Connection with Overview:** Table rows, employee names, and the "Détail" action buttons on `/leave-balances` navigate directly to `/leave-balances/[id]`.
+- **Connection with Employee Profile:** Includes a prominent "Voir le profil collaborateur" action linking directly to `/employees/[id]` without duplicating the general employee profile.
+- **Connection with Absence & Recovery Modules:** Links each approved/recent absence item to `/absences/[id]` and provides quick navigation to the complete absence directory and recovery credits ledger.
+
+### 11.2 Authoritative Data Sources & Integration Layer
+1. **Employee Profile Data:**
+   - Source: `GET /api/employees/[id]` via `EmployeeApiClient.getEmployee(employeeId)`.
+   - Fields: `fullName`, `employeeId`, `cin`, `email`, `jobTitle`, `department`, `site`, `hireDate`, `active`.
+2. **Dynamic Balances & Statutory Breakdown:**
+   - Source: `GET /api/employees/[id]/counters` via `CounterApiClient.getEmployeeCounters(employeeId)`.
+   - Fields: `netAvailableBalance`, `statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`, `serviceYears`, `serviceMonths`, `isEligibleForAnnualLeave`, `referenceDate`, and `calculationBreakdown` (`monthlyRateApplied`, `isMinorRate`, `maxYearlyCapEnforced`, `unconsumedHolidayCreditsCount`).
+3. **Absences & Pending Requests:**
+   - Source: `GET /api/absences?employeeId=[id]` via `EmployeeApiClient.getEmployeeAbsences(employeeId)`.
+   - Calculation: Pending requests (`status === 'PENDING'`) are isolated and aggregated into a distinct notice card without deducting from confirmed statutory balance until approved.
+4. **Recovery Credits Ledger:**
+   - Source: `GET /api/holiday-work-credits?employeeId=[id]` via `EmployeeApiClient.getEmployeeCredits(employeeId)`.
+   - Fields: Public holiday details, credited days, consumed days, remaining days, and consumption status.
+
+### 11.3 Implemented Sections
+1. **Header & Back Navigation:**
+   - Breadcrumb navigation (`← Retour aux soldes de congés`) returning to `/leave-balances`.
+   - Page title, descriptive subtitle, and Moroccan Labor Law badge (Loi n° 65-99).
+2. **Employee Header:**
+   - Avatar with initials and active status badge.
+   - Name, Matricule badge, Job Title, Department, Site with map pin, Hire Date, and CIN.
+   - "Voir le profil collaborateur" action button routing to `/employees/[id]`.
+3. **Balance Summary (KPI StatCards):**
+   - **Solde Net Disponible:** Color-coded status (`emerald` for healthy $\ge 5$, `amber` for $> 0$, `destructive` for $\le 0$).
+   - **Droits Acquis (Statutaire):** Accrued annual leave days with monthly rate.
+   - **Congés Consommés:** Total approved deductible leaves debited.
+   - **Crédits Récupération:** Available recovery credits from worked public holidays.
+   - **Demandes en Attente (Notice):** Explicitly separated alert badge indicating pending days without prematurely debiting the balance.
+4. **Entitlement Context (Moroccan Labor Code):**
+   - Statutory acquisition rate (1.5 j/month adult vs 2.0 j/month minor).
+   - Seniority context (`serviceYears` ans and `serviceMonths` mois).
+   - 6-month statutory gate status (`isEligibleForAnnualLeave`): renders a prominent warning when seniority $< 6$ months that consumption is legally locked (Art. 231).
+   - 30-day statutory cap enforcement indicator (Art. 232).
+   - Calculation reference date (`referenceDate`).
+5. **Leave Usage:**
+   - Approved absences ledger detailing debited leave periods, working days count, absence type with color badge, and direct link to absence details.
+6. **Recovery Credits:**
+   - Breakdown of compensatory rest credits from worked public holidays showing holiday label, date, credited days, consumed days, remaining balance, and active/exhausted status.
+   - Explanatory statutory notice explaining non-expiring and FIFO consumption rules.
+7. **Recent Absence Activity:**
+   - Chronological list of recent employee absence requests with status badges (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`).
+8. **Useful Navigation:**
+   - Cross-module shortcuts to employee profile, full absence history, recovery credits ledger, and balances overview.
+
+### 11.4 Verification & Validation Checks
+- **TypeScript Static Check:** `npx tsc --noEmit` $\rightarrow$ **0 errors (exit code 0)**.
+- **Vitest Unit & Integration:** `npm run test` $\rightarrow$ **93 tests passed across 14 test files** (100% green).
+- **Production Next.js Build:** `npm run build` $\rightarrow$ **29/29 routes prerendered cleanly** (including `◐ /leave-balances/[id]`).
+
+### 11.5 Remaining Gaps
+- None for the Leave Balances overview and employee detail views. Both routes are fully integrated with the authoritative backend calculation engine.
+
 

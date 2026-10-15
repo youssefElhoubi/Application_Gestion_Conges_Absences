@@ -183,7 +183,26 @@ export class EmployeeApiClient {
       throw new Error(err.error || 'Impossible de récupérer les soldes du collaborateur.');
     }
 
-    return await res.json();
+    const data = await res.json();
+    return {
+      ...data,
+      employeeId: data.employeeId,
+      seniorityMonths: data.serviceMonths ?? data.seniorityMonths ?? 0,
+      isEligible: data.isEligibleForAnnualLeave ?? data.isEligible ?? true,
+      accruedDays: data.statutoryAccruedDays ?? data.accruedDays ?? 0,
+      takenApprovedDays: data.totalApprovedDeductions ?? data.takenApprovedDays ?? 0,
+      pendingDays: data.pendingDays ?? 0,
+      remainingPaidBalance: data.netAvailableBalance ?? data.remainingPaidBalance ?? 0,
+      recoveryCreditsTotal: data.activeRecoveryCreditDays ?? data.recoveryCreditsTotal ?? 0,
+      recoveryCreditsConsumed: data.recoveryCreditsConsumed ?? 0,
+      recoveryCreditsRemaining: data.activeRecoveryCreditDays ?? data.recoveryCreditsRemaining ?? 0,
+      totalAvailableDays: data.netAvailableBalance ?? data.totalAvailableDays ?? 0,
+      statutoryAccruedDays: data.statutoryAccruedDays ?? data.accruedDays ?? 0,
+      netAvailableBalance: data.netAvailableBalance ?? data.remainingPaidBalance ?? 0,
+      totalApprovedDeductions: data.totalApprovedDeductions ?? data.takenApprovedDays ?? 0,
+      activeRecoveryCreditDays: data.activeRecoveryCreditDays ?? data.recoveryCreditsRemaining ?? 0,
+      isEligibleForAnnualLeave: data.isEligibleForAnnualLeave ?? data.isEligible ?? true,
+    } as EmployeeBalances;
   }
 
   /**

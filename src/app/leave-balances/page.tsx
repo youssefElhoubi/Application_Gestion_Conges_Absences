@@ -285,7 +285,7 @@ function LeaveBalancesOverviewContent() {
             </div>
             <div className="min-w-0">
               <Link
-                href={`/employees/${encodeURIComponent(row.employeeId)}`}
+                href={`/leave-balances/${encodeURIComponent(row.employeeId)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="font-semibold text-foreground hover:text-primary transition-colors hover:underline flex items-center gap-1 group text-sm truncate"
               >
@@ -445,7 +445,7 @@ function LeaveBalancesOverviewContent() {
           size="xs"
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/employees/${encodeURIComponent(row.employeeId)}`);
+            router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`);
           }}
           className="text-xs group"
         >
@@ -577,7 +577,7 @@ function LeaveBalancesOverviewContent() {
         onSortChange={handleSortChange}
         onPageChange={(page) => updateUrlParams({ page })}
         onPageSizeChange={(newSize) => updateUrlParams({ pageSize: newSize, page: 1 })}
-        onRowClick={(row) => router.push(`/employees/${encodeURIComponent(row.employeeId)}`)}
+        onRowClick={(row) => router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`)}
       />
 
       {/* Statutory Rules Informational Banner */}

@@ -264,7 +264,16 @@ export default function EmployeeProfilePage() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2.5 shrink-0 self-start md:self-center">
+          <div className="flex items-center gap-2.5 shrink-0 self-start md:self-center flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/leave-balances/${encodeURIComponent(employee.employeeId)}`)}
+              className="text-xs"
+            >
+              <Briefcase className="h-4 w-4 mr-1.5 text-primary" />
+              <span>Soldes & Compteurs</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
