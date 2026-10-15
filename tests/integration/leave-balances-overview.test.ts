@@ -197,4 +197,98 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
       'EMP-BAL-02',
     ]);
   });
+
+  it('6. Supports server-side sorting by fullName, employeeId, hireDate, and site', async () => {
+    // Sort by employeeId asc vs desc
+    const sortIdAsc = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'employeeId', sortOrder: 'asc' }),
+      hrSession
+    );
+    expect(sortIdAsc.data.map((e: any) => e.employeeId)).toEqual([
+      'EMP-BAL-01',
+      'EMP-BAL-02',
+      'EMP-BAL-03',
+    ]);
+
+    const sortIdDesc = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'employeeId', sortOrder: 'desc' }),
+      hrSession
+    );
+    expect(sortIdDesc.data.map((e: any) => e.employeeId)).toEqual([
+      'EMP-BAL-03',
+      'EMP-BAL-02',
+      'EMP-BAL-01',
+    ]);
+
+    // Sort by hireDate asc (oldest first: 2020 Chaimae, 2021 Amina, 3mo ago Bilal)
+    const sortHireAsc = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'hireDate', sortOrder: 'asc' }),
+      hrSession
+    );
+    expect(sortHireAsc.data[0].employeeId).toBe('EMP-BAL-03');
+    expect(sortHireAsc.data[1].employeeId).toBe('EMP-BAL-01');
+    expect(sortHireAsc.data[2].employeeId).toBe('EMP-BAL-02');
+
+    // Sort by site name asc (Casablanca Headquarter first, Tanger Factory second)
+    const sortSiteAsc = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'site', sortOrder: 'asc' }),
+      hrSession
+    );
+    expect(sortSiteAsc.data[0].siteName).toBe('Casablanca Headquarter');
+    expect(sortSiteAsc.data[2].siteName).toBe('Tanger Factory');
+  });
+
+  it('7. Combines search, filter, and pagination correctly', async () => {
+    // Page 1 with pageSize 1 for active employees at site1
+    const pagedResult = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({
+        siteId: site1.id,
+        active: 'true',
+        page: 1,
+        pageSize: 1,
+      }),
+      hrSession
+    );
+
+    expect(pagedResult.data).toHaveLength(1);
+    expect(pagedResult.meta.totalItems).toBe(2);
+    expect(pagedResult.meta.totalPages).toBe(2);
+    expect(pagedResult.meta.hasNextPage).toBe(true);
+    expect(pagedResult.meta.hasPrevPage).toBe(false);
+
+    // Page 2
+    const page2Result = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({
+        siteId: site1.id,
+        active: 'true',
+        page: 2,
+        pageSize: 1,
+      }),
+      hrSession
+    );
+
+    expect(page2Result.data).toHaveLength(1);
+    expect(page2Result.meta.page).toBe(2);
+    expect(page2Result.meta.hasNextPage).toBe(false);
+    expect(page2Result.meta.hasPrevPage).toBe(true);
+    expect(page2Result.data[0].employeeId).not.toBe(pagedResult.data[0].employeeId);
+  });
+
+  it('8. Preserves supervisor scoping when search query is applied (AND condition)', async () => {
+    // Supervisor manages EMP-BAL-01 and EMP-BAL-02, but NOT EMP-BAL-03 (Chaimae)
+    // Searching for 'Chaimae' should return 0 results for supervisor even though Chaimae exists in DB
+    const searchOutOfScope = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ search: 'Chaimae', active: 'all' }),
+      supervisorSession
+    );
+    expect(searchOutOfScope.data).toHaveLength(0);
+
+    // Searching for 'Amina' should return EMP-BAL-01 for supervisor
+    const searchInScope = await CounterService.getMultiEmployeeCounters(
+      MultiEmployeeCounterQuerySchema.parse({ search: 'Amina', active: 'all' }),
+      supervisorSession
+    );
+    expect(searchInScope.data).toHaveLength(1);
+    expect(searchInScope.data[0].employeeId).toBe('EMP-BAL-01');
+  });
 });

@@ -26,9 +26,16 @@ export function SearchInput({
   className,
   showShortcut = false,
 }: SearchInputProps) {
-  const [internalValue, setInternalValue] = React.useState(defaultValue);
-  const isControlled = controlledValue !== undefined;
+  const [internalValue, setInternalValue] = React.useState(controlledValue ?? defaultValue);
+  const isControlled = controlledValue !== undefined && onChange !== undefined;
   const currentValue = isControlled ? controlledValue : internalValue;
+
+  // Sync internalValue when controlledValue changes from parent
+  React.useEffect(() => {
+    if (controlledValue !== undefined) {
+      setInternalValue(controlledValue);
+    }
+  }, [controlledValue]);
 
   React.useEffect(() => {
     const handler = setTimeout(() => {

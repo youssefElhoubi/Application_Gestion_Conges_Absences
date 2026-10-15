@@ -16,6 +16,8 @@ export interface EmployeeCounterItem {
   fullName: string;
   siteName?: string;
   jobTitle?: string | null;
+  hireDate?: string | Date;
+  active?: boolean;
   referenceDate: string | Date;
   serviceMonths: number;
   serviceYears: number;
@@ -34,6 +36,8 @@ export interface MultiEmployeeCounterQueryParams {
   siteId?: number | string;
   active?: 'true' | 'false' | 'all';
   asOfDate?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedCountersResponse {
@@ -68,6 +72,8 @@ export class CounterApiClient {
     if (params.siteId && params.siteId !== 'all') searchParams.set('siteId', String(params.siteId));
     if (params.active && params.active !== 'all') searchParams.set('active', params.active);
     if (params.asOfDate) searchParams.set('asOfDate', params.asOfDate);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const res = await fetch(`/api/counters?${searchParams.toString()}`, {
       headers: this.defaultHeaders,

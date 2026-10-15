@@ -33,21 +33,43 @@ export class CounterService {
     if (query.active === 'true') where.active = true;
     else if (query.active === 'false') where.active = false;
 
+    const conditions: any[] = [];
+
     if (session.role === 'SUPERVISOR') {
-      where.OR = [
-        { employeeId: session.employeeId },
-        { employeeId: { in: session.managedEmployeeIds } },
-      ];
+      conditions.push({
+        OR: [
+          { employeeId: session.employeeId },
+          { employeeId: { in: session.managedEmployeeIds } },
+        ],
+      });
     }
 
     if (query.search) {
-      where.OR = [
-        { fullName: { contains: query.search, mode: 'insensitive' } },
-        { employeeId: { contains: query.search, mode: 'insensitive' } },
-      ];
+      conditions.push({
+        OR: [
+          { fullName: { contains: query.search, mode: 'insensitive' } },
+          { employeeId: { contains: query.search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (conditions.length > 0) {
+      where.AND = conditions;
     }
 
     const asOfDate = query.asOfDate ? new Date(query.asOfDate) : new Date();
+
+    const sortOrder = query.sortOrder === 'desc' ? 'desc' : 'asc';
+    let orderBy: any = { fullName: 'asc' };
+    if (query.sortBy === 'employeeId') {
+      orderBy = { employeeId: sortOrder };
+    } else if (query.sortBy === 'fullName') {
+      orderBy = { fullName: sortOrder };
+    } else if (query.sortBy === 'hireDate') {
+      orderBy = { hireDate: sortOrder };
+    } else if (query.sortBy === 'site') {
+      orderBy = { site: { name: sortOrder } };
+    }
 
     const [totalItems, employees] = await Promise.all([
       prisma.employee.count({ where }),
@@ -55,11 +77,13 @@ export class CounterService {
         where,
         skip,
         take,
-        orderBy: { fullName: 'asc' },
+        orderBy,
         select: {
           employeeId: true,
           fullName: true,
           jobTitle: true,
+          hireDate: true,
+          active: true,
           site: { select: { id: true, name: true } },
         },
       }),
@@ -74,6 +98,8 @@ export class CounterService {
           fullName: emp.fullName,
           siteName: emp.site?.name,
           jobTitle: emp.jobTitle,
+          hireDate: emp.hireDate,
+          active: emp.active,
         };
       })
     );

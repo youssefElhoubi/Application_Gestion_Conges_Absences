@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Briefcase,
   Users,
@@ -14,13 +14,15 @@ import {
   Info,
   Calendar,
   AlertCircle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
 import { PageHeader } from "@/src/components/shared/PageHeader";
 import { StatCard } from "@/src/components/shared/StatCard";
 import { FilterBar, ActiveFilter } from "@/src/components/shared/FilterBar";
-import { DataTable, DataTableColumn } from "@/src/components/table/DataTable";
+import { DataTable, DataTableColumn, SortDirection } from "@/src/components/table/DataTable";
 import { Select } from "@/src/components/ui/select";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -30,77 +32,123 @@ import {
   EmployeeCounterItem,
 } from "@/src/lib/api/counter-client";
 import { EmployeeApiClient, SiteItem } from "@/src/lib/api/employee-client";
+import { formatDate } from "@/src/lib/utils";
 
 function LeaveBalancesOverviewContent() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // 1. Authoritative URL-driven state (Preserve established URL search parameter conventions)
+  const urlSearch = searchParams.get("search") || "";
+  const urlSiteId = searchParams.get("siteId") || "all";
+  const urlActive = (searchParams.get("active") as "all" | "true" | "false") || "true";
+  const urlPage = Math.max(1, Number(searchParams.get("page")) || 1);
+  const urlPageSize = Math.max(1, Number(searchParams.get("pageSize")) || 10);
+  const urlSortBy = searchParams.get("sortBy") || "fullName";
+  const urlSortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || "asc";
+
+  // Local search query input for smooth typing in SearchInput before debounced URL update
+  const [searchInput, setSearchInput] = React.useState(urlSearch);
+
+  // Sync local search input if URL changes externally
+  React.useEffect(() => {
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
 
   // Data state
   const [counters, setCounters] = React.useState<EmployeeCounterItem[]>([]);
   const [sites, setSites] = React.useState<SiteItem[]>([]);
+  const [totalItems, setTotalItems] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
-  const [totalItems, setTotalItems] = React.useState(0);
-
-  // Filters & Search
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedSiteId, setSelectedSiteId] = React.useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = React.useState<"all" | "true" | "false">("true");
   const [refreshKey, setRefreshKey] = React.useState(0);
 
-  // 1. Fetch sites list for dropdown
+  // 2. Helper to synchronize filter and pagination updates into URL search params
+  const updateUrlParams = React.useCallback(
+    (updates: Record<string, string | number | null | undefined>) => {
+      const current = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (
+          value === null ||
+          value === undefined ||
+          value === "" ||
+          (key === "siteId" && value === "all") ||
+          (key === "active" && value === "true") ||
+          (key === "page" && Number(value) === 1) ||
+          (key === "pageSize" && Number(value) === 10) ||
+          (key === "sortBy" && value === "fullName" && (updates.sortOrder === "asc" || !current.get("sortOrder"))) ||
+          (key === "sortOrder" && value === "asc" && (!current.get("sortBy") || current.get("sortBy") === "fullName"))
+        ) {
+          current.delete(key);
+        } else {
+          current.set(key, String(value));
+        }
+      });
+
+      const queryString = current.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  // 3. Fetch sites list for dropdown filter
   React.useEffect(() => {
     EmployeeApiClient.listSites()
       .then((s) => setSites(s))
       .catch(() => {});
   }, []);
 
-  // 2. Fetch multi-employee counters whenever filters or pagination change
+  // 4. Fetch multi-employee counters whenever URL parameters or refreshKey change
   React.useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
 
-    async function fetchCounters() {
-      setIsLoading(true);
-      try {
-        const response = await CounterApiClient.listCounters({
-          page: currentPage,
-          pageSize,
-          search: searchQuery,
-          siteId: selectedSiteId !== "all" ? selectedSiteId : undefined,
-          active: selectedStatus !== "all" ? selectedStatus : undefined,
-        });
-
+    CounterApiClient.listCounters({
+      page: urlPage,
+      pageSize: urlPageSize,
+      search: urlSearch,
+      siteId: urlSiteId !== "all" ? urlSiteId : undefined,
+      active: urlActive !== "all" ? urlActive : undefined,
+      sortBy: urlSortBy,
+      sortOrder: urlSortOrder,
+    })
+      .then((response) => {
         if (isMounted) {
           setCounters(response.data);
           setTotalItems(response.meta.totalItems);
           setError(null);
+          setIsLoading(false);
         }
-      } catch (err: unknown) {
+      })
+      .catch((err: unknown) => {
         if (isMounted) {
           const message =
             err instanceof Error
               ? err.message
               : "Impossible de charger la vue consolidée des soldes.";
           setError(message);
-        }
-      } finally {
-        if (isMounted) {
           setIsLoading(false);
         }
-      }
-    }
-
-    fetchCounters();
+      });
 
     return () => {
       isMounted = false;
     };
-  }, [currentPage, pageSize, searchQuery, selectedSiteId, selectedStatus, refreshKey]);
+  }, [urlSearch, urlSiteId, urlActive, urlPage, urlPageSize, urlSortBy, urlSortOrder, refreshKey]);
 
-  // Aggregate stats from current view
+  // 5. Reset or correct pagination when filter changes make current page invalid
+  React.useEffect(() => {
+    if (!isLoading) {
+      const maxPages = Math.max(1, Math.ceil(totalItems / urlPageSize));
+      if (urlPage > maxPages) {
+        updateUrlParams({ page: maxPages });
+      }
+    }
+  }, [totalItems, urlPage, urlPageSize, isLoading, updateUrlParams]);
+
+  // Aggregate stats from current view for StatCards
   const aggregateMetrics = React.useMemo(() => {
     if (counters.length === 0) {
       return {
@@ -125,45 +173,87 @@ function LeaveBalancesOverviewContent() {
     };
   }, [counters]);
 
-  // Active filters list for FilterBar pills
+  // Active filters list for FilterBar chips
   const activeFilters = React.useMemo<ActiveFilter[]>(() => {
     const list: ActiveFilter[] = [];
-    if (selectedSiteId !== "all") {
-      const site = sites.find((s) => String(s.id) === selectedSiteId);
+    if (urlSearch) {
+      list.push({
+        id: "search",
+        label: "Recherche",
+        valueLabel: `« ${urlSearch} »`,
+      });
+    }
+    if (urlSiteId !== "all") {
+      const site = sites.find((s) => String(s.id) === urlSiteId);
       list.push({
         id: "site",
         label: "Site",
-        valueLabel: site?.name || selectedSiteId,
+        valueLabel: site?.name || urlSiteId,
       });
     }
-    if (selectedStatus !== "all") {
+    if (urlActive !== "all") {
       list.push({
-        id: "status",
+        id: "active",
         label: "Statut",
-        valueLabel: selectedStatus === "true" ? "Actifs uniquement" : "Inactifs uniquement",
+        valueLabel: urlActive === "true" ? "Actifs uniquement" : "Inactifs uniquement",
+      });
+    }
+    if (urlSortBy !== "fullName" || urlSortOrder !== "asc") {
+      const sortLabels: Record<string, string> = {
+        fullName: "Nom",
+        employeeId: "Matricule",
+        hireDate: "Date d'embauche",
+        site: "Site",
+      };
+      list.push({
+        id: "sort",
+        label: "Tri",
+        valueLabel: `${sortLabels[urlSortBy] || urlSortBy} (${urlSortOrder === "asc" ? "Croissant" : "Décroissant"})`,
       });
     }
     return list;
-  }, [selectedSiteId, selectedStatus, sites]);
+  }, [urlSearch, urlSiteId, urlActive, urlSortBy, urlSortOrder, sites]);
 
   const handleRemoveFilter = (filterId: string) => {
-    if (filterId === "site") setSelectedSiteId("all");
-    if (filterId === "status") setSelectedStatus("all");
-    setCurrentPage(1);
+    if (filterId === "search") {
+      setSearchInput("");
+      updateUrlParams({ search: null, page: 1 });
+    }
+    if (filterId === "site") updateUrlParams({ siteId: "all", page: 1 });
+    if (filterId === "active") updateUrlParams({ active: "all", page: 1 });
+    if (filterId === "sort") updateUrlParams({ sortBy: "fullName", sortOrder: "asc", page: 1 });
   };
 
   const handleResetFilters = () => {
-    setSearchQuery("");
-    setSelectedSiteId("all");
-    setSelectedStatus("true");
-    setCurrentPage(1);
+    setSearchInput("");
+    router.replace(pathname, { scroll: false });
+  };
+
+  const handleSortChange = (columnId: string, direction: SortDirection) => {
+    if (!direction) {
+      updateUrlParams({ sortBy: "fullName", sortOrder: "asc", page: 1 });
+    } else {
+      updateUrlParams({ sortBy: columnId, sortOrder: direction, page: 1 });
+    }
   };
 
   // Table Columns Definition
   const columns: DataTableColumn<EmployeeCounterItem>[] = [
     {
-      id: "employee",
+      id: "employeeId",
+      header: "Matricule",
+      sortable: true,
+      className: "w-28",
+      cell: (row) => (
+        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted text-foreground border border-border">
+          {row.employeeId}
+        </span>
+      ),
+    },
+    {
+      id: "fullName",
       header: "Collaborateur",
+      sortable: true,
       cell: (row) => {
         const initials = row.fullName
           .split(" ")
@@ -174,8 +264,24 @@ function LeaveBalancesOverviewContent() {
 
         return (
           <div className="flex items-center gap-3 min-w-[200px]">
-            <div className="h-9 w-9 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-              {initials}
+            <div className="relative">
+              <div className="h-9 w-9 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                {initials}
+              </div>
+              {row.active !== undefined && (
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-card flex items-center justify-center ${
+                    row.active ? "bg-emerald-500 text-white" : "bg-zinc-400 text-white"
+                  }`}
+                  title={row.active ? "Actif" : "Inactif"}
+                >
+                  {row.active ? (
+                    <CheckCircle2 className="h-2.5 w-2.5" />
+                  ) : (
+                    <XCircle className="h-2.5 w-2.5" />
+                  )}
+                </span>
+              )}
             </div>
             <div className="min-w-0">
               <Link
@@ -186,12 +292,11 @@ function LeaveBalancesOverviewContent() {
                 <span>{row.fullName}</span>
                 <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </Link>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                <span className="font-mono text-[11px] font-medium bg-muted px-1.5 py-0.2 rounded border border-border">
-                  {row.employeeId}
-                </span>
-                {row.jobTitle && <span className="truncate">• {row.jobTitle}</span>}
-              </div>
+              {row.jobTitle && (
+                <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {row.jobTitle}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -200,6 +305,7 @@ function LeaveBalancesOverviewContent() {
     {
       id: "site",
       header: "Site",
+      sortable: true,
       cell: (row) => (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
           <Building2 className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
@@ -208,16 +314,22 @@ function LeaveBalancesOverviewContent() {
       ),
     },
     {
-      id: "seniority",
+      id: "hireDate",
       header: "Ancienneté & Éligibilité",
+      sortable: true,
       cell: (row) => (
-        <div className="space-y-1 min-w-[150px]">
+        <div className="space-y-1 min-w-[160px]">
           <div className="text-xs font-medium text-foreground flex items-center gap-1">
             <Calendar className="h-3 w-3 text-muted-foreground" />
             <span>
               {row.serviceYears} an{row.serviceYears > 1 ? "s" : ""} • {row.serviceMonths} mois
             </span>
           </div>
+          {row.hireDate && (
+            <div className="text-[11px] text-muted-foreground">
+              Embauche: {formatDate(row.hireDate)}
+            </div>
+          )}
           <div>
             {row.isEligibleForAnnualLeave ? (
               <Badge
@@ -247,7 +359,7 @@ function LeaveBalancesOverviewContent() {
       ),
     },
     {
-      id: "accrued",
+      id: "statutoryAccruedDays",
       header: "Droits Acquis",
       align: "center",
       cell: (row) => (
@@ -263,7 +375,7 @@ function LeaveBalancesOverviewContent() {
       ),
     },
     {
-      id: "deductions",
+      id: "totalApprovedDeductions",
       header: "Congés Pris",
       align: "center",
       cell: (row) => (
@@ -276,7 +388,7 @@ function LeaveBalancesOverviewContent() {
       ),
     },
     {
-      id: "recovery",
+      id: "activeRecoveryCreditDays",
       header: "Crédits Récupération",
       align: "center",
       cell: (row) => (
@@ -292,7 +404,7 @@ function LeaveBalancesOverviewContent() {
       ),
     },
     {
-      id: "netBalance",
+      id: "netAvailableBalance",
       header: "Solde Net Disponible",
       align: "center",
       cell: (row) => {
@@ -408,10 +520,10 @@ function LeaveBalancesOverviewContent() {
 
       {/* Search & Filter Bar */}
       <FilterBar
-        searchValue={searchQuery}
+        searchValue={searchInput}
         onSearchChange={(q) => {
-          setSearchQuery(q);
-          setCurrentPage(1);
+          setSearchInput(q);
+          updateUrlParams({ search: q.trim() || null, page: 1 });
         }}
         searchPlaceholder="Rechercher par collaborateur ou matricule..."
         activeFilters={activeFilters}
@@ -422,11 +534,8 @@ function LeaveBalancesOverviewContent() {
         {/* Site Filter */}
         <div className="w-44">
           <Select
-            value={selectedSiteId}
-            onChange={(e) => {
-              setSelectedSiteId(e.target.value);
-              setCurrentPage(1);
-            }}
+            value={urlSiteId}
+            onChange={(e) => updateUrlParams({ siteId: e.target.value, page: 1 })}
             options={[
               { value: "all", label: "Tous les sites" },
               ...sites.map((s) => ({ value: String(s.id), label: s.name })),
@@ -437,11 +546,8 @@ function LeaveBalancesOverviewContent() {
         {/* Status Filter */}
         <div className="w-40">
           <Select
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value as "all" | "true" | "false");
-              setCurrentPage(1);
-            }}
+            value={urlActive}
+            onChange={(e) => updateUrlParams({ active: e.target.value, page: 1 })}
             options={[
               { value: "true", label: "Actifs uniquement" },
               { value: "false", label: "Inactifs uniquement" },
@@ -451,7 +557,7 @@ function LeaveBalancesOverviewContent() {
         </div>
       </FilterBar>
 
-      {/* Main Consolidated DataTable */}
+      {/* Main Consolidated DataTable with Server-side Sorting and Pagination */}
       <DataTable
         columns={columns}
         data={counters}
@@ -460,15 +566,17 @@ function LeaveBalancesOverviewContent() {
         emptyTitle="Aucun solde trouvé"
         emptyDescription="Aucun collaborateur ne correspond aux critères de recherche ou aux filtres sélectionnés."
         emptyIcon={<Briefcase className="h-10 w-10 text-muted-foreground/60" />}
-        page={currentPage}
-        pageSize={pageSize}
+        emptyActionLabel="Réinitialiser les filtres"
+        onEmptyAction={handleResetFilters}
+        page={urlPage}
+        pageSize={urlPageSize}
         totalItems={totalItems}
         pageSizeOptions={[10, 25, 50]}
-        onPageChange={(page) => setCurrentPage(page)}
-        onPageSizeChange={(newSize) => {
-          setPageSize(newSize);
-          setCurrentPage(1);
-        }}
+        sortBy={urlSortBy}
+        sortDirection={urlSortOrder as SortDirection}
+        onSortChange={handleSortChange}
+        onPageChange={(page) => updateUrlParams({ page })}
+        onPageSizeChange={(newSize) => updateUrlParams({ pageSize: newSize, page: 1 })}
         onRowClick={(row) => router.push(`/employees/${encodeURIComponent(row.employeeId)}`)}
       />
 

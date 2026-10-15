@@ -300,43 +300,79 @@ To implement the Leave Balances and Counters module without regressions or break
 
 ---
 
-## 10. Completed Implementation: Organization-Wide Leave Balances Overview
+## 10. Completed Implementation: Organization-Wide Leave Balances Overview & Discovery Controls
 
-### 10.1 Files Created & Integrated
-1. [`src/lib/api/counter-client.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/lib/api/counter-client.ts):
-   - Created `CounterApiClient` encapsulating calls to `GET /api/counters` and `GET /api/employees/[id]/counters`.
-   - Fully typed interfaces: `EmployeeCounterItem`, `MultiEmployeeCounterQueryParams`, `PaginatedCountersResponse`, and `CounterCalculationBreakdown`.
-2. [`src/app/leave-balances/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/leave-balances/page.tsx):
-   - Implemented the organization-wide Leave Balances overview route connected to `{ title: "Soldes de congés", href: "/leave-balances" }` in [`Sidebar.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/layout/Sidebar.tsx).
-   - Reused existing components: [`PageContainer`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/layout/PageContainer.tsx), [`PageHeader`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/PageHeader.tsx), [`StatCard`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/StatCard.tsx), [`FilterBar`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/FilterBar.tsx), [`DataTable`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/table/DataTable.tsx), [`Badge`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/ui/badge.tsx), [`Button`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/ui/button.tsx), [`Select`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/ui/select.tsx), and [`ErrorState`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/feedback/ErrorState.tsx).
-   - Prominently styled **Solde Net Disponible** with color-coded containers (`emerald` for positive/healthy, `amber` for low, `rose` for zero/negative), statutory eligibility pills (`Éligible` vs `Acquisition < 6 mois`), seniority years/months, and recovery credit indicators.
-   - Interactive search and filtering by site ID and active/inactive status with pagination (`10, 25, 50` rows per page).
-   - Clickable row navigation and direct action button routing to `/employees/[id]`.
-3. [`tests/integration/leave-balances-overview.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/leave-balances-overview.test.ts):
-   - Comprehensive test suite covering multi-employee query pagination, 6-month statutory entitlement lock, site/active filters, search by name/matricule, and RBAC supervisor/employee access controls.
+### 10.1 Completed Employee Discovery & Navigation Controls
+1. **Employee Search by Name & Matricule ID:**
+   - Case-insensitive search on `fullName` and `employeeId` matching both name and matricule patterns.
+   - Debounced URL synchronization (300ms) with `search` query parameter.
+   - Search query active filter pill with direct dismissal button (`« {term} » ×`).
+   - Integrated `X` clear action within `SearchInput`.
+   - Supervisor scoping (`where.AND`) strictly preserved when search terms are applied so supervisors cannot access unassigned employees via search.
+2. **Site Filter:**
+   - Dynamic site dropdown selector populated from `GET /api/sites`.
+   - Synchronized with `siteId` URL parameter.
+   - Active filter chip with dismiss action resetting to "Tous les sites".
+3. **Active/Inactive Employee Filter:**
+   - Status selector with options: "Actifs uniquement" (`true`), "Inactifs uniquement" (`false`), and "Tous les statuts" (`all`).
+   - Synchronized with `active` URL parameter (defaults to active employees in accordance with `MultiEmployeeCounterQuerySchema`).
+   - Active filter chip with dismiss action.
+4. **Server-Side Sorting (Organization-Wide):**
+   - Enabled and verified for database-backed columns:
+     - `fullName` ("Collaborateur", `asc`/`desc`)
+     - `employeeId` ("Matricule", `asc`/`desc`)
+     - `hireDate` ("Ancienneté & Embauche", `asc`/`desc`)
+     - `site` ("Site", relational ordering `site: { name: sortOrder }`)
+   - Synchronized with `sortBy` and `sortOrder` URL parameters.
+   - Non-default sorting reflected in active filter pills with direct reset.
+5. **Standard Application Pagination:**
+   - Full pagination controls via `DataTable`: first page, previous page, page indicator (`Page X sur Y`), next page, last page.
+   - Rows-per-page selector with standard options (`10, 25, 50`).
+   - Item range counter (`Affichage de X à Y sur Z`).
+   - Synchronized with `page` and `pageSize` URL parameters.
+6. **Automatic Pagination Reset & Bounds Correction:**
+   - Resetting `page = 1` immediately whenever search query, site filter, active filter, sort column, sort order, or page size changes.
+   - Auto-correcting `urlPage` to `maxPages` (or page 1) if filter changes or external URL parameters exceed total available pages.
+7. **Clear Filters Action:**
+   - Dedicated "Réinitialiser" action button in `FilterBar` displayed whenever any non-default filter, sort, or search is active.
+   - "Réinitialiser les filtres" action button integrated inside the table empty state when zero results match.
+   - Completely cleans URL search parameters back to default state and clears local search inputs.
 
-### 10.2 Actual Backend Data Sources Used
-- Primary Endpoint: `GET /api/counters`
-- Application Service: [`CounterService.getMultiEmployeeCounters`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/counters/counter.service.ts)
-- Calculation Engine: [`LeaveBalanceService.getDynamicBalance`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/application/services/leave-balance.service.ts) using [`BalanceCalculator`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/domain/calculations/balance.calculator.ts)
-- Dropdown Sites Data: `GET /api/sites` via `EmployeeApiClient.listSites()`
+### 10.2 Unsupported Filters & Sorting (Architectural Boundaries)
+- **Balance-State Filtering (Unsupported):**
+  - *Status:* Intentionally **NOT implemented** in the UI or backend query schema.
+  - *Reasoning:* The Prisma database contains no static balance table or columns. All leave balances (`netAvailableBalance`, `statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`) are computed dynamically at runtime in Node.js via domain calculators. Filtering by balance state (e.g., negative balance, low balance, locked rights) at the SQL level is unsupported by the database schema. Implementing this client-side would require loading and computing balances for the entire organization in Node.js memory, breaking database pagination.
+- **Entitlement-Period Filtering (Unsupported):**
+  - *Status:* Intentionally **NOT implemented**.
+  - *Reasoning:* Statutory accruals are anchored to the employee's `hireDate` and evaluated against an `asOfDate` reference timestamp. The system does not maintain predefined discrete entitlement periods (e.g. quarterly or fiscal year cycles) as queryable database entities.
+- **Sorting by Balance Metrics (Unsupported):**
+  - *Status:* Dynamic balance columns (`statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`, `netAvailableBalance`) are designated non-sortable in the UI.
+  - *Reasoning:* Sorting on these metrics cannot be executed organization-wide by PostgreSQL/Prisma. In strict adherence to the project requirement (*"Do not simulate organization-wide sorting using only the current page"*), sorting is restricted strictly to verified database columns (`fullName`, `employeeId`, `hireDate`, `site`).
 
-### 10.3 Verification & Validation Results
-- **Vitest Unit & Integration:** `npm run test` $\rightarrow$ **86 tests passed across 13 test files** (100% passing).
-- **TypeScript Compilation:** `npx tsc --noEmit` $\rightarrow$ **0 errors (clean compilation)**.
-- **Production Next.js Build:** `npm run build` $\rightarrow$ **Successful compilation** (28/28 routes prerendered, including `○ /leave-balances`).
+### 10.3 Files Changed & Integrated
+1. [`src/components/shared/SearchInput.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/SearchInput.tsx):
+   - Fixed controlled/uncontrolled state synchronization when `value` is passed without `onChange`, enabling seamless typing in `FilterBar`.
+2. [`src/modules/counters/counter.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/counters/counter.service.ts):
+   - Combined supervisor RBAC scoping with search filtering using `where.AND` so supervisor boundaries are strictly preserved during search.
+   - Added relational sorting by `site` (`site: { name: sortOrder }`).
+3. [`src/app/leave-balances/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/leave-balances/page.tsx):
+   - Completed all discovery controls: added dedicated sortable `employeeId` column, sortable `site` column, search chip in `activeFilters`, pagination bounds auto-correction, and empty state reset button.
+4. [`tests/integration/leave-balances-overview.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/leave-balances-overview.test.ts):
+   - Added comprehensive integration tests covering server-side sorting (`employeeId`, `hireDate`, `site`), combined search/filter/pagination, and supervisor-scoped search isolation.
 
-### 10.4 Remaining Limitations & Notes
-- `CounterService.getMultiEmployeeCounters` does not include `hireDate` or `active` in its Prisma `select`, so the table displays seniority in years/months and eligibility status rather than raw hire dates.
-- Pending leave days are not aggregated in `GET /api/counters` (it aggregates approved deductible leaves and unconsumed holiday recovery credits).
-- The employee-specific detail view at `/employees/[id]` still has the legacy DTO contract issue (`accruedDays` vs `statutoryAccruedDays`) which will be addressed in the next stage.
+### 10.4 Validation & Verification Checks Executed
+- **Vitest Unit & Integration:** `npm run test` $\rightarrow$ **89 tests passed across 13 test files** (100% green).
+- **TypeScript Static Analysis:** `npx tsc --noEmit` $\rightarrow$ **0 errors (clean compilation)**.
+- **Production Next.js Build:** `npm run build` $\rightarrow$ **Clean build with Turbopack** in 1450ms (all 28 routes prerendered).
 
 ---
 
-## 11. Next Smallest Safe Task
+## 11. Next Safe Task
 
-> **Task 2: Employee Profile Balance Details Remediation (`src/app/employees/[id]/page.tsx`)**
+> **Employee Profile Balance Details Remediation (`src/app/employees/[id]/page.tsx`)**
 > 
-> 1. Update the balance data ingestion on the employee profile page to consume [`CounterApiClient.getEmployeeCounters`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/lib/api/counter-client.ts) (or map `DynamicBalanceResult`).
-> 2. Replace legacy fields (`balances?.remainingPaidBalance`, `balances?.accruedDays`, `balances?.takenApprovedDays`) with authoritative fields (`netAvailableBalance`, `statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`).
-> 3. Add an explanatory statutory calculation breakdown card (monthly rate applied, minor rate, seniority increment, and 30-day cap status).
+> *Note: Explicitly deferred per instructions — will be started when requested.*
+> 1. Consume `CounterApiClient.getEmployeeCounters(employeeId)` on `/employees/[id]`.
+> 2. Remediate legacy DTO fields to authoritative `DynamicBalanceResult` metrics (`netAvailableBalance`, `statutoryAccruedDays`, `totalApprovedDeductions`, `activeRecoveryCreditDays`).
+> 3. Display the Moroccan Labor Code calculation breakdown (monthly rate, minority status, seniority increment, 30-day cap, 6-month statutory gate).
+
