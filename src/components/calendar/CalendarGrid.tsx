@@ -15,6 +15,8 @@ import {
 import { CalendarAbsencePill } from "./CalendarAbsencePill";
 import { CalendarHolidayBanner } from "./CalendarHolidayBanner";
 import { CalendarDayDetailModal } from "./CalendarDayDetailModal";
+import { CalendarAbsenceDetailModal } from "./CalendarAbsenceDetailModal";
+import { CalendarHolidayDetailModal } from "./CalendarHolidayDetailModal";
 
 export interface CalendarGridProps {
   cells: CalendarGridCell[];
@@ -29,8 +31,10 @@ export function CalendarGrid({
   onSelectDate,
   className,
 }: CalendarGridProps) {
-  // Modal state for day details preview
+  // Modal states for focused inspection
   const [activeModalCell, setActiveModalCell] = React.useState<CalendarGridCell | null>(null);
+  const [selectedAbsence, setSelectedAbsence] = React.useState<CalendarAbsenceEvent | null>(null);
+  const [selectedHoliday, setSelectedHoliday] = React.useState<CalendarHolidayEvent | null>(null);
 
   const handleCellClick = (cell: CalendarGridCell) => {
     setActiveModalCell(cell);
@@ -162,10 +166,7 @@ export function CalendarGrid({
                     <CalendarHolidayBanner
                       key={h.id}
                       holiday={h}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCellClick(cell);
-                      }}
+                      onClick={() => setSelectedHoliday(h)}
                     />
                   ))}
 
@@ -174,22 +175,24 @@ export function CalendarGrid({
                     <CalendarAbsencePill
                       key={a.id}
                       event={a}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCellClick(cell);
-                      }}
+                      onClick={() => setSelectedAbsence(a)}
                     />
                   ))}
 
                   {/* Overflow badge if more events exist */}
                   {hiddenEventsCount > 0 && (
                     <div className="pt-0.5">
-                      <span
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/80 hover:bg-muted/80 hover:text-foreground transition-colors"
-                        title="Voir tous les événements de cette journée"
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCellClick(cell);
+                        }}
+                        aria-label={`Voir les ${totalEvents} événements du ${cell.formattedDateFr}`}
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/80 hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                       >
                         +{hiddenEventsCount} autre{hiddenEventsCount > 1 ? "s" : ""}
-                      </span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -214,7 +217,25 @@ export function CalendarGrid({
         </div>
       </div>
 
-      {/* 3. Day Detail Preview Modal */}
+      {/* 3. Focused Absence Detail Modal */}
+      {selectedAbsence && (
+        <CalendarAbsenceDetailModal
+          isOpen={Boolean(selectedAbsence)}
+          onClose={() => setSelectedAbsence(null)}
+          event={selectedAbsence}
+        />
+      )}
+
+      {/* 4. Focused Holiday Detail Modal */}
+      {selectedHoliday && (
+        <CalendarHolidayDetailModal
+          isOpen={Boolean(selectedHoliday)}
+          onClose={() => setSelectedHoliday(null)}
+          holiday={selectedHoliday}
+        />
+      )}
+
+      {/* 5. Day Summary Modal */}
       {activeModalCell && (
         <CalendarDayDetailModal
           isOpen={Boolean(activeModalCell)}
@@ -223,6 +244,14 @@ export function CalendarGrid({
           formattedDateFr={activeModalCell.formattedDateFr}
           holidays={activeDayEvents.holidays}
           absences={activeDayEvents.absences}
+          onSelectAbsence={(event) => {
+            setActiveModalCell(null);
+            setSelectedAbsence(event);
+          }}
+          onSelectHoliday={(holiday) => {
+            setActiveModalCell(null);
+            setSelectedHoliday(holiday);
+          }}
         />
       )}
     </>

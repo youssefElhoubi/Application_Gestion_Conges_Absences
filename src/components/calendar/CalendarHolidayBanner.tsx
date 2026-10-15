@@ -18,12 +18,17 @@ export function CalendarHolidayBanner({
 }: CalendarHolidayBannerProps) {
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
       role="button"
       tabIndex={0}
+      aria-label={`Jour férié légal: ${holiday.label}, ${holiday.isReligious ? "Religieux" : "Civil"}. Cliquez ou appuyez sur Entrée pour inspecter.`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
+          e.stopPropagation();
           onClick?.(e as any);
         }
       }}
@@ -31,6 +36,7 @@ export function CalendarHolidayBanner({
       className={cn(
         "flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer select-none",
         "bg-primary/15 text-primary border border-primary/25 hover:bg-primary/25 shadow-2xs",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
         className
       )}
     >

@@ -46,18 +46,24 @@ export function CalendarAbsencePill({
 
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
       role="button"
       tabIndex={0}
+      aria-label={`Absence de ${event.employeeName}, ${event.typeName}, statut ${event.statusLabelFr}. Cliquez ou appuyez sur Entrée pour inspecter.`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
+          e.stopPropagation();
           onClick?.(e as any);
         }
       }}
       title={`${event.employeeName} — ${event.typeName} (${event.statusLabelFr})`}
       className={cn(
         "group/pill flex items-center gap-1.5 px-1.5 py-1 text-[11px] font-medium transition-all cursor-pointer select-none border shadow-2xs",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
         roundingClasses,
         // Status border styling & backgrounds (color + border style)
         isApproved && "bg-emerald-500/10 text-emerald-950 dark:text-emerald-100 border-solid border-emerald-500/40 hover:bg-emerald-500/20",

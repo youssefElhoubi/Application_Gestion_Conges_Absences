@@ -13,11 +13,13 @@ export interface CalendarAbsenceEvent {
   absenceId: string | number;
   employeeId: string;
   employeeName: string;
+  employeeSiteName?: string | null;
   typeId: number;
   typeName: string;
   typeCode: string;
   typeColor: string;
   isDeductible: boolean;
+  reasonName?: string | null;
   startDateKey: string; // YYYY-MM-DD
   endDateKey: string; // YYYY-MM-DD
   fraction: AbsenceFraction;
@@ -29,7 +31,6 @@ export interface CalendarAbsenceEvent {
   calculatedWorkingDays: number | string;
   enteredDays: number | string;
   retainedDays: number | string;
-  comment?: string | null;
   spanningPosition: EventSpanningPosition;
 }
 
@@ -155,11 +156,13 @@ export function mapAbsenceToCellEvent(
     absenceId: absence.id,
     employeeId: absence.employeeId,
     employeeName: absence.employee?.fullName || absence.employeeId,
+    employeeSiteName: absence.employee?.site?.name || null,
     typeId: absence.typeId,
     typeName: absence.type?.name || 'Absence',
     typeCode: absence.type?.code || 'CONGE',
     typeColor: absence.type?.colorHex || '#3b82f6',
     isDeductible: absence.type?.isDeductible ?? true,
+    reasonName: absence.reason?.name || null,
     startDateKey,
     endDateKey,
     fraction: absence.fraction,
@@ -171,7 +174,6 @@ export function mapAbsenceToCellEvent(
     calculatedWorkingDays: absence.calculatedWorkingDays,
     enteredDays: absence.enteredDays,
     retainedDays: absence.retainedDays,
-    comment: absence.comment,
     spanningPosition,
   };
 }

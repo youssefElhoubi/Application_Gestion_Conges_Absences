@@ -501,5 +501,57 @@ The smallest, completely safe, non-breaking first implementation step is:
 - `npm test`: 124/124 unit and integration tests passed across 18 test files.
 - `npx next build`: 30/30 pages compiled successfully with Turbopack, statically prerendering `○ /calendar`.
 
+---
+
+## 15. Phase 4 Implementation Record: Event Interaction, Navigation & Accessibility
+
+### 15.1 Implemented Features & Architecture
+
+1. **Focused Absence Event Inspector ([`src/components/calendar/CalendarAbsenceDetailModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarAbsenceDetailModal.tsx)):**
+   - Opened directly when clicking or pressing Enter/Space on any absence pill.
+   - **Authorized Information Displayed:**
+     - Employee: Full name, matricule (`employeeId`), and site location name (`employeeSiteName`).
+     - Absence Type: Name, code, color swatch, and statutory deductible flag (`Déductible du solde` vs `Non déductible`).
+     - Statutory Reason (`reasonName`): Displayed when configured for special leaves (e.g., Marriage, Bereavement).
+     - Period & Duration: Start and end dates in French locale, total calendar days.
+     - Fractionation & Working Days: Visual indicator for half-day morning/afternoon with Sun/Moon icons, calculated working days deduction under Moroccan Labor Code (Loi n° 65-99).
+     - Status: Status badge with appropriate color, icon, and label (`Validé`, `En attente`, `Refusé`, `Annulé`).
+   - **Privacy Protection:**
+     - Raw employee comments, medical notes, and attachment metadata are strictly excluded from shared calendar views and modals.
+     - A security note directs authorized HR users to the official absence dossier.
+   - **Direct Route Actions:**
+     - **"Voir la Demande"**: Navigates to [`/absences/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx) (`/absences/${event.absenceId}`).
+     - **"Fiche Collaborateur"**: Navigates to [`/employees/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx) (`/employees/${encodeURIComponent(event.employeeId)}`).
+
+2. **Focused Public Holiday Inspector ([`src/components/calendar/CalendarHolidayDetailModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarHolidayDetailModal.tsx)):**
+   - Opened directly when clicking or pressing Enter/Space on any public holiday banner.
+   - **Information Displayed:**
+     - Holiday label / official designation.
+     - Statutory classification under Moroccan law (Dahir n° 1-04-19): `Férié Légal Civil` vs `Férié Légal Religieux`.
+     - Date formatted in French with paid statutory day status ("Chômé et payé - Loi n° 65-99").
+     - Regulatory comments and guidance on non-expiring holiday work credits (permanences).
+   - **Direct Route Action:**
+     - **"Fiche du Jour Férié"**: Navigates to [`/holidays/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/holidays/%5Bid%5D/page.tsx) (`/holidays/${holiday.holidayId}`).
+
+3. **Day Summary Inspection Modal ([`src/components/calendar/CalendarDayDetailModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarDayDetailModal.tsx)):**
+   - Triggered when clicking an empty date cell or the `+N autres` overflow badge.
+   - Displays all public holidays and absences registered for the selected date.
+   - Includes direct "Fiche Collaborateur" and "Voir la Demande" links for each listed absence, and "Fiche du Jour Férié" for each holiday.
+
+4. **Accessibility, Keyboard Navigation & Focus Management:**
+   - **Non-Hover Interaction:** All events are directly clickable and accessible on touch screens.
+   - **Keyboard Navigation:** All absence pills, holiday banners, overflow badges, and date cells have `tabIndex={0}` and respond to `Enter` and `Space` keys. `Escape` key closes open modals.
+   - **Event Propagation:** Inner event controls use `e.stopPropagation()` so selecting an event pill activates the event modal without triggering the cell background click.
+   - **Visible Focus Rings:** Styled with `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1`.
+   - **Accessible Labels:** Rich `aria-label` attributes describing event title, employee, status, and instructions.
+
+### 15.2 Validation Results
+- `npx tsc --noEmit`: 0 errors.
+- `tests/unit/calendar-interactions.test.ts`: 4/4 tests passed (100%).
+- `npm run test:unit`: 73/73 tests passed across 10 test files.
+- `npm test`: 128/128 unit and integration tests passed across 19 test files.
+- `npx next build`: 30/30 pages compiled successfully with Turbopack, statically prerendering `○ /calendar`.
+
+
 
 
