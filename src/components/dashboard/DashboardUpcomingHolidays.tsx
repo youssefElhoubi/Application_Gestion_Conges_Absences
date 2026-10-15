@@ -73,16 +73,18 @@ export function DashboardUpcomingHolidays({
         ) : (
           <div className="space-y-2.5">
             {holidays.map((h) => (
-              <div
+              <Link
                 key={String(h.id)}
-                className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card hover:bg-muted/10 transition-colors text-xs"
+                href={`/calendar?date=${h.date}`}
+                className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-card hover:bg-primary/5 hover:border-primary/40 transition-all text-xs group"
+                title={`Afficher ${h.label} au calendrier`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold shrink-0 group-hover:scale-105 transition-transform">
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">{h.label}</p>
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{h.label}</p>
                     <p className="text-[11px] text-muted-foreground">
                       {h.isReligious ? "Fête religieuse" : "Fête civile légale"}
                     </p>
@@ -90,11 +92,11 @@ export function DashboardUpcomingHolidays({
                 </div>
 
                 <div className="text-right">
-                  <span className="font-bold text-foreground font-mono">
+                  <span className="font-bold text-foreground font-mono group-hover:text-primary transition-colors">
                     {formatDate(h.date)}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -725,6 +725,95 @@ Before writing code, a formal decision gate was conducted to evaluate whether a 
    - Verified clicking absence segment opens `CalendarAbsenceDetailModal` displaying Demande n° 1389, dates, working day deductions, and action buttons.
    - Verified filtering by site ("Hub Technologique Rabat Technopolis") dynamically reduced the timeline to the 2 site employees with active filter pill.
 
+---
+
+## 19. Phase 8: URL State Management & Cross-Module Deep Linking
+
+### 19.1 Architecture & Query Parameter Specification
+
+The Absence Calendar supports bidirectional URL state synchronization conforming to standard Next.js App Router query conventions. All view states, filters, and period dates are bookmarkable and shareable without causing full-page reloads (`{ scroll: false }`).
+
+| Parameter | Type / Pattern | Safe Normalization / Fallback | Description |
+| :--- | :--- | :--- | :--- |
+| `year` | Integer (`1970` – `2100`) | Current year (or derived from `date` param if valid) | Active calendar year. |
+| `month` | Integer (`1` – `12`) | Current month (or derived from `date` param if valid) | Active calendar month. |
+| `date` | ISO String (`YYYY-MM-DD`) | Ignored if invalid date pattern | Focused date cell. In Month view, selects the day; in Week view, focuses the 7-day week containing the date. Automatically resolves `year` and `month` if omitted. |
+| `view` | Enum (`grid` \| `week` \| `agenda`) | `grid` | Active view mode. Omitted from URL when `grid` to preserve clean URLs. Synchronized with browser history. |
+| `employeeId` | String | `all` | Filters visible absences and timeline rows to the specified employee identifier (e.g. `EMP-0101`). |
+| `siteId` | Numeric String (`^\d+$`) | `all` (sanitizes negative or non-numeric inputs) | Filters visible absences and timeline rows to the specified organizational site. |
+| `typeId` | Numeric String (`^\d+$`) | `all` (sanitizes negative or non-numeric inputs) | Filters visible absences to the specified absence type. |
+| `status` | Enum (`PENDING` \| `APPROVED` \| `REJECTED` \| `CANCELLED` \| `ALL`) | `ALL` (sanitizes unknown status values) | Filters visible absences by statutory approval status. |
+| `search` | String | Empty string `""` | Text search across employee name and matricule. |
+
+### 19.2 Integrated Cross-Module Deep Links
+
+Existing application modules were enriched with direct, contextual deep links into the Absence Calendar using established routing patterns:
+
+1. **Employee Profile ([`src/app/employees/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)):**
+   - Added a **"Planning des congés"** action button in the hero overview header next to "Soldes & Compteurs".
+   - Target route: `/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`.
+2. **Leave Balance Details ([`src/app/leave-balances/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/leave-balances/%5Bid%5D/page.tsx)):**
+   - Added a **"Planning des congés"** action button in the employee identity header.
+   - Target route: `/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`.
+3. **Public Holiday Details ([`src/components/holidays/PublicHolidayDetailsView.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/holidays/PublicHolidayDetailsView.tsx)):**
+   - Added a **"Voir au calendrier"** button in the hero action toolbar.
+   - Target route: `/calendar?date=${holiday.date}`.
+4. **Public Holiday Registry Table ([`src/components/holidays/PublicHolidayTable.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/holidays/PublicHolidayTable.tsx)):**
+   - Added a calendar quick-action icon button in the table action cell on desktop and in mobile summary cards.
+   - Target route: `/calendar?date=${h.date}`.
+5. **Dashboard Upcoming Holidays ([`src/components/dashboard/DashboardUpcomingHolidays.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardUpcomingHolidays.tsx)):**
+   - Each upcoming public holiday row is a clickable link focusing that holiday's calendar period.
+   - Target route: `/calendar?date=${h.date}`.
+6. **Dashboard Absence Distribution Overview ([`src/components/dashboard/DashboardAbsenceOverview.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardAbsenceOverview.tsx)):**
+   - Each category card deep links to the calendar filtered by that absence type and active site context.
+   - Target route: `/calendar?typeId=${cat.typeId}${siteParam}`.
+7. **Absence Request Dossier ([`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)):**
+   - Added a **"Planning & Calendrier"** action button under the employee card.
+   - Target route: `/calendar?employeeId=${encodeURIComponent(absence.employee.employeeId)}&date=${absence.startDate.split("T")[0]}`.
+
+### 19.3 Changed Files
+
+- [`src/lib/calendar/calendar-filters.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/lib/calendar/calendar-filters.ts): Added `parseCalendarUrlState`, `CalendarViewMode`, `CalendarUrlState`, strict ID sanitization regexes, and enhanced `buildFilterQueryString`.
+- [`src/app/calendar/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/calendar/page.tsx): Synchronized URL state with `urlState`, updated `updatePeriod` to preserve view and filters, connected 3-way view switcher to `handleViewModeChange`.
+- [`src/app/employees/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx): Added "Planning des congés" deep link button.
+- [`src/app/leave-balances/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/leave-balances/%5Bid%5D/page.tsx): Added "Planning des congés" deep link button.
+- [`src/components/holidays/PublicHolidayDetailsView.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/holidays/PublicHolidayDetailsView.tsx): Added "Voir au calendrier" button.
+- [`src/components/holidays/PublicHolidayTable.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/holidays/PublicHolidayTable.tsx): Added calendar action button on rows and mobile cards.
+- [`src/components/dashboard/DashboardUpcomingHolidays.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardUpcomingHolidays.tsx): Made holiday rows deep-linkable.
+- [`src/components/dashboard/DashboardAbsenceOverview.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardAbsenceOverview.tsx): Made category cards deep-linkable.
+- [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx): Added "Planning & Calendrier" deep link button.
+- [`tests/unit/calendar-url-state.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/unit/calendar-url-state.test.ts): New comprehensive test suite for URL state and deep linking.
+
+### 19.4 Validation & Verification Performed
+
+1. **Automated Unit Tests ([`tests/unit/calendar-url-state.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/unit/calendar-url-state.test.ts)):**
+   - Default filter parsing on empty search params: Passed.
+   - Valid multi-criteria parsing: Passed.
+   - Safe normalization of invalid/malicious `siteId`, `typeId`, and `status`: Passed.
+   - Automatic year/month inference from `date=YYYY-MM-DD`: Passed.
+   - View mode parsing (`grid`, `week`, `agenda`, invalid fallback): Passed.
+   - Query string generation with omission of default values: Passed.
+   - Period preservation across filter changes and filter preservation across period navigation: Passed.
+   - **Result: 17/17 tests passed (100%).**
+2. **Full Repository Test Suite:**
+   - Command: `npx vitest run`
+   - **Result: 23 test files passed, 169/169 tests passed (100%).**
+3. **TypeScript Typecheck:**
+   - Command: `npx tsc --noEmit`
+   - **Result: 0 errors.**
+4. **Production Build:**
+   - Command: `npm run build` (Next.js 16.4.0 Turbopack)
+   - **Result: Succeeded with static prerendering `○ /calendar`.**
+5. **Interactive Browser Subagent Audit:**
+   - Verified `/calendar?employeeId=EMP-0101`: Fatima-Zahra Alami filter pre-applied with visible active pill.
+   - Verified `/calendar?view=week&date=2026-10-15`: Semaine view opened for Oct 12–18, 2026 with absence bar.
+   - Verified `/calendar?date=2026-11-18`: Period automatically resolved to November 2026.
+   - Verified `/calendar?siteId=invalid&typeId=-99&status=BOGUS`: Normalized cleanly to defaults without errors.
+   - Navigated from Employee Profile (`/employees/EMP-0101`) -> Landed on `/calendar?employeeId=EMP-0101`.
+   - Navigated from Leave Balances (`/leave-balances/EMP-0101`) -> Landed on `/calendar?employeeId=EMP-0101`.
+   - Navigated from Public Holidays (`/holidays`) -> Landed on May 2026 for Fête du Travail.
+   - Verified view switching synchronizes URL (`?view=week`, removed for default grid) and steps smoothly with browser Back/Forward navigation.
+
 
 
 

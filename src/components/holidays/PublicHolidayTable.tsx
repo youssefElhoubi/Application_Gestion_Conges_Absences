@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import {
   CalendarDays,
+  Calendar,
   Edit2,
   Trash2,
   ExternalLink,
@@ -107,6 +108,13 @@ export function PublicHolidayTable({
                 </Link>
 
                 <div className="flex items-center gap-1">
+                  <Link
+                    href={`/calendar?date=${h.date}`}
+                    className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
+                    title="Afficher au calendrier"
+                  >
+                    <Calendar className="h-3.5 w-3.5" />
+                  </Link>
                   {onEdit && (
                     <Button
                       size="sm"
@@ -206,6 +214,14 @@ export function PublicHolidayTable({
 
                   <td className="py-4 px-5 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/calendar?date=${h.date}`}
+                        className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                        title="Afficher au calendrier"
+                      >
+                        <Calendar className="h-3.5 w-3.5" />
+                      </Link>
+
                       <Link
                         href={`/holidays/${h.id}`}
                         className="inline-flex items-center justify-center font-medium h-8 px-2.5 text-xs text-primary hover:bg-primary/10 rounded-md transition-colors"

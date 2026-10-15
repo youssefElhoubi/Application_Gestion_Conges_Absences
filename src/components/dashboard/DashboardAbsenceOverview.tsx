@@ -122,17 +122,19 @@ export function DashboardAbsenceOverview({
               {categories.map((cat) => {
                 const pct = totalDays > 0 ? (Number(cat.totalDays) / totalDays) * 100 : 0;
                 return (
-                  <div
+                  <Link
                     key={cat.typeId}
-                    className="p-3 rounded-xl border border-border/60 bg-muted/10 flex items-center justify-between gap-3"
+                    href={`/calendar?typeId=${cat.typeId}${siteParam}`}
+                    className="p-3 rounded-xl border border-border/60 bg-muted/10 hover:bg-primary/5 hover:border-primary/40 transition-all flex items-center justify-between gap-3 group"
+                    title={`Filtrer le calendrier par ${cat.name}`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className="h-3 w-3 rounded-full shrink-0"
+                        className="h-3 w-3 rounded-full shrink-0 group-hover:scale-110 transition-transform"
                         style={{ backgroundColor: cat.colorHex }}
                       />
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-foreground truncate">
+                        <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                           {cat.name}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
@@ -142,14 +144,14 @@ export function DashboardAbsenceOverview({
                     </div>
 
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-bold text-foreground">
+                      <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                         {cat.totalDays} j
                       </p>
                       <p className="text-[11px] text-muted-foreground">
                         {pct.toFixed(0)}%
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

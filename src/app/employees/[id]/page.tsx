@@ -277,6 +277,15 @@ export default function EmployeeProfilePage() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => router.push(`/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`)}
+              className="text-xs"
+            >
+              <Calendar className="h-4 w-4 mr-1.5 text-primary" />
+              <span>Planning des congés</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setConfirmDialogOpen(true)}
               className={employee.active ? "text-destructive hover:bg-destructive/10" : "text-emerald-600 hover:bg-emerald-500/10"}
             >

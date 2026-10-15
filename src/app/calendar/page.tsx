@@ -49,7 +49,8 @@ import {
 } from "@/src/lib/calendar/calendar-events";
 import {
   CalendarFilterState,
-  parseFilterState,
+  CalendarViewMode,
+  parseCalendarUrlState,
   deriveActiveFilters,
   buildFilterQueryString,
 } from "@/src/lib/calendar/calendar-filters";
@@ -76,20 +77,16 @@ function CalendarPageContent() {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1 to 12
 
-  // 1. Authoritative period state driven by URL search params with dynamic fallbacks
-  const urlYear = Number(searchParams.get("year"));
-  const urlMonth = Number(searchParams.get("month"));
+  // 1. Authoritative URL state: period, date, view mode, and filters with safe normalization
+  const urlState = React.useMemo(() => {
+    return parseCalendarUrlState(searchParams, now);
+  }, [searchParams, now]);
 
-  const year = !isNaN(urlYear) && urlYear >= 1970 && urlYear <= 2100 ? urlYear : currentYear;
-  const month = !isNaN(urlMonth) && urlMonth >= 1 && urlMonth <= 12 ? urlMonth : currentMonth;
+  const year = urlState.year;
+  const month = urlState.month;
+  const viewMode = urlState.view;
+  const filters = urlState;
 
-  // 2. Parse multi-criteria filters from URL search params
-  const filters = React.useMemo(() => {
-    return parseFilterState(searchParams);
-  }, [searchParams]);
-
-  // 3. View Mode & Selected Date State (for Month Grid, Weekly Timeline, and Agenda views)
-  const [viewMode, setViewMode] = React.useState<"grid" | "week" | "agenda">("grid");
   const [selectedAbsence, setSelectedAbsence] = React.useState<CalendarAbsenceEvent | null>(null);
   const [selectedHoliday, setSelectedHoliday] = React.useState<CalendarHolidayEvent | null>(null);
 
@@ -100,17 +97,20 @@ function CalendarPageContent() {
     return `${y}-${m}-${d}`;
   }, [now]);
 
-  // Default selected date: today if viewing the current month, else 1st of the active month
+  // Default selected date: deep-linked urlState.date if provided, else today if viewing current month, else 1st of active month
   const defaultSelectedDate = React.useMemo(() => {
+    if (urlState.date) {
+      return urlState.date;
+    }
     if (year === currentYear && month === currentMonth) {
       return todayDateKey;
     }
     return `${year}-${String(month).padStart(2, "0")}-01`;
-  }, [year, month, currentYear, currentMonth, todayDateKey]);
+  }, [urlState.date, year, month, currentYear, currentMonth, todayDateKey]);
 
   const [selectedDateKey, setSelectedDateKey] = React.useState<string>(defaultSelectedDate);
 
-  // Synchronize selected date when period changes
+  // Synchronize selected date when period or deep-linked date changes
   React.useEffect(() => {
     setSelectedDateKey(defaultSelectedDate);
   }, [defaultSelectedDate]);
@@ -162,29 +162,38 @@ function CalendarPageContent() {
     [pathname, router, searchParams]
   );
 
-  // 7. Synchronize month/year navigation into URL search params preserving active filters
-  const updatePeriod = React.useCallback(
-    (newYear: number, newMonth: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      params.set("year", String(newYear));
-      params.set("month", String(newMonth));
-
-      const query = params.toString();
-      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  // 7. View mode switcher updating the URL without full-page reloads and supporting back/forward navigation
+  const handleViewModeChange = React.useCallback(
+    (newMode: CalendarViewMode) => {
+      const queryString = buildFilterQueryString(searchParams, { view: newMode });
+      router.push(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams]
   );
 
-  // 8. Navigation Actions (Month or Week)
+  // 8. Synchronize month/year/date navigation into URL search params preserving active filters and view
+  const updatePeriod = React.useCallback(
+    (newYear: number, newMonth: number, newDate?: string) => {
+      const updates: { year: number; month: number; date?: string } = {
+        year: newYear,
+        month: newMonth,
+      };
+      if (newDate) {
+        updates.date = newDate;
+      }
+      const queryString = buildFilterQueryString(searchParams, updates);
+      router.push(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  // 9. Navigation Actions (Month or Week)
   const goToPrev = React.useCallback(() => {
     if (viewMode === "week") {
       const prevMon = getAdjacentWeek(weekInfo.mondayDateKey, "prev");
       setSelectedDateKey(prevMon);
       const p = parseDateKey(prevMon);
-      if (p.year !== year || p.month !== month) {
-        updatePeriod(p.year, p.month);
-      }
+      updatePeriod(p.year, p.month, prevMon);
     } else {
       const prev = getAdjacentMonth(year, month, "prev");
       updatePeriod(prev.year, prev.month);
@@ -196,9 +205,7 @@ function CalendarPageContent() {
       const nextMon = getAdjacentWeek(weekInfo.mondayDateKey, "next");
       setSelectedDateKey(nextMon);
       const p = parseDateKey(nextMon);
-      if (p.year !== year || p.month !== month) {
-        updatePeriod(p.year, p.month);
-      }
+      updatePeriod(p.year, p.month, nextMon);
     } else {
       const next = getAdjacentMonth(year, month, "next");
       updatePeriod(next.year, next.month);
@@ -207,7 +214,7 @@ function CalendarPageContent() {
 
   const goToToday = React.useCallback(() => {
     setSelectedDateKey(todayDateKey);
-    updatePeriod(currentYear, currentMonth);
+    updatePeriod(currentYear, currentMonth, todayDateKey);
   }, [currentYear, currentMonth, todayDateKey, updatePeriod]);
 
   // 9. Individual filter removal handler
@@ -424,7 +431,7 @@ function CalendarPageContent() {
           <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border">
             <button
               type="button"
-              onClick={() => setViewMode("grid")}
+              onClick={() => handleViewModeChange("grid")}
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                 viewMode === "grid"
@@ -439,7 +446,7 @@ function CalendarPageContent() {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("week")}
+              onClick={() => handleViewModeChange("week")}
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                 viewMode === "week"
@@ -454,7 +461,7 @@ function CalendarPageContent() {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("agenda")}
+              onClick={() => handleViewModeChange("agenda")}
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                 viewMode === "agenda"

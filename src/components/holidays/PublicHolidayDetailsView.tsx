@@ -55,7 +55,15 @@ export function PublicHolidayDetailsView({
           <span>Retour aux jours fériés légaux</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href={`/calendar?date=${holiday.date}`}
+            className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground transition-colors"
+          >
+            <CalendarDays className="h-3.5 w-3.5 text-primary" />
+            <span>Voir au calendrier</span>
+          </Link>
+
           <Button
             size="sm"
             variant="outline"

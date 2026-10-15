@@ -372,8 +372,20 @@ function LeaveBalanceDetailContent() {
             </div>
           </div>
 
-          {/* Action: Link to full employee profile */}
-          <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto md:self-center">
+          {/* Action: Link to full employee profile & calendar */}
+          <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto md:self-center flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                router.push(`/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`)
+              }
+              className="text-xs group w-full sm:w-auto min-h-[40px] sm:min-h-[36px]"
+              aria-label={`Voir le planning des absences de ${employee.fullName}`}
+            >
+              <Calendar className="h-3.5 w-3.5 mr-1.5 text-primary group-hover:scale-110 transition-transform" />
+              <span>Planning des congés</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"

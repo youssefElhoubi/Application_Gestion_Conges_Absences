@@ -571,13 +571,21 @@ function AbsenceDetailsContent() {
                 )}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col gap-2">
                 <Link
                   href={`/employees/${encodeURIComponent(absence.employee.employeeId)}`}
                   className="w-full"
                 >
                   <Button variant="outline" size="sm" className="w-full text-xs" leftIcon={<ExternalLink className="h-3.5 w-3.5" />}>
                     Consulter la fiche collaborateur
+                  </Button>
+                </Link>
+                <Link
+                  href={`/calendar?employeeId=${encodeURIComponent(absence.employee.employeeId)}&date=${absence.startDate.split("T")[0]}`}
+                  className="w-full"
+                >
+                  <Button variant="outline" size="sm" className="w-full text-xs" leftIcon={<CalendarDays className="h-3.5 w-3.5 text-primary" />}>
+                    Planning & Calendrier
                   </Button>
                 </Link>
               </div>
