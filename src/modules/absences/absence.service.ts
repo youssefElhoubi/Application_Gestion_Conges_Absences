@@ -389,4 +389,119 @@ export class AbsenceService {
       return updated;
     });
   }
+
+  /**
+   * Update an existing PENDING absence request
+   */
+  public static async updateAbsenceRequest(
+    absenceId: bigint,
+    rawInput: CreateAbsenceInput,
+    session: AuthSession
+  ) {
+    const input = CreateAbsenceSchema.parse(rawInput);
+    const existing = await prisma.absence.findUniqueOrThrow({
+      where: { id: absenceId },
+      include: { type: true, employee: { include: { site: true } } },
+    });
+
+    AuthGuard.requireAccessEmployee(session, existing.employeeId);
+
+    if (existing.status !== 'PENDING') {
+      throw new Error(`Seules les demandes en attente (PENDING) peuvent être modifiées. Statut actuel: ${existing.status}`);
+    }
+
+    const employee = existing.employee;
+    const absenceType = await prisma.absenceType.findUniqueOrThrow({
+      where: { id: input.typeId },
+    });
+    const absenceReason = input.reasonId
+      ? await prisma.absenceReason.findUnique({ where: { id: input.reasonId } })
+      : null;
+
+    // Check collision / overlap excluding current absence
+    const overlapCount = await prisma.absence.count({
+      where: {
+        id: { not: absenceId },
+        employeeId: input.employeeId,
+        status: { in: ['PENDING', 'APPROVED'] },
+        startDate: { lte: input.endDate },
+        endDate: { gte: input.startDate },
+      },
+    });
+
+    const fraction = input.fraction ?? 'FULL_DAY';
+    const workingDaysCalc = await WorkingDaysService.calculateWorkingDays(
+      input.startDate,
+      input.endDate,
+      fraction,
+      employee.siteId
+    );
+
+    const dynamicBalance = await LeaveBalanceService.getDynamicBalance(
+      input.employeeId,
+      input.startDate
+    );
+
+    LeaveValidationRules.validate({
+      employee: {
+        employeeId: employee.employeeId,
+        fullName: employee.fullName,
+        birthDate: employee.birthDate,
+        hireDate: employee.hireDate,
+        active: employee.active,
+        siteId: employee.siteId,
+        weeklyRestDays: employee.site?.weeklyRestDays ?? [0],
+      },
+      typeCode: absenceType.code,
+      isDeductible: absenceType.isDeductible,
+      reasonCode: absenceReason?.code,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      fraction,
+      calculatedWorkingDays: workingDaysCalc.calculatedWorkingDays,
+      currentBalance: dynamicBalance,
+      hasOverlappingAbsence: overlapCount > 0,
+    });
+
+    const retainedDays = workingDaysCalc.calculatedWorkingDays;
+    const enteredDays = workingDaysCalc.totalCalendarDays;
+
+    return await prisma.$transaction(async (tx: any) => {
+      const updated = await tx.absence.update({
+        where: { id: absenceId },
+        data: {
+          employeeId: input.employeeId,
+          typeId: input.typeId,
+          reasonId: input.reasonId ?? null,
+          startDate: input.startDate,
+          endDate: input.endDate,
+          fraction,
+          calculatedWorkingDays: new Prisma.Decimal(workingDaysCalc.calculatedWorkingDays),
+          enteredDays: new Prisma.Decimal(enteredDays),
+          retainedDays: new Prisma.Decimal(retainedDays),
+          supportingDocumentProvided: input.supportingDocumentProvided,
+          comment: input.comment ?? null,
+        },
+        include: {
+          type: true,
+          reason: true,
+          employee: { select: { employeeId: true, fullName: true, siteId: true } },
+        },
+      });
+
+      await tx.approvalHistory.create({
+        data: {
+          absenceId,
+          action: 'CORRECTED',
+          fromStatus: 'PENDING',
+          toStatus: 'PENDING',
+          performedByUserId: session.userId,
+          performedByEmployeeId: session.employeeId,
+          comment: 'Demande d\'absence modifiée.',
+        },
+      });
+
+      return updated;
+    });
+  }
 }

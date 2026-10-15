@@ -57,3 +57,15 @@ export async function cancelAbsenceAction(absenceId: string | number | bigint, r
     return { success: false, error: error.message || 'Failed to cancel absence.' };
   }
 }
+
+export async function updateAbsenceAction(absenceId: string | number | bigint, rawInput: CreateAbsenceInput) {
+  try {
+    const session = await SessionResolver.require();
+    const validated = CreateAbsenceSchema.parse(rawInput);
+    const result = await AbsenceService.updateAbsenceRequest(BigInt(absenceId), validated, session);
+    return { success: true, data: serializeForClient(result) };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to update absence request.' };
+  }
+}
+
