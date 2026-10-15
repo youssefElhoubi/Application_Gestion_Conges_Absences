@@ -51,11 +51,12 @@ function LeaveBalancesOverviewContent() {
 
   // Local search query input for smooth typing in SearchInput before debounced URL update
   const [searchInput, setSearchInput] = React.useState(urlSearch);
+  const [prevUrlSearch, setPrevUrlSearch] = React.useState(urlSearch);
 
-  // Sync local search input if URL changes externally
-  React.useEffect(() => {
+  if (prevUrlSearch !== urlSearch) {
+    setPrevUrlSearch(urlSearch);
     setSearchInput(urlSearch);
-  }, [urlSearch]);
+  }
 
   // Data state
   const [counters, setCounters] = React.useState<EmployeeCounterItem[]>([]);
@@ -68,6 +69,7 @@ function LeaveBalancesOverviewContent() {
   // 2. Helper to synchronize filter and pagination updates into URL search params
   const updateUrlParams = React.useCallback(
     (updates: Record<string, string | number | null | undefined>) => {
+      setIsLoading(true);
       const current = new URLSearchParams(searchParams.toString());
 
       Object.entries(updates).forEach(([key, value]) => {
@@ -104,7 +106,6 @@ function LeaveBalancesOverviewContent() {
   // 4. Fetch multi-employee counters whenever URL parameters or refreshKey change
   React.useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
 
     CounterApiClient.listCounters({
       page: urlPage,
@@ -121,6 +122,12 @@ function LeaveBalancesOverviewContent() {
           setTotalItems(response.meta.totalItems);
           setError(null);
           setIsLoading(false);
+
+          // Correct out-of-bounds pagination if total count changed
+          const maxPages = Math.max(1, Math.ceil(response.meta.totalItems / urlPageSize));
+          if (urlPage > maxPages) {
+            updateUrlParams({ page: maxPages });
+          }
         }
       })
       .catch((err: unknown) => {
@@ -137,17 +144,7 @@ function LeaveBalancesOverviewContent() {
     return () => {
       isMounted = false;
     };
-  }, [urlSearch, urlSiteId, urlActive, urlPage, urlPageSize, urlSortBy, urlSortOrder, refreshKey]);
-
-  // 5. Reset or correct pagination when filter changes make current page invalid
-  React.useEffect(() => {
-    if (!isLoading) {
-      const maxPages = Math.max(1, Math.ceil(totalItems / urlPageSize));
-      if (urlPage > maxPages) {
-        updateUrlParams({ page: maxPages });
-      }
-    }
-  }, [totalItems, urlPage, urlPageSize, isLoading, updateUrlParams]);
+  }, [urlSearch, urlSiteId, urlActive, urlPage, urlPageSize, urlSortBy, urlSortOrder, refreshKey, updateUrlParams]);
 
   // Aggregate stats from current view for StatCards
   const aggregateMetrics = React.useMemo(() => {

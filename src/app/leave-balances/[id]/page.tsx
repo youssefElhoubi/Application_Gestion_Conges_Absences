@@ -17,7 +17,6 @@ import {
   AlertCircle,
   Info,
   User,
-  History,
   CalendarDays,
   BadgeAlert,
   ChevronRight,
@@ -41,7 +40,6 @@ import {
 } from "@/src/components/ui/card";
 import { ErrorState } from "@/src/components/feedback/ErrorState";
 import { Alert } from "@/src/components/feedback/Alert";
-import { TableSkeleton } from "@/src/components/feedback/LoadingSkeleton";
 import {
   CounterApiClient,
   EmployeeCounterItem,
@@ -95,74 +93,82 @@ function LeaveBalanceDetailContent() {
   // --- Independent Data Fetchers ---
 
   // Fetch Core Data (Employee profile + Counter balances)
-  const fetchCore = React.useCallback(async () => {
+  const fetchCore = React.useCallback(() => {
     if (!employeeId) {
-      setCoreError("Identifiant collaborateur manquant.");
-      setIsLoadingCore(false);
+      Promise.resolve().then(() => {
+        setCoreError("Identifiant collaborateur manquant.");
+        setIsLoadingCore(false);
+      });
       return;
     }
-    setIsLoadingCore(true);
-    setCoreError(null);
-    try {
-      const [empData, counterData] = await Promise.all([
-        EmployeeApiClient.getEmployee(employeeId),
-        CounterApiClient.getEmployeeCounters(employeeId),
-      ]);
-      setEmployee(empData);
-      setCounter(counterData);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Impossible de charger les compteurs de congés du collaborateur.";
-      setCoreError(msg);
-    } finally {
-      setIsLoadingCore(false);
-    }
+
+    Promise.all([
+      EmployeeApiClient.getEmployee(employeeId),
+      CounterApiClient.getEmployeeCounters(employeeId),
+    ])
+      .then(([empData, counterData]) => {
+        setEmployee(empData);
+        setCounter(counterData);
+        setCoreError(null);
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger les compteurs de congés du collaborateur.";
+        setCoreError(msg);
+      })
+      .finally(() => {
+        setIsLoadingCore(false);
+      });
   }, [employeeId]);
 
   // Fetch Absence History independently
-  const fetchAbsences = React.useCallback(async () => {
+  const fetchAbsences = React.useCallback(() => {
     if (!employeeId) return;
-    setIsLoadingAbsences(true);
-    setAbsencesError(null);
-    try {
-      const res = await AbsenceApiClient.listAbsences({
-        employeeId,
-        pageSize: 50,
+
+    AbsenceApiClient.listAbsences({
+      employeeId,
+      pageSize: 50,
+    })
+      .then((res) => {
+        setAbsences(res.data || []);
+        setAbsencesError(null);
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger l'historique des absences.";
+        setAbsencesError(msg);
+      })
+      .finally(() => {
+        setIsLoadingAbsences(false);
       });
-      setAbsences(res.data || []);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Impossible de charger l'historique des absences.";
-      setAbsencesError(msg);
-    } finally {
-      setIsLoadingAbsences(false);
-    }
   }, [employeeId]);
 
   // Fetch Recovery Credits independently
-  const fetchCredits = React.useCallback(async () => {
+  const fetchCredits = React.useCallback(() => {
     if (!employeeId) return;
-    setIsLoadingCredits(true);
-    setCreditsError(null);
-    try {
-      const res = await HolidayApiClient.listCredits({
-        employeeId,
-        pageSize: 50,
+
+    HolidayApiClient.listCredits({
+      employeeId,
+      pageSize: 50,
+    })
+      .then((res) => {
+        setCredits(res.data || []);
+        setCreditsError(null);
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger les crédits de récupération.";
+        setCreditsError(msg);
+      })
+      .finally(() => {
+        setIsLoadingCredits(false);
       });
-      setCredits(res.data || []);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Impossible de charger les crédits de récupération.";
-      setCreditsError(msg);
-    } finally {
-      setIsLoadingCredits(false);
-    }
   }, [employeeId]);
 
   // Initial concurrent trigger
@@ -233,7 +239,11 @@ function LeaveBalanceDetailContent() {
             coreError ||
             `Aucune donnée de solde disponible pour le matricule « ${employeeId} ».`
           }
-          onRetry={fetchCore}
+          onRetry={() => {
+            setIsLoadingCore(true);
+            setCoreError(null);
+            fetchCore();
+          }}
           secondaryActionLabel="Retour aux soldes de congés"
           onSecondaryAction={() => router.push("/leave-balances")}
         />
@@ -879,7 +889,11 @@ function LeaveBalanceDetailContent() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={fetchAbsences}
+                    onClick={() => {
+                      setIsLoadingAbsences(true);
+                      setAbsencesError(null);
+                      fetchAbsences();
+                    }}
                     className="text-xs"
                   >
                     <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
@@ -1228,7 +1242,11 @@ function LeaveBalanceDetailContent() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={fetchCredits}
+                    onClick={() => {
+                      setIsLoadingCredits(true);
+                      setCreditsError(null);
+                      fetchCredits();
+                    }}
                     className="text-xs"
                   >
                     <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
