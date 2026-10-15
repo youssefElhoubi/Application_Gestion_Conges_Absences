@@ -14,6 +14,8 @@ import {
   LogOut,
   Check,
   Building,
+  Calendar,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
@@ -53,6 +55,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
   // Format breadcrumbs from pathname
   const pathSegments = pathname.split("/").filter(Boolean);
   const breadcrumbMap: Record<string, string> = {
+    portal: "Espace Collaborateur",
+    requests: "Mes Demandes",
+    new: "Nouvelle Demande",
+    profile: "Mon Profil & Droits",
     employees: "Collaborateurs",
     absences: "Demandes d'absence",
     calendar: "Calendrier mensuel",
@@ -222,20 +228,28 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
               </div>
 
               <Link
-                href="/profile"
+                href="/portal"
                 onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-muted transition-colors text-foreground"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-primary/10 text-primary font-medium transition-colors"
               >
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>Mon profil RH</span>
+                <User className="h-4 w-4" />
+                <span>Mon Espace Collaborateur</span>
               </Link>
               <Link
-                href="/rules"
+                href="/portal/requests"
                 onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-muted transition-colors text-foreground"
               >
-                <Settings className="h-4 w-4 text-muted-foreground" />
-                <span>Paramètres système</span>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Mes Demandes de congé</span>
+              </Link>
+              <Link
+                href="/portal/profile"
+                onClick={() => setUserMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-muted transition-colors text-foreground"
+              >
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span>Mon Profil & Droits</span>
               </Link>
               <a
                 href="#guide"

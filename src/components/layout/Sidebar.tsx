@@ -18,6 +18,9 @@ import {
   ChevronRight,
   Layers,
   HelpCircle,
+  UserCheck,
+  PlusCircle,
+  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
@@ -36,11 +39,20 @@ export interface NavGroup {
 
 export const navigationGroups: NavGroup[] = [
   {
-    label: "PRINCIPAL",
+    label: "ESPACE COLLABORATEUR",
     items: [
-      { title: "Tableau de bord", href: "/", icon: LayoutDashboard },
+      { title: "Mon Espace Congés", href: "/portal", icon: CalendarCheck },
+      { title: "Mes Demandes", href: "/portal/requests", icon: CalendarDays },
+      { title: "Déposer un congé", href: "/portal/requests/new", icon: PlusCircle },
+      { title: "Mon Profil & Droits", href: "/portal/profile", icon: UserCheck },
+    ],
+  },
+  {
+    label: "GESTION RH & ADMIN",
+    items: [
+      { title: "Tableau de bord RH", href: "/", icon: LayoutDashboard },
       { title: "Collaborateurs", href: "/employees", icon: Users },
-      { title: "Demandes d'absence", href: "/absences", icon: CalendarDays, badge: "3", badgeVariant: "warning" },
+      { title: "Toutes les absences", href: "/absences", icon: Layers, badge: "3", badgeVariant: "warning" },
       { title: "Calendrier mensuel", href: "/calendar", icon: CalendarRange },
     ],
   },

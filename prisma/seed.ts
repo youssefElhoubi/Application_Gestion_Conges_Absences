@@ -243,6 +243,20 @@ export async function seedDatabase() {
     });
   }
 
+  // Employee user for portal testing
+  await prisma.user.upsert({
+    where: { id: 'usr-emp-alami' },
+    update: {},
+    create: {
+      id: 'usr-emp-alami',
+      email: 'fz.alami@entreprise.ma',
+      passwordHash: 'argon2_mock_hash',
+      role: 'EMPLOYEE',
+      isActive: true,
+      employeeId: 'EMP-0101',
+    },
+  });
+
   // 3. Seed sample absences and holiday credits for testing profile views
   console.log('Seeding sample absences and holiday credits...');
   const publicHoliday = await prisma.publicHoliday.upsert({
