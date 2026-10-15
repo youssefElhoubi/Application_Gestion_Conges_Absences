@@ -21,7 +21,7 @@ import {
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
 import { PageHeader } from "@/src/components/shared/PageHeader";
-import { FilterBar, ActiveFilter } from "@/src/components/shared/FilterBar";
+import { FilterBar } from "@/src/components/shared/FilterBar";
 import { Button } from "@/src/components/ui/button";
 import { Select } from "@/src/components/ui/select";
 import { cn } from "@/src/lib/utils";
@@ -108,12 +108,18 @@ function CalendarPageContent() {
     return `${year}-${String(month).padStart(2, "0")}-01`;
   }, [urlState.date, year, month, currentYear, currentMonth, todayDateKey]);
 
-  const [selectedDateKey, setSelectedDateKey] = React.useState<string>(defaultSelectedDate);
+  const [userSelectedDateKey, setUserSelectedDateKey] = React.useState<string | null>(null);
+  const [prevDefaultDate, setPrevDefaultDate] = React.useState<string>(defaultSelectedDate);
 
-  // Synchronize selected date when period or deep-linked date changes
-  React.useEffect(() => {
-    setSelectedDateKey(defaultSelectedDate);
-  }, [defaultSelectedDate]);
+  if (prevDefaultDate !== defaultSelectedDate) {
+    setPrevDefaultDate(defaultSelectedDate);
+    setUserSelectedDateKey(null);
+  }
+
+  const selectedDateKey = userSelectedDateKey ?? defaultSelectedDate;
+  const setSelectedDateKey = React.useCallback((key: string | null) => {
+    setUserSelectedDateKey(key);
+  }, []);
 
   // Active 7-day week calculation for Weekly Team Timeline
   const weekInfo = React.useMemo(() => {
@@ -198,7 +204,7 @@ function CalendarPageContent() {
       const prev = getAdjacentMonth(year, month, "prev");
       updatePeriod(prev.year, prev.month);
     }
-  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod]);
+  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod, setSelectedDateKey]);
 
   const goToNext = React.useCallback(() => {
     if (viewMode === "week") {
@@ -210,12 +216,12 @@ function CalendarPageContent() {
       const next = getAdjacentMonth(year, month, "next");
       updatePeriod(next.year, next.month);
     }
-  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod]);
+  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod, setSelectedDateKey]);
 
   const goToToday = React.useCallback(() => {
     setSelectedDateKey(todayDateKey);
     updatePeriod(currentYear, currentMonth, todayDateKey);
-  }, [currentYear, currentMonth, todayDateKey, updatePeriod]);
+  }, [currentYear, currentMonth, todayDateKey, updatePeriod, setSelectedDateKey]);
 
   // 9. Individual filter removal handler
   const handleRemoveFilter = React.useCallback(
@@ -295,9 +301,13 @@ function CalendarPageContent() {
   // 13. Fetch verified absence and public holiday data with decoupled error handling
   React.useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
-    setAbsenceError(null);
-    setHolidayError(null);
+    queueMicrotask(() => {
+      if (isMounted) {
+        setIsLoading(true);
+        setAbsenceError(null);
+        setHolidayError(null);
+      }
+    });
 
     const firstCellDateKey = grid.cells[0]?.dateKey;
     const lastCellDateKey = grid.cells[grid.cells.length - 1]?.dateKey;

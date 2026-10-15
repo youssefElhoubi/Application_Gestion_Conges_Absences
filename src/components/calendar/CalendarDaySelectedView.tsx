@@ -7,14 +7,12 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
-  AlertCircle,
   XCircle,
   Sun,
   Moon,
   User,
   ExternalLink,
   MapPin,
-  Tag,
   FileText,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
@@ -38,7 +36,6 @@ export interface CalendarDaySelectedViewProps {
 }
 
 export function CalendarDaySelectedView({
-  dateKey,
   formattedDateFr,
   isToday = false,
   events,

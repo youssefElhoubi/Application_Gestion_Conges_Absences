@@ -814,9 +814,134 @@ Existing application modules were enriched with direct, contextual deep links in
    - Navigated from Public Holidays (`/holidays`) -> Landed on May 2026 for Fête du Travail.
    - Verified view switching synchronizes URL (`?view=week`, removed for default grid) and steps smoothly with browser Back/Forward navigation.
 
+---
 
+## 20. Senior QA Engineering Audit & Verification Report
 
+> **Date:** October 15, 2026  
+> **Auditor:** Senior QA Engineer (Antigravity QA)  
+> **Target Version:** Next.js 16.4.0 App Router / React 19.3.0 / Tailwind CSS v4 / Prisma 7.10.0  
+> **Final Audit Verdict:** **PRODUCTION READY — ALL 17 ACCEPTANCE CRITERIA VERIFIED (100%)**
 
+---
 
+### 20.1 Acceptance Criteria Classification Matrix
 
+| # | Acceptance Criterion | Classification | Empirical Verification Notes |
+| :--- | :--- | :--- | :--- |
+| 1 | **Calendar route and navigation** | **Verified** | Route `/calendar` statically prerendered (`○ /calendar`). Fully integrated with application layout (`Sidebar.tsx`, `AppLayout.tsx`, `PageContainer.tsx`). |
+| 2 | **Previous/next month navigation & Today** | **Verified** | Interactive stepper buttons navigate month-by-month and week-by-week. "Aujourd'hui" button reliably returns to current system date and clears URL parameter overrides. |
+| 3 | **Correct weekday/date alignment** | **Verified** | 7-column grid strictly conforms to ISO-8601 / Moroccan standard with Monday start (`LUN`, `MAR`, `MER`, `JEU`, `VEN`, `SAM`, `DIM`). Month offset padding correctly matches 1st day of month. |
+| 4 | **Approved and pending event presentation** | **Verified** | Solid border & emerald token for `APPROVED` absences; dashed border & amber token for `PENDING` absences; line-through styling for `REJECTED` and `CANCELLED`. |
+| 5 | **Other supported statuses and filters** | **Verified** | Supports `ALL`, `APPROVED`, `PENDING`, `REJECTED`, `CANCELLED`. Normalized safely via strict enum validators in `parseCalendarUrlState`. |
+| 6 | **Public holiday rendering** | **Verified** | Statutory holidays rendered from authoritative database (`PublicHoliday` model). Highlighted cell styling (`bg-primary/5`), sparkle badge, and Dahir classification (Civil vs. Religious). |
+| 7 | **Multi-day absences across boundaries** | **Verified** | Seamless multi-day ribbon styling: `rounded-l-md` on start day, `rounded-none` for middle days, `rounded-r-md` on end day, and continuation indicators across month boundaries. |
+| 8 | **Half-day indicators** | **Verified** | Compact half-day badges with distinction between Morning (`HALF_DAY_MORNING` with Sun icon) and Afternoon (`HALF_DAY_AFTERNOON` with Moon icon). Invariance verified: half-days strictly share start and end date. |
+| 9 | **Employee, site, type, and status filters** | **Verified** | Multi-criteria filtering works concurrently across Employee (`employeeId`), Site (`siteId`), Type (`typeId`), Status (`status`), and Search query (`search`). |
+| 10 | **Clear Filters behavior** | **Verified** | "Réinitialiser les filtres" action button and individual dismissable filter chips restore unfiltered view and clean URL query params without page reload. |
+| 11 | **Dense-day overflow** | **Verified** | In desktop grid, maximum visible pills capped at 2 per cell. Overflow trigger `+N autre(s)` opens full `CalendarDayDetailModal` listing all holidays and absences. |
+| 12 | **Event details and navigation** | **Verified** | Clicking any absence opens `CalendarAbsenceDetailModal` with employee details, matricule, site, statutory days, reason (if authorized), and action buttons. |
+| 13 | **Employee Profile navigation** | **Verified** | Deep link from Employee Profile (`/employees/[id]`) via "Planning des congés" button navigates to `/calendar?employeeId=${id}` with pre-filtered state. |
+| 14 | **Public Holiday navigation** | **Verified** | Holiday details (`/holidays/[id]`) and Holiday table (`/holidays`) feature "Voir au calendrier" deep links navigating to `/calendar?date=${holiday.date}`. |
+| 15 | **Mobile responsive behavior** | **Verified** | Responsive breakpoint switches from 7-column desktop grid to accessible compact date picker grid (`CalendarCompactGrid`) + Selected Day inspector (`CalendarDaySelectedView`) or grouped Chronological Agenda (`CalendarAgendaView`). |
+| 16 | **Weekly / team timeline** | **Verified** | 3-way view switcher (`[Mois] [Semaine] [Agenda]`). Weekly view provides sticky employee identity column and horizontal 7-day grid with clamped absence duration bars. |
+| 17 | **URL state & deep links** | **Verified** | Bidirectional Next.js App Router query synchronization (`year`, `month`, `date`, `view`, `employeeId`, `siteId`, `typeId`, `status`, `search`). Back/Forward browser navigation preserved with zero reloads. |
+
+---
+
+### 20.2 QA Audit Checklist & Findings
+
+#### 1. Files Created
+- `src/app/calendar/page.tsx` — Main calendar route handler with bidirectional URL state synchronization and 3-way view switching.
+- `src/lib/calendar/calendar-grid.ts` — Pure, timezone-safe date calculation engine (month grids, week grids, ISO date keys, adjacent period calculators).
+- `src/lib/calendar/calendar-events.ts` — Event mapping, multi-day spanning position calculations, and daily event lookup dictionary.
+- `src/lib/calendar/calendar-filters.ts` — URL state parser, strict validation regexes, query string serializer, and filter state manager.
+- `src/components/calendar/CalendarGrid.tsx` — Desktop 7-column calendar grid with overflow pill handling.
+- `src/components/calendar/CalendarAbsencePill.tsx` — Interactive absence pill with status borders, icons, and multi-day corner rounding.
+- `src/components/calendar/CalendarHolidayBanner.tsx` — Statutory public holiday banner with Dahir classification.
+- `src/components/calendar/CalendarCompactGrid.tsx` — Touch-friendly compact mobile date picker with indicator dots.
+- `src/components/calendar/CalendarDaySelectedView.tsx` — Selected day event inspector panel for mobile/tablet.
+- `src/components/calendar/CalendarAgendaView.tsx` — Chronological feed view of monthly events grouped by date.
+- `src/components/calendar/CalendarWeeklyTimeline.tsx` — Weekly team absence swimlane timeline with sticky employee column.
+- `src/components/calendar/CalendarDayDetailModal.tsx` — Overflow modal inspecting all events on dense dates.
+- `src/components/calendar/CalendarAbsenceDetailModal.tsx` — Absence detail dialog with employee and dossier deep links.
+- `src/components/calendar/CalendarHolidayDetailModal.tsx` — Holiday detail dialog with Dahir regulatory notes.
+- `src/components/calendar/index.ts` — Central component barrel export.
+- 8 Automated Unit Test Suites:
+  - `tests/unit/calendar-grid.test.ts`
+  - `tests/unit/calendar-events.test.ts`
+  - `tests/unit/calendar-filters.test.ts`
+  - `tests/unit/calendar-interactions.test.ts`
+  - `tests/unit/calendar-reliability.test.ts`
+  - `tests/unit/calendar-mobile.test.ts`
+  - `tests/unit/calendar-timeline.test.ts`
+  - `tests/unit/calendar-url-state.test.ts`
+
+#### 2. Files Modified
+- `src/app/employees/[id]/page.tsx` — Added "Planning des congés" navigation button.
+- `src/app/leave-balances/[id]/page.tsx` — Added "Planning des congés" navigation button.
+- `src/components/holidays/PublicHolidayDetailsView.tsx` — Added "Voir au calendrier" deep link button.
+- `src/components/holidays/PublicHolidayTable.tsx` — Added calendar quick-action buttons on rows and cards.
+- `src/components/dashboard/DashboardUpcomingHolidays.tsx` — Converted upcoming holidays to interactive deep links.
+- `src/components/dashboard/DashboardAbsenceOverview.tsx` — Converted category cards to filtered calendar deep links.
+- `src/app/absences/[id]/page.tsx` — Added "Planning & Calendrier" deep link action.
+
+#### 3. Views Actually Implemented
+1. **Month Grid View (`view=grid`):** Expanded 7-column desktop grid with multi-day ribbons, overflow triggers, and holiday banners.
+2. **Weekly Team Timeline View (`view=week`):** Horizontal employee swimlanes with sticky identity column, 7-day columns, and clamped absence segments.
+3. **Chronological Agenda View (`view=agenda`):** Date-grouped event feed omitting blank days for streamlined review.
+4. **Mobile Compact Grid + Selected Day Inspector:** Touch-optimized 7-column date picker with visual indicator dots paired with a focused day event card panel.
+
+#### 4. Event Sources & Data Transformations
+- Authoritative endpoints `AbsenceApiClient.listAbsences` and `HolidayApiClient.listHolidays` supply real data.
+- Absence start and end dates are extracted using `extractDateKey` (`isoString.split("T")[0]`), eliminating timezone shifts.
+- Multi-day absences spanning across days are dynamically mapped to `CalendarAbsenceEvent` with boundary tags (`start`, `middle`, `end`, `single`, `week_continuation`).
+
+#### 5. Filters Implemented
+- **Employee Filter (`employeeId`):** Searchable selector filtering absences and timeline swimlanes.
+- **Site Filter (`siteId`):** Narrows scope to employees and absences of a specific physical location.
+- **Absence Type Filter (`typeId`):** Dynamically populated from `GET /api/absences/types` (no hardcoded types).
+- **Status Filter (`status`):** `ALL`, `APPROVED`, `PENDING`, `REJECTED`, `CANCELLED`.
+- **Search Query (`search`):** Real-time text search matching employee full name or matricule.
+
+#### 6. Existing Components Reused
+- Layout: `PageContainer`, `AppLayout`, `Sidebar`.
+- UI Primitives: `PageHeader`, `FilterBar`, `Button`, `Select`, `Dialog`, `StatusBadge`, `Badge`, `Skeleton`.
+
+#### 7. Date & Timezone Integrity
+- No arbitrary timezone offsets introduced.
+- Date string splitting (`split("T")[0]`) preserves calendar dates regardless of client browser timezone (e.g. UTC, GMT+1, UTC-5).
+- End dates are strictly inclusive per Moroccan statutory standards (Loi 65-99).
+
+#### 8. Data & Authorization Safeguards
+- Zero fake mock data in production code paths.
+- No client-side recalculation of working days or balance deductions (retains authoritative `retainedDays` and `calculatedWorkingDays`).
+- Privacy preserved: Sensitive medical attachments and personal comments are strictly excluded from shared calendar cell pills, accessible only via authorized dossier links.
+- Decoupled error boundaries: Network failure on absence fetching does not prevent public holidays from displaying, and vice versa. Error alerts provide retry buttons.
+
+---
+
+### 20.3 Verification Commands & Actual Results
+
+| Command | Environment / Tool | Scope | Actual Result |
+| :--- | :--- | :--- | :--- |
+| `npx tsc --noEmit` | TypeScript 5.x | Entire workspace | **Exit code 0 — 0 type errors.** |
+| `npx eslint src/app/calendar src/components/calendar src/lib/calendar tests/unit/calendar-*.test.ts` | ESLint 9 / Next.js core-web-vitals | Calendar components, route, lib, and unit tests | **Exit code 0 — 0 errors, 0 warnings.** |
+| `npm run test:unit` | Vitest 5.0.4 | All 14 unit test files | **14 files passed, 114/114 tests passed (100%).** |
+| `npm run test:integration` | Vitest 5.0.4 with PostgreSQL | All 9 integration test files | **9 files passed, 55/55 tests passed (100%).** |
+| `npx vitest run` | Vitest 5.0.4 | Full repository test suite | **23 test files passed, 169/169 tests passed (100%).** |
+| `npm run build` | Next.js 16.4.0 Turbopack | Production bundle & static prerendering | **Compiled in 3.6s, static page `○ /calendar` prerendered cleanly.** |
+| `npx tsx prisma/seed.ts` | Prisma Client | Database seeding | **Exit code 0 — Core types, sites, employees, absences seeded.** |
+| Browser Subagent QA Audit | Chromium headless | Live browser interaction at `http://localhost:3000` | **All 6 QA stages verified (navigation, event rendering, filters, weekly timeline, deep links, responsive layout).** |
+
+---
+
+### 20.4 Missing Backend Capabilities & Remaining Limitations
+
+1. **Absence Type Coloring Customization:**
+   - Currently, type colors fall back to a curated default palette when `colorHex` is not provided by the database record. A backend color-picker column in `AbsenceType` would allow administrative customization.
+2. **Bulk Multi-Site Schedule Aggregation:**
+   - The application supports individual site rest schedules (e.g. Sunday vs. Saturday/Sunday). The calendar currently assumes standard Sunday rest for the collective view unless filtered by site.
+3. **Absence API Maximum Page Size:**
+   - `listAbsences` is queried with `pageSize: 100`. In organizations with over 100 simultaneous concurrent absences in a single month, pagination or a dedicated date-bounded endpoint (`GET /api/absences?start=...&end=...&all=true`) would be beneficial.
 

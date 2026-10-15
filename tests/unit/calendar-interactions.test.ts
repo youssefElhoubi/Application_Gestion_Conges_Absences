@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  CalendarAbsenceEvent,
-  CalendarHolidayEvent,
   mapAbsenceToCellEvent,
   mapHolidayToCellEvent,
 } from '@/src/lib/calendar/calendar-events';
@@ -78,7 +76,7 @@ describe('Calendar Event Interaction & Navigation Logic (Unit Tests)', () => {
   it('preserves privacy by not exposing raw personal comments on calendar event representations', () => {
     const event = mapAbsenceToCellEvent(mockAbsence, '2026-10-12', 0);
     // Personal comment must not be mapped onto the shared calendar event representation
-    expect((event as any).comment).toBeUndefined();
+    expect('comment' in event).toBe(false);
   });
 
   it('computes correct route targets for absence event navigation', () => {

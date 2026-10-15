@@ -4,22 +4,16 @@ import * as React from "react";
 import Link from "next/link";
 import {
   Sparkles,
-  Calendar,
   Clock,
   CheckCircle2,
   XCircle,
   Sun,
   Moon,
   User,
-  MapPin,
   ExternalLink,
-  ChevronLeft,
-  ChevronRight,
   Info,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
-import { Button } from "@/src/components/ui/button";
-import { Badge } from "@/src/components/ui/badge";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import {
   CalendarGridCell,

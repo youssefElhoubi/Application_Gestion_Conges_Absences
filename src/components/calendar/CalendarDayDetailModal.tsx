@@ -9,13 +9,8 @@ import {
   User,
   Building2,
   FileText,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Ban,
   Sun,
   Moon,
-  Tag,
 } from "lucide-react";
 import {
   Dialog,
@@ -46,7 +41,6 @@ export interface CalendarDayDetailModalProps {
 export function CalendarDayDetailModal({
   isOpen,
   onClose,
-  dateKey,
   formattedDateFr,
   holidays,
   absences,

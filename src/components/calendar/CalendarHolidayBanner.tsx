@@ -7,7 +7,7 @@ import { CalendarHolidayEvent } from "@/src/lib/calendar/calendar-events";
 
 export interface CalendarHolidayBannerProps {
   holiday: CalendarHolidayEvent;
-  onClick?: (e: React.MouseEvent) => void;
+  onClick?: (e?: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => void;
   className?: string;
 }
 
@@ -29,7 +29,7 @@ export function CalendarHolidayBanner({
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
-          onClick?.(e as any);
+          onClick?.(e);
         }
       }}
       title={`Jour férié légal: ${holiday.label}${holiday.isReligious ? " (Religieux)" : " (Civil)"}`}

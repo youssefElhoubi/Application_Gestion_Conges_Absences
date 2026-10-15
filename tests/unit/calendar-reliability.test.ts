@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  CalendarAbsenceEvent,
-  CalendarHolidayEvent,
-  DayEventsMap,
-  buildEventsLookup,
-  mapAbsenceToCellEvent,
-  mapHolidayToCellEvent,
-} from '@/src/lib/calendar/calendar-events';
+import { buildEventsLookup } from '@/src/lib/calendar/calendar-events';
 import { buildMonthGrid } from '@/src/lib/calendar/calendar-grid';
 import { AbsenceListItem } from '@/src/lib/api/absence-client';
 import { PublicHolidayItem } from '@/src/lib/api/holiday-client';
@@ -140,7 +133,7 @@ describe('Calendar Reliability & Readability Under Realistic Data Conditions', (
       let holidayError: string | null = null;
 
       if (absenceResult.status === 'fulfilled') {
-        absences = (absenceResult.value as any).data || [];
+        absences = (absenceResult.value as { data?: AbsenceListItem[] }).data || [];
       } else {
         absenceError = absenceResult.reason?.message || 'Erreur absences';
       }
@@ -185,7 +178,7 @@ describe('Calendar Reliability & Readability Under Realistic Data Conditions', (
       }
 
       if (holidayResult.status === 'fulfilled') {
-        holidays = (holidayResult.value as any).data || [];
+        holidays = (holidayResult.value as { data?: PublicHolidayItem[] }).data || [];
       } else {
         holidayError = holidayResult.reason?.message || 'Erreur fériés';
       }
@@ -297,8 +290,8 @@ describe('Calendar Reliability & Readability Under Realistic Data Conditions', (
       try {
         const res = await fetchWithRetry();
         absences = res.data;
-      } catch (err: any) {
-        absenceError = err.message;
+      } catch (err: unknown) {
+        absenceError = err instanceof Error ? err.message : String(err);
       } finally {
         isLoading = false;
       }
@@ -315,8 +308,8 @@ describe('Calendar Reliability & Readability Under Realistic Data Conditions', (
         const res = await fetchWithRetry();
         absences = res.data;
         absenceError = null;
-      } catch (err: any) {
-        absenceError = err.message;
+      } catch (err: unknown) {
+        absenceError = err instanceof Error ? err.message : String(err);
       } finally {
         isLoading = false;
       }

@@ -1,13 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  CalendarGridCell,
-  buildMonthGrid,
-} from '@/src/lib/calendar/calendar-grid';
-import {
-  DayEventsMap,
-  buildEventsLookup,
-  extractDateKey,
-} from '@/src/lib/calendar/calendar-events';
+import { buildMonthGrid } from '@/src/lib/calendar/calendar-grid';
+import { buildEventsLookup } from '@/src/lib/calendar/calendar-events';
 import { AbsenceListItem } from '@/src/lib/api/absence-client';
 import { PublicHolidayItem } from '@/src/lib/api/holiday-client';
 
@@ -126,7 +119,6 @@ describe('Calendar Mobile & Tablet Responsiveness (Unit Tests)', () => {
     });
 
     it('defaults selected date to today when in active month, and to the 1st when viewing another month', () => {
-      const now = new Date(2026, 9, 15); // Oct 15, 2026
       const currentYear = 2026;
       const currentMonth = 10;
       const todayDateKey = '2026-10-15';

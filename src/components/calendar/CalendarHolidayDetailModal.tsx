@@ -6,9 +6,7 @@ import {
   Sparkles,
   Calendar,
   ExternalLink,
-  Info,
   Clock,
-  ShieldCheck,
 } from "lucide-react";
 import {
   Dialog,

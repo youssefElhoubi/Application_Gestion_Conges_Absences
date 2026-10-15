@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import {
   User,
-  Calendar,
   CalendarDays,
   ExternalLink,
   Sun,
@@ -12,10 +11,6 @@ import {
   Building2,
   FileText,
   ShieldCheck,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Ban,
   Tag,
 } from "lucide-react";
 import {
@@ -46,18 +41,6 @@ export function CalendarAbsenceDetailModal({
   const retainedWorkingDays = Number(
     event.retainedDays || event.calculatedWorkingDays || event.enteredDays || 0
   );
-
-  const isApproved = event.status === "APPROVED";
-  const isPending = event.status === "PENDING";
-  const isRejected = event.status === "REJECTED";
-
-  const StatusIcon = isApproved
-    ? CheckCircle2
-    : isPending
-    ? Clock
-    : isRejected
-    ? XCircle
-    : Ban;
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} size="md">

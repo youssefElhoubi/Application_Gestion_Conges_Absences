@@ -2,15 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   getWeekDays,
   getAdjacentWeek,
-  parseDateKey,
 } from '@/src/lib/calendar/calendar-grid';
-import {
-  extractDateKey,
-  mapAbsenceToCellEvent,
-  mapHolidayToCellEvent,
-} from '@/src/lib/calendar/calendar-events';
+import { extractDateKey } from '@/src/lib/calendar/calendar-events';
 import { AbsenceListItem } from '@/src/lib/api/absence-client';
-import { PublicHolidayItem } from '@/src/lib/api/holiday-client';
 import { EmployeeListItem } from '@/src/lib/api/employee-client';
 
 describe('Weekly / Team Absence Timeline Engine (Unit Tests)', () => {
@@ -193,6 +187,9 @@ describe('Weekly / Team Absence Timeline Engine (Unit Tests)', () => {
           .map((a) => a.employeeId)
       );
 
+      const absentEmployees = employees.filter((e) => absentEmployeeIds.has(e.employeeId));
+      expect(absentEmployees.length).toBe(1);
+      expect(absentEmployees[0].employeeId).toBe('EMP-001');
       expect(absentEmployeeIds.has('EMP-001')).toBe(true);
       expect(absentEmployeeIds.has('EMP-002')).toBe(false);
     });

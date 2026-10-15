@@ -6,7 +6,6 @@ import {
   isAbsenceOnDate,
   computeSpanningPosition,
   mapAbsenceToCellEvent,
-  mapHolidayToCellEvent,
   buildEventsLookup,
 } from '@/src/lib/calendar/calendar-events';
 import { AbsenceListItem } from '@/src/lib/api/absence-client';

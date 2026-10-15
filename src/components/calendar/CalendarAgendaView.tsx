@@ -14,7 +14,6 @@ import {
   ExternalLink,
   MapPin,
   FileText,
-  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { Button } from "@/src/components/ui/button";

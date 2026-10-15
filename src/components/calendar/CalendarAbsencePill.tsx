@@ -7,7 +7,7 @@ import { CalendarAbsenceEvent } from "@/src/lib/calendar/calendar-events";
 
 export interface CalendarAbsencePillProps {
   event: CalendarAbsenceEvent;
-  onClick?: (e: React.MouseEvent) => void;
+  onClick?: (e?: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => void;
   className?: string;
 }
 
@@ -57,7 +57,7 @@ export function CalendarAbsencePill({
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
-          onClick?.(e as any);
+          onClick?.(e);
         }
       }}
       title={`${event.employeeName} — ${event.typeName} (${event.statusLabelFr})`}
