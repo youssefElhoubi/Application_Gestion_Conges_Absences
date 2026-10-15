@@ -30,12 +30,16 @@ import {
   CalendarCompactGrid,
   CalendarDaySelectedView,
   CalendarAgendaView,
+  CalendarWeeklyTimeline,
   CalendarAbsenceDetailModal,
   CalendarHolidayDetailModal,
 } from "@/src/components/calendar";
 import {
   buildMonthGrid,
   getAdjacentMonth,
+  getWeekDays,
+  getAdjacentWeek,
+  parseDateKey,
   MONTH_NAMES_FR,
 } from "@/src/lib/calendar/calendar-grid";
 import {
@@ -84,8 +88,8 @@ function CalendarPageContent() {
     return parseFilterState(searchParams);
   }, [searchParams]);
 
-  // 3. View Mode & Selected Date State (for Mobile/Tablet and Agenda views)
-  const [viewMode, setViewMode] = React.useState<"grid" | "agenda">("grid");
+  // 3. View Mode & Selected Date State (for Month Grid, Weekly Timeline, and Agenda views)
+  const [viewMode, setViewMode] = React.useState<"grid" | "week" | "agenda">("grid");
   const [selectedAbsence, setSelectedAbsence] = React.useState<CalendarAbsenceEvent | null>(null);
   const [selectedHoliday, setSelectedHoliday] = React.useState<CalendarHolidayEvent | null>(null);
 
@@ -111,6 +115,11 @@ function CalendarPageContent() {
     setSelectedDateKey(defaultSelectedDate);
   }, [defaultSelectedDate]);
 
+  // Active 7-day week calculation for Weekly Team Timeline
+  const weekInfo = React.useMemo(() => {
+    return getWeekDays(selectedDateKey, now);
+  }, [selectedDateKey, now]);
+
   // 4. Data State
   const [absences, setAbsences] = React.useState<AbsenceListItem[]>([]);
   const [holidays, setHolidays] = React.useState<PublicHolidayItem[]>([]);
@@ -128,7 +137,7 @@ function CalendarPageContent() {
     Promise.all([
       AbsenceApiClient.getAbsenceTypes().catch(() => []),
       EmployeeApiClient.listSites().catch(() => []),
-      EmployeeApiClient.listEmployees({ pageSize: 150, active: "true" })
+      EmployeeApiClient.listEmployees({ pageSize: 100, active: "true" })
         .then((res) => res.data || [])
         .catch(() => []),
     ]).then(([typesList, sitesList, empList]) => {
@@ -167,16 +176,34 @@ function CalendarPageContent() {
     [pathname, router, searchParams]
   );
 
-  // 8. Navigation Actions
-  const goToPrevMonth = React.useCallback(() => {
-    const prev = getAdjacentMonth(year, month, "prev");
-    updatePeriod(prev.year, prev.month);
-  }, [year, month, updatePeriod]);
+  // 8. Navigation Actions (Month or Week)
+  const goToPrev = React.useCallback(() => {
+    if (viewMode === "week") {
+      const prevMon = getAdjacentWeek(weekInfo.mondayDateKey, "prev");
+      setSelectedDateKey(prevMon);
+      const p = parseDateKey(prevMon);
+      if (p.year !== year || p.month !== month) {
+        updatePeriod(p.year, p.month);
+      }
+    } else {
+      const prev = getAdjacentMonth(year, month, "prev");
+      updatePeriod(prev.year, prev.month);
+    }
+  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod]);
 
-  const goToNextMonth = React.useCallback(() => {
-    const next = getAdjacentMonth(year, month, "next");
-    updatePeriod(next.year, next.month);
-  }, [year, month, updatePeriod]);
+  const goToNext = React.useCallback(() => {
+    if (viewMode === "week") {
+      const nextMon = getAdjacentWeek(weekInfo.mondayDateKey, "next");
+      setSelectedDateKey(nextMon);
+      const p = parseDateKey(nextMon);
+      if (p.year !== year || p.month !== month) {
+        updatePeriod(p.year, p.month);
+      }
+    } else {
+      const next = getAdjacentMonth(year, month, "next");
+      updatePeriod(next.year, next.month);
+    }
+  }, [viewMode, weekInfo.mondayDateKey, year, month, updatePeriod]);
 
   const goToToday = React.useCallback(() => {
     setSelectedDateKey(todayDateKey);
@@ -233,6 +260,26 @@ function CalendarPageContent() {
     return employees;
   }, [employees, filters.siteId]);
 
+  // Filtered employees for Timeline rows (respecting site, employee, and search filters)
+  const timelineEmployees = React.useMemo(() => {
+    let list = employees;
+    if (filters.siteId && filters.siteId !== "all") {
+      list = list.filter((e) => String(e.siteId) === filters.siteId);
+    }
+    if (filters.employeeId && filters.employeeId !== "all") {
+      list = list.filter((e) => e.employeeId === filters.employeeId);
+    }
+    if (filters.search) {
+      const q = filters.search.toLowerCase().trim();
+      list = list.filter(
+        (e) =>
+          e.fullName.toLowerCase().includes(q) ||
+          e.employeeId.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [employees, filters.siteId, filters.employeeId, filters.search]);
+
   // 12. Build Month Grid with pure timezone-safe date math
   const grid = React.useMemo(() => {
     return buildMonthGrid(year, month, now);
@@ -258,7 +305,7 @@ function CalendarPageContent() {
     const absencePromise = AbsenceApiClient.listAbsences({
       startDate: firstCellDateKey,
       endDate: lastCellDateKey,
-      pageSize: 300,
+      pageSize: 100,
       search: filters.search || undefined,
       employeeId: filters.employeeId !== "all" ? filters.employeeId : undefined,
       siteId: filters.siteId !== "all" ? Number(filters.siteId) : undefined,
@@ -385,10 +432,25 @@ function CalendarPageContent() {
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-pressed={viewMode === "grid"}
-              aria-label="Afficher la vue calendrier"
+              aria-label="Afficher la vue mensuelle"
             >
               <CalendarRange className="h-3.5 w-3.5 shrink-0" />
-              <span>Calendrier</span>
+              <span>Mois</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("week")}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                viewMode === "week"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={viewMode === "week"}
+              aria-label="Afficher le planning hebdomadaire de l'équipe"
+            >
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>Semaine</span>
             </button>
             <button
               type="button"
@@ -432,28 +494,30 @@ function CalendarPageContent() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={goToPrevMonth}
-                aria-label="Mois précédent"
+                onClick={goToPrev}
+                aria-label={viewMode === "week" ? "Semaine précédente" : "Mois précédent"}
                 className="h-8 px-2 text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="hidden md:inline text-xs ml-1 font-medium">Précédent</span>
               </Button>
 
-              {/* Prominent Month & Year Heading */}
+              {/* Prominent Period Heading (Week or Month) */}
               <h2
-                className="text-sm sm:text-base font-bold text-foreground min-w-[140px] sm:min-w-[170px] text-center tracking-tight capitalize select-none"
+                className="text-sm sm:text-base font-bold text-foreground min-w-[140px] sm:min-w-[170px] text-center tracking-tight capitalize select-none px-1"
                 aria-live="polite"
               >
-                {grid.monthNameFr} {grid.year}
+                {viewMode === "week"
+                  ? weekInfo.formattedWeekLabelFr
+                  : `${grid.monthNameFr} ${grid.year}`}
               </h2>
 
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={goToNextMonth}
-                aria-label="Mois suivant"
+                onClick={goToNext}
+                aria-label={viewMode === "week" ? "Semaine suivante" : "Mois suivant"}
                 className="h-8 px-2 text-muted-foreground hover:text-foreground"
               >
                 <span className="hidden md:inline text-xs mr-1 font-medium">Suivant</span>
@@ -691,13 +755,23 @@ function CalendarPageContent() {
         </div>
       )}
 
-      {/* 4. Calendar Views: Agenda vs (Desktop Grid & Mobile Compact Day Picker) */}
+      {/* 4. Calendar Views: Month vs Weekly Team Timeline vs Agenda */}
       {viewMode === "agenda" ? (
         <CalendarAgendaView
           cells={grid.cells}
           eventsLookup={eventsLookup}
           monthNameFr={grid.monthNameFr}
           year={grid.year}
+          isLoading={isLoading}
+          onSelectAbsence={setSelectedAbsence}
+          onSelectHoliday={setSelectedHoliday}
+        />
+      ) : viewMode === "week" ? (
+        <CalendarWeeklyTimeline
+          days={weekInfo.days}
+          employees={timelineEmployees}
+          absences={absences}
+          holidays={holidays}
           isLoading={isLoading}
           onSelectAbsence={setSelectedAbsence}
           onSelectHoliday={setSelectedHoliday}

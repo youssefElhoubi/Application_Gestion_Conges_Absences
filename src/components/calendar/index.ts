@@ -7,3 +7,4 @@ export * from "./CalendarHolidayBanner";
 export * from "./CalendarDayDetailModal";
 export * from "./CalendarAbsenceDetailModal";
 export * from "./CalendarHolidayDetailModal";
+export * from "./CalendarWeeklyTimeline";

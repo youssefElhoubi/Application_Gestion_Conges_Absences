@@ -220,3 +220,97 @@ export function buildMonthGrid(
     totalWeeks: cells.length / 7,
   };
 }
+
+export interface WeekInfoResult {
+  mondayDateKey: string;
+  sundayDateKey: string;
+  days: CalendarGridCell[];
+  formattedWeekLabelFr: string;
+  year: number;
+  month: number;
+}
+
+/**
+ * Given any date string (YYYY-MM-DD) or reference Date, returns the 7 days of that week (Monday to Sunday)
+ * along with French labels and boundary date keys without timezone distortion.
+ */
+export function getWeekDays(
+  referenceDateKeyOrDate: string | Date,
+  referenceToday?: Date
+): WeekInfoResult {
+  const parts =
+    typeof referenceDateKeyOrDate === 'string'
+      ? parseDateKey(referenceDateKeyOrDate)
+      : {
+          year: referenceDateKeyOrDate.getFullYear(),
+          month: referenceDateKeyOrDate.getMonth() + 1,
+          day: referenceDateKeyOrDate.getDate(),
+        };
+
+  const refDateObj = new Date(parts.year, parts.month - 1, parts.day);
+  const dayOfWeek = refDateObj.getDay();
+  const mondayOffset = (dayOfWeek + 6) % 7; // Monday = 0, Sunday = 6
+
+  const mondayObj = new Date(parts.year, parts.month - 1, parts.day - mondayOffset);
+  const mondayKey = toDateKey(mondayObj.getFullYear(), mondayObj.getMonth() + 1, mondayObj.getDate());
+
+  const now = referenceToday ?? new Date();
+  const todayKey = toDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+  const days: CalendarGridCell[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mondayObj.getFullYear(), mondayObj.getMonth(), mondayObj.getDate() + i);
+    const dKey = toDateKey(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    const dow = d.getDay();
+    const colIdx = i; // 0=Mon..6=Sun
+    days.push({
+      dateKey: dKey,
+      dayOfMonth: d.getDate(),
+      month: d.getMonth() + 1,
+      year: d.getFullYear(),
+      dayOfWeek: dow,
+      weekColumnIndex: colIdx,
+      isCurrentMonth: d.getMonth() + 1 === parts.month,
+      isPrevMonth: d.getMonth() + 1 < parts.month,
+      isNextMonth: d.getMonth() + 1 > parts.month,
+      isToday: dKey === todayKey,
+      isWeekend: dow === 0 || dow === 6,
+      dayNameFr: WEEKDAYS_FR[colIdx],
+      formattedDateFr: `${d.getDate()} ${MONTH_NAMES_FR[d.getMonth()]} ${d.getFullYear()}`,
+    });
+  }
+
+  const sundayObj = new Date(mondayObj.getFullYear(), mondayObj.getMonth(), mondayObj.getDate() + 6);
+  const sundayKey = toDateKey(sundayObj.getFullYear(), sundayObj.getMonth() + 1, sundayObj.getDate());
+
+  let formattedWeekLabelFr = '';
+  if (
+    mondayObj.getMonth() === sundayObj.getMonth() &&
+    mondayObj.getFullYear() === sundayObj.getFullYear()
+  ) {
+    formattedWeekLabelFr = `Semaine du ${mondayObj.getDate()} au ${sundayObj.getDate()} ${MONTH_NAMES_FR[mondayObj.getMonth()]} ${mondayObj.getFullYear()}`;
+  } else if (mondayObj.getFullYear() === sundayObj.getFullYear()) {
+    formattedWeekLabelFr = `Semaine du ${mondayObj.getDate()} ${MONTH_NAMES_FR[mondayObj.getMonth()]} au ${sundayObj.getDate()} ${MONTH_NAMES_FR[sundayObj.getMonth()]} ${mondayObj.getFullYear()}`;
+  } else {
+    formattedWeekLabelFr = `Semaine du ${mondayObj.getDate()} ${MONTH_NAMES_FR[mondayObj.getMonth()]} ${mondayObj.getFullYear()} au ${sundayObj.getDate()} ${MONTH_NAMES_FR[sundayObj.getMonth()]} ${sundayObj.getFullYear()}`;
+  }
+
+  return {
+    mondayDateKey: mondayKey,
+    sundayDateKey: sundayKey,
+    days,
+    formattedWeekLabelFr,
+    year: mondayObj.getFullYear(),
+    month: mondayObj.getMonth() + 1,
+  };
+}
+
+/**
+ * Computes adjacent week's Monday date key (+7 or -7 days).
+ */
+export function getAdjacentWeek(mondayDateKey: string, direction: 'prev' | 'next'): string {
+  const parts = parseDateKey(mondayDateKey);
+  const offsetDays = direction === 'next' ? 7 : -7;
+  const targetDate = new Date(parts.year, parts.month - 1, parts.day + offsetDays);
+  return toDateKey(targetDate.getFullYear(), targetDate.getMonth() + 1, targetDate.getDate());
+}

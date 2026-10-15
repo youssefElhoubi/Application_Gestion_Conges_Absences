@@ -86,6 +86,11 @@ export interface PaginatedResult<T> {
 }
 
 export class HolidayApiClient {
+  private static defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    'x-user-id': 'usr-admin-default',
+  };
+
   /**
    * List configured public holidays
    */
@@ -103,7 +108,7 @@ export class HolidayApiClient {
 
     const res = await fetch(`/api/public-holidays?${sp.toString()}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       cache: 'no-store',
     });
 
@@ -121,7 +126,7 @@ export class HolidayApiClient {
   public static async getHoliday(id: string | number): Promise<PublicHolidayDetail> {
     const res = await fetch(`/api/public-holidays/${id}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       cache: 'no-store',
     });
 
@@ -139,7 +144,7 @@ export class HolidayApiClient {
   public static async createHoliday(payload: CreatePublicHolidayPayload): Promise<PublicHolidayItem> {
     const res = await fetch('/api/public-holidays', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       body: JSON.stringify(payload),
     });
 
@@ -160,7 +165,7 @@ export class HolidayApiClient {
   ): Promise<PublicHolidayItem> {
     const res = await fetch(`/api/public-holidays/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       body: JSON.stringify(payload),
     });
 
@@ -178,7 +183,7 @@ export class HolidayApiClient {
   public static async deleteHoliday(id: string | number): Promise<PublicHolidayItem> {
     const res = await fetch(`/api/public-holidays/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
     });
 
     if (!res.ok) {
@@ -208,7 +213,7 @@ export class HolidayApiClient {
 
     const res = await fetch(`/api/holiday-work-credits?${sp.toString()}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       cache: 'no-store',
     });
 

@@ -627,7 +627,104 @@ To avoid simply shrinking the desktop 7-column grid into cramped, unreadable 45p
 - **Browser Subagent Visual Verification:**
   - Verified mobile viewport (390x844): compact grid, date selection, day event inspector, and agenda view.
   - Verified tablet viewport (768x1024): responsive layout, view switcher, and agenda mode.
-- **Scope Limitations:** The optional team timeline was excluded per project scope constraints.
+- **Scope Update:** Weekly / Team Absence Timeline evaluated and implemented cleanly in Phase 7 below.
+
+---
+
+## 18. Phase 7: Weekly / Team Absence Timeline Evaluation & Implementation
+
+### 18.1 Decision Gate Evaluation
+
+Before writing code, a formal decision gate was conducted to evaluate whether a weekly/team absence timeline could be cleanly supported by the existing stack:
+
+| Evaluation Dimension | Decision Criteria | Assessment & Finding | Verdict |
+| :--- | :--- | :--- | :--- |
+| **Dependencies** | No heavy scheduling libraries (e.g. Bryntum, FullCalendar Scheduler, Syncfusion) | The requirements can be fulfilled completely using native CSS Grid (`grid-cols-12` / `grid-cols-7`), Tailwind CSS v4, and pure TypeScript date utilities. Zero external dependencies required. | **FEASIBLE** |
+| **Data Duplication** | No persisted calendar records, official working day recalculations, or duplicated business logic | Reuses existing authoritative `AbsenceListItem` DTOs, `PublicHolidayItem` records, `EmployeeListItem` entities, and pre-calculated `calculatedWorkingDays` / `retainedDays`. | **FEASIBLE** |
+| **Maintainability** | Clean architecture without fragile absolute-position math or layout breakage | CSS Grid column placement (`gridColumnStart`, `gridColumnEnd`) naturally binds multi-day bars to the 7-day grid cells. Date clamping guarantees robust rendering across week boundaries. | **FEASIBLE** |
+| **Preservation of Existing Views** | Must preserve Month view, Mobile compact grid, and Agenda view | Seamlessly integrated via a 3-way segmented view switcher: `[Mois] [Semaine] [Agenda]`. Filter state is 100% preserved when switching views. | **FEASIBLE** |
+
+**Conclusion:** The weekly/team absence timeline is **feasible, practical, and clean**. Implementation proceeded without adding any dependencies or compromising existing views.
+
+---
+
+### 18.2 Architecture & Technical Implementation
+
+#### 1. Pure Date Math & Week Grid Engine ([`src/lib/calendar/calendar-grid.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/lib/calendar/calendar-grid.ts))
+- **`getWeekDays(dateKeyOrDate, referenceToday)`**:
+  - Resolves any target date to its Monday-start 7-day week (Lundi to Dimanche).
+  - Computes standard ISO week keys (`YYYY-MM-DD`), day numbers, and French day labels (`LUN`, `MAR`, `MER`, `JEU`, `VEN`, `SAM`, `DIM`).
+  - Generates localized French range labels (e.g., *"Semaine du 12 au 18 Octobre 2026"*).
+  - Accurately identifies `isToday` and marks weekend days (`isWeekend`).
+- **`getAdjacentWeek(mondayDateKey, direction)`**:
+  - Shifts 7 days backward or forward using timezone-safe UTC date arithmetic.
+  - Handles month boundaries and year transitions seamlessly.
+
+#### 2. Weekly Team Timeline Component ([`src/components/calendar/CalendarWeeklyTimeline.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarWeeklyTimeline.tsx))
+- **Employee Row Identity (Sticky Column):**
+  - Displays employee avatar with initials, full name, matricule (`employeeId`), job title, and site badge.
+  - Provides direct navigation link to the employee's dossier ([`/employees/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)).
+  - Sticky horizontally so employee identity remains visible during horizontal scrolling on dense viewports.
+- **7-Day Grid & Date Columns:**
+  - 7 date column headers showing French abbreviation, date number, and a highlighted indicator for today's date.
+  - Public holiday badges rendered in header cells for statutory holidays falling on that day.
+- **Multi-Day Absence Segment Positioning & Clamping:**
+  - Multi-day absences extending beyond the active week are clamped:
+    $$\text{clampedStart} = \max(\text{absStart}, \text{weekStart})$$
+    $$\text{clampedEnd} = \min(\text{absEnd}, \text{weekEnd})$$
+  - Positioned across days using standard CSS Grid: `gridColumnStart: startCol + 1`, `gridColumnEnd: endCol + 2`.
+  - Type-specific color swatch indicator.
+  - Statutory status styling: solid border for `APPROVED` (Validé), dashed border for `PENDING` (En attente).
+  - Compact half-day tag with icons: Sun icon for `HALF_DAY_MORNING` (Matin), Moon icon for `HALF_DAY_AFTERNOON` (Après-midi).
+- **Interactivity & Deep Navigation:**
+  - Keyboard accessible: `tabIndex={0}`, responds to `Enter` and `Space`.
+  - Clicking any absence segment opens [`CalendarAbsenceDetailModal`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarAbsenceDetailModal.tsx) with complete employee context, statutory deduction notes, and direct links to `/absences/[id]` and `/employees/[id]`.
+- **States:**
+  - Skeleton loading state preserving table header layout.
+  - Contextual empty state when no employees match active filters or when no absences exist in the active week.
+
+#### 3. Integration & View Switcher ([`src/app/calendar/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/calendar/page.tsx))
+- **3-Way View Switcher:** Updated segmented control:
+  - `[Mois]` — Full desktop 7-column month grid or mobile compact date picker.
+  - `[Semaine]` — Weekly Team Absence Timeline.
+  - `[Agenda]` — Chronological grouped feed of all events.
+- **Dynamic Period Toolbar:** When in `Semaine` view, previous/next controls navigate week-by-week (`goToPrev` / `goToNext`), automatically synchronizing `year` and `month` URL query params when crossing month boundaries.
+- **Real-Time Filtering:** `timelineEmployees` memo reacts instantaneously to Site selector, Employee selector, and text search without resetting filter state or page position.
+
+---
+
+### 18.3 Validation & Testing Results
+
+1. **Unit Testing ([`tests/unit/calendar-timeline.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/unit/calendar-timeline.test.ts)):**
+   - Correct 7-day Monday-to-Sunday week boundary computation.
+   - Stepping across month boundaries (e.g. Oct 26 to Nov 02) and year boundaries (Dec 28 to Jan 03).
+   - Multi-day absence clamping to week boundaries without column overflow.
+   - Single-day and half-day absence placement and fraction identification.
+   - Public holiday presence detection in the active week.
+   - Real-time employee filtering by site, employee ID, and search query.
+   - **Result: 7/7 unit tests passed.**
+
+2. **Full Repository Test Suite:**
+   - Command: `npx vitest run`
+   - **Result: 22 test files passed, 152/152 tests passed (100%).**
+
+3. **TypeScript & Static Analysis:**
+   - Command: `npx tsc --noEmit`
+   - **Result: 0 errors.**
+
+4. **Production Build:**
+   - Command: `npx next build` (Turbopack, Next.js 16.4.0)
+   - **Result: Succeeded in 752ms, static prerendering `○ /calendar` verified.**
+
+5. **Browser Visual & Interaction Verification:**
+   - Navigated to `http://localhost:3000/calendar`.
+   - Verified 3-way view switcher toggles to `[Semaine]`.
+   - Verified weekly header displays *"Semaine Du 12 Au 18 Octobre 2026"*.
+   - Verified 9 employee rows displayed with sticky left column.
+   - Verified Fatima-Zahra Alami's multi-day absence cleanly rendered across columns 2-5 (MAR 13 to VEN 16) with solid border, blue color swatch, and status icon.
+   - Verified clicking absence segment opens `CalendarAbsenceDetailModal` displaying Demande n° 1389, dates, working day deductions, and action buttons.
+   - Verified filtering by site ("Hub Technologique Rabat Technopolis") dynamically reduced the timeline to the 2 site employees with active filter pill.
+
 
 
 
