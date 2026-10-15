@@ -546,11 +546,90 @@ The smallest, completely safe, non-breaking first implementation step is:
    - **Accessible Labels:** Rich `aria-label` attributes describing event title, employee, status, and instructions.
 
 ### 15.2 Validation Results
+---
+
+## 16. Phase 5 Implementation Record: Reliability & Readability Under Realistic Data Conditions
+
+### 16.1 Implemented Features & Architecture
+
+1. **Dense Days Clamping & Overflow Partitioning ([`src/components/calendar/CalendarGrid.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarGrid.tsx)):**
+   - **Uniform Fixed Cell Heights:** Enforces `h-[120px] sm:h-[135px] lg:h-[150px] overflow-hidden` on all day cells. Unusually dense dates with many concurrent absences can never stretch an individual row or distort the 7-column calendar matrix.
+   - **Visible Event Capping:** Restricts in-cell rendering to `MAX_VISIBLE_ITEMS = 2` (prioritizing public holiday banners, then absence pills).
+   - **Overflow Indicator:** Dates exceeding visible capacity render an interactive badge `+{hiddenEventsCount} autre{s}` (e.g. `+3 autres`).
+   - **Accessible Modal Inspection:** Clicking or focusing + pressing Enter/Space on the overflow badge opens [`CalendarDayDetailModal`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarDayDetailModal.tsx), providing full access to all absences and holidays for that day, complete with employee links and absence detail triggers.
+
+2. **Stable Loading States & Stale Data Prevention:**
+   - **Decoupled In-Cell Skeletons:** When changing months or applying filters, `isLoading` triggers subtle `<Skeleton />` placeholders inside the calendar day cells without unmounting the grid frame or navigation controls.
+   - **No Full-Page Spinner:** The PageHeader, navigation controls (Previous / Month / Next / Today), quick month/year selectors, and FilterBar remain stable, interactive, and mounted.
+   - **Stale Data Prevention:** The previous month's events are unmounted immediately upon period navigation, preventing users from mistaking old records for the newly selected month while data is in transit.
+
+3. **Contextual Empty States ([`src/app/calendar/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/calendar/page.tsx)):**
+   - **Filtered Empty State:** When active filters yield zero results (`activeFilters.length > 0`), displays a clear contextual banner:
+     *"Aucune absence ne correspond aux filtres sélectionnés pour [Mois Année]. Les jours fériés légaux restent visibles dans la grille."* with a direct **"Réinitialiser les filtres"** action button.
+   - **Unfiltered Empty State:** When a month has no absences recorded, displays:
+     *"Aucune absence enregistrée pour [Mois Année]. Les jours fériés légaux sont affichés ci-dessous."*
+   - **Grid Persistence:** In all empty state conditions, the calendar grid remains visible and public holidays continue to render as background milestones.
+
+4. **Independent Decoupled Error Handling & Retry Mechanics:**
+   - **Decoupled Data Fetching (`Promise.allSettled`):** Absence requests (`AbsenceApiClient.listAbsences`) and public holiday requests (`HolidayApiClient.listHolidays`) are dispatched in parallel but handled independently. If the absence API encounters a failure, statutory public holidays still render successfully. Conversely, if public holiday loading fails, employee absences remain fully visible.
+   - **Accurate Error States vs False Assertions:** If the absence request fails, the summary metrics bar never displays "0 absence validée" (which would falsely imply full workforce presence). Instead, it displays an alert badge: `Absences indisponibles`.
+   - **Meaningful Retry Action:** An alert banner displays the exact error message and provides a dedicated `Réessayer` button that triggers a clean refetch without losing the active month or filter settings.
+
+### 16.2 Validation Results
 - `npx tsc --noEmit`: 0 errors.
-- `tests/unit/calendar-interactions.test.ts`: 4/4 tests passed (100%).
-- `npm run test:unit`: 73/73 tests passed across 10 test files.
-- `npm test`: 128/128 unit and integration tests passed across 19 test files.
-- `npx next build`: 30/30 pages compiled successfully with Turbopack, statically prerendering `○ /calendar`.
+---
+
+## 17. Phase 6 Implementation Record: Mobile & Tablet Responsiveness
+
+### 17.1 Architecture & Design Decisions
+
+To avoid simply shrinking the desktop 7-column grid into cramped, unreadable 45px cells on small screens, the Absence Calendar implements a dedicated dual-mode responsive architecture:
+
+1. **Compact Month Grid + Selected Day Inspector Mode ([`src/components/calendar/CalendarCompactGrid.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarCompactGrid.tsx) & [`src/components/calendar/CalendarDaySelectedView.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarDaySelectedView.tsx)):**
+   - **Touch Targets:** Date buttons maintain comfortable touch targets (`min-h-[46px] sm:min-h-[50px] w-full`) meeting Apple Human Interface and Material Design accessibility standards (>= 44px).
+   - **Event Indicator Dots:** Rather than truncating long text strings inside tiny cells, compact date buttons display visual indicator dots:
+     - Gold/amber dot for legal public holidays.
+     - Emerald dot for validated (`APPROVED`) absences.
+     - Amber dot for pending (`PENDING`) absences.
+     - Count badge when more than 2 absences exist on a single date.
+   - **Active Date Highlight:** The selected date is prominently highlighted with a primary fill, ring, and elevation (`scale-105 shadow-xs`). Today's date features a distinct ring border when not selected.
+   - **Selected Day Event Inspector Panel:** Directly below the compact grid on mobile (or arranged side-by-side on tablet screens), the inspector renders:
+     - Formatted date header (e.g. *"15 Octobre 2026"*), "Aujourd'hui" tag, and total event count badge.
+     - Full public holiday cards with Dahir civil/religious classification and deep links to `/holidays/[id]`.
+     - Full absence cards featuring employee avatar/initials, full name, matricule, site, absence type with color swatch, status badge, half-day badge (Matin / Après-midi with Sun/Moon icons), and retained working days.
+     - Direct route actions: **"Demande"** ([`/absences/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)), **"Collaborateur"** ([`/employees/[id]`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)), and **"Inspecter"** (focused detail modal).
+     - Contextual empty day state when a date with no planned events is selected.
+
+2. **Chronological Agenda View Mode ([`src/components/calendar/CalendarAgendaView.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/calendar/CalendarAgendaView.tsx)):**
+   - **Interactive View Switcher:** An accessible segmented toggle (`[Calendrier] [Agenda]`) in the header allows mobile, tablet, and desktop users to switch between grid and agenda views.
+   - **Continuous Date-Grouped Feed:** The Agenda view organizes all events for the current month chronologically, omitting empty dates to eliminate vertical scrolling fatigue.
+   - **Day Group Headers:** Each active date displays a structured header with day number, French date, day of the week, and total event count.
+   - **No Duplicate Data Fetching:** Reuses the exact same authoritative `eventsLookup` and filters as the desktop calendar. Updates dynamically when month, active filters, or search criteria change.
+
+3. **Responsive Breakpoints & Layout Adaptations:**
+   - **Mobile (`< md`, e.g. 390px - 600px):** Single-column stacked layout: PageHeader -> Month Navigation & Jumpers -> FilterBar -> Compact Date Picker Grid -> Selected Day Event Inspector -> Legend.
+   - **Tablet (`md:` to `< lg`, e.g. 768px - 1024px):** Responsive split layout: Compact grid in the left column (`col-span-5`), Selected Day Event Inspector in the right column (`col-span-7`).
+   - **Desktop (`lg:` and up):** Full expanded 7-column calendar grid with in-cell event pills and `+N autres` overflow badges.
+   - **Touch & Accessibility:** All interactive elements feature `tabIndex={0}`, keyboard support (`Enter` / `Space`), visible focus rings, and explicit `aria-label` / `aria-selected` / `aria-pressed` states. Zero horizontal scrollbar leakage across all viewports.
+
+### 17.2 Validation & Testing Results
+
+- **TypeScript Compilation:** `npx tsc --noEmit` passed with 0 errors.
+- **Mobile Responsiveness Unit Tests ([`tests/unit/calendar-mobile.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/unit/calendar-mobile.test.ts)):**
+  - Compact grid event aggregation and indicator flags (`hasHoliday`, `hasApproved`, `hasPending`).
+  - Selected day event extraction with authorized fields (employee, site, type, status, fraction).
+  - Default date selection logic (today when in current month, 1st when viewing another month).
+  - Agenda view chronological grouping and omission of empty/adjacent-padding days.
+  - Route target integrity for direct mobile actions (`/absences/[id]`, `/employees/[id]`, `/holidays/[id]`).
+  - **7/7 tests passed (100%).**
+- **Full Test Suite:** `npm test` — **21 test files, 145/145 tests passed.**
+- **Production Build:** `npx next build` compiled cleanly with Turbopack, statically prerendering `○ /calendar`.
+- **Browser Subagent Visual Verification:**
+  - Verified mobile viewport (390x844): compact grid, date selection, day event inspector, and agenda view.
+  - Verified tablet viewport (768x1024): responsive layout, view switcher, and agenda mode.
+- **Scope Limitations:** The optional team timeline was excluded per project scope constraints.
+
+
 
 
 

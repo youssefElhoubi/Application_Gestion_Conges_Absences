@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import { Skeleton } from "@/src/components/ui/skeleton";
 import {
   CalendarGridCell,
   WEEKDAYS_FR,
@@ -21,6 +23,8 @@ import { CalendarHolidayDetailModal } from "./CalendarHolidayDetailModal";
 export interface CalendarGridProps {
   cells: CalendarGridCell[];
   eventsLookup?: Map<string, DayEventsMap>;
+  isLoading?: boolean;
+  absenceError?: string | null;
   onSelectDate?: (cell: CalendarGridCell) => void;
   className?: string;
 }
@@ -28,6 +32,8 @@ export interface CalendarGridProps {
 export function CalendarGrid({
   cells,
   eventsLookup,
+  isLoading = false,
+  absenceError,
   onSelectDate,
   className,
 }: CalendarGridProps) {
@@ -94,11 +100,13 @@ export function CalendarGrid({
             const hasHoliday = holidays.length > 0;
             const totalEvents = holidays.length + absences.length;
 
-            // Maximum visible events before collapsing into "+N autres" badge
-            const MAX_VISIBLE_EVENTS = 2;
-            const visibleAbsencesCount = Math.max(0, MAX_VISIBLE_EVENTS - holidays.length);
-            const visibleAbsences = absences.slice(0, visibleAbsencesCount);
-            const hiddenEventsCount = Math.max(0, totalEvents - MAX_VISIBLE_EVENTS);
+            // Maximum visible items before collapsing into "+N autres" badge to keep rows perfectly uniform
+            const MAX_VISIBLE_ITEMS = 2;
+            const visibleHolidays = holidays.slice(0, MAX_VISIBLE_ITEMS);
+            const remainingSlotsForAbsences = Math.max(0, MAX_VISIBLE_ITEMS - visibleHolidays.length);
+            const visibleAbsences = absences.slice(0, remainingSlotsForAbsences);
+            const visibleTotal = visibleHolidays.length + visibleAbsences.length;
+            const hiddenEventsCount = Math.max(0, totalEvents - visibleTotal);
 
             return (
               <div
@@ -115,7 +123,8 @@ export function CalendarGrid({
                   }
                 }}
                 className={cn(
-                  "group relative min-h-[105px] sm:min-h-[120px] lg:min-h-[135px] p-1.5 sm:p-2 flex flex-col justify-between transition-colors cursor-pointer",
+                  "group relative h-[120px] sm:h-[135px] lg:h-[150px] p-1.5 sm:p-2 flex flex-col justify-between transition-colors cursor-pointer overflow-hidden",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
                   // Current month vs adjacent month
                   cell.isCurrentMonth
                     ? "bg-card text-foreground hover:bg-muted/20"
@@ -159,41 +168,64 @@ export function CalendarGrid({
                   )}
                 </div>
 
-                {/* Cell Body: Render Public Holidays & Absences */}
+                {/* Cell Body: Render Loading Skeletons, Absence Error, or Events */}
                 <div className="flex-1 my-1 flex flex-col gap-1 overflow-hidden">
-                  {/* Public Holidays Banners */}
-                  {holidays.map((h) => (
-                    <CalendarHolidayBanner
-                      key={h.id}
-                      holiday={h}
-                      onClick={() => setSelectedHoliday(h)}
-                    />
-                  ))}
-
-                  {/* Absence Event Pills */}
-                  {visibleAbsences.map((a) => (
-                    <CalendarAbsencePill
-                      key={a.id}
-                      event={a}
-                      onClick={() => setSelectedAbsence(a)}
-                    />
-                  ))}
-
-                  {/* Overflow badge if more events exist */}
-                  {hiddenEventsCount > 0 && (
-                    <div className="pt-0.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCellClick(cell);
-                        }}
-                        aria-label={`Voir les ${totalEvents} événements du ${cell.formattedDateFr}`}
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/80 hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
-                      >
-                        +{hiddenEventsCount} autre{hiddenEventsCount > 1 ? "s" : ""}
-                      </button>
+                  {isLoading ? (
+                    <div className="flex-1 flex flex-col gap-1.5 justify-center py-1">
+                      <Skeleton className="h-4 w-4/5 rounded bg-muted/70" />
+                      <Skeleton className="h-4 w-3/5 rounded bg-muted/50 hidden sm:block" />
                     </div>
+                  ) : (
+                    <>
+                      {/* Public Holidays Banners (at most MAX_VISIBLE_ITEMS) */}
+                      {visibleHolidays.map((h) => (
+                        <CalendarHolidayBanner
+                          key={h.id}
+                          holiday={h}
+                          onClick={() => setSelectedHoliday(h)}
+                        />
+                      ))}
+
+                      {/* Absence Event Pills */}
+                      {visibleAbsences.map((a) => (
+                        <CalendarAbsencePill
+                          key={a.id}
+                          event={a}
+                          onClick={() => setSelectedAbsence(a)}
+                        />
+                      ))}
+
+                      {/* If absence request failed and no events loaded */}
+                      {absenceError && totalEvents === 0 && (
+                        <div className="flex-1 flex items-center justify-center">
+                          <span
+                            className="text-[10px] text-rose-600/80 dark:text-rose-400/80 inline-flex items-center gap-1 font-medium text-center"
+                            title={absenceError}
+                          >
+                            <AlertCircle className="h-2.5 w-2.5 shrink-0" />
+                            <span className="hidden sm:inline">Absences indisponibles</span>
+                            <span className="sm:hidden">Erreur</span>
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Overflow badge if more events exist */}
+                      {hiddenEventsCount > 0 && (
+                        <div className="pt-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCellClick(cell);
+                            }}
+                            aria-label={`Voir les ${totalEvents} événements du ${cell.formattedDateFr}`}
+                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/80 hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                          >
+                            +{hiddenEventsCount} autre{hiddenEventsCount > 1 ? "s" : ""}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 

@@ -1,4 +1,7 @@
 export * from "./CalendarGrid";
+export * from "./CalendarCompactGrid";
+export * from "./CalendarDaySelectedView";
+export * from "./CalendarAgendaView";
 export * from "./CalendarAbsencePill";
 export * from "./CalendarHolidayBanner";
 export * from "./CalendarDayDetailModal";

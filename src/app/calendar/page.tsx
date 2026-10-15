@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   CalendarRange,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Calendar,
@@ -15,6 +16,7 @@ import {
   Moon,
   AlertCircle,
   RefreshCw,
+  Info,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
@@ -22,7 +24,15 @@ import { PageHeader } from "@/src/components/shared/PageHeader";
 import { FilterBar, ActiveFilter } from "@/src/components/shared/FilterBar";
 import { Button } from "@/src/components/ui/button";
 import { Select } from "@/src/components/ui/select";
-import { CalendarGrid } from "@/src/components/calendar/CalendarGrid";
+import { cn } from "@/src/lib/utils";
+import {
+  CalendarGrid,
+  CalendarCompactGrid,
+  CalendarDaySelectedView,
+  CalendarAgendaView,
+  CalendarAbsenceDetailModal,
+  CalendarHolidayDetailModal,
+} from "@/src/components/calendar";
 import {
   buildMonthGrid,
   getAdjacentMonth,
@@ -30,6 +40,8 @@ import {
 } from "@/src/lib/calendar/calendar-grid";
 import {
   buildEventsLookup,
+  CalendarAbsenceEvent,
+  CalendarHolidayEvent,
 } from "@/src/lib/calendar/calendar-events";
 import {
   CalendarFilterState,
@@ -72,17 +84,45 @@ function CalendarPageContent() {
     return parseFilterState(searchParams);
   }, [searchParams]);
 
-  // 3. Data State
+  // 3. View Mode & Selected Date State (for Mobile/Tablet and Agenda views)
+  const [viewMode, setViewMode] = React.useState<"grid" | "agenda">("grid");
+  const [selectedAbsence, setSelectedAbsence] = React.useState<CalendarAbsenceEvent | null>(null);
+  const [selectedHoliday, setSelectedHoliday] = React.useState<CalendarHolidayEvent | null>(null);
+
+  const todayDateKey = React.useMemo(() => {
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, [now]);
+
+  // Default selected date: today if viewing the current month, else 1st of the active month
+  const defaultSelectedDate = React.useMemo(() => {
+    if (year === currentYear && month === currentMonth) {
+      return todayDateKey;
+    }
+    return `${year}-${String(month).padStart(2, "0")}-01`;
+  }, [year, month, currentYear, currentMonth, todayDateKey]);
+
+  const [selectedDateKey, setSelectedDateKey] = React.useState<string>(defaultSelectedDate);
+
+  // Synchronize selected date when period changes
+  React.useEffect(() => {
+    setSelectedDateKey(defaultSelectedDate);
+  }, [defaultSelectedDate]);
+
+  // 4. Data State
   const [absences, setAbsences] = React.useState<AbsenceListItem[]>([]);
   const [holidays, setHolidays] = React.useState<PublicHolidayItem[]>([]);
   const [types, setTypes] = React.useState<AbsenceTypeItem[]>([]);
   const [sites, setSites] = React.useState<SiteItem[]>([]);
   const [employees, setEmployees] = React.useState<EmployeeListItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [absenceError, setAbsenceError] = React.useState<string | null>(null);
+  const [holidayError, setHolidayError] = React.useState<string | null>(null);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
-  // 4. Load reference data (Absence Types, Sites, Employees) on mount
+  // 5. Load reference data (Absence Types, Sites, Employees) on mount
   React.useEffect(() => {
     let isMounted = true;
     Promise.all([
@@ -104,7 +144,7 @@ function CalendarPageContent() {
     };
   }, []);
 
-  // 5. Synchronize filter updates into URL search params (supporting Back/Forward history)
+  // 6. Synchronize filter updates into URL search params (supporting Back/Forward history)
   const applyFilterUpdates = React.useCallback(
     (updates: Partial<CalendarFilterState>) => {
       const queryString = buildFilterQueryString(searchParams, updates);
@@ -113,7 +153,7 @@ function CalendarPageContent() {
     [pathname, router, searchParams]
   );
 
-  // 6. Synchronize month/year navigation into URL search params preserving active filters
+  // 7. Synchronize month/year navigation into URL search params preserving active filters
   const updatePeriod = React.useCallback(
     (newYear: number, newMonth: number) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -127,7 +167,7 @@ function CalendarPageContent() {
     [pathname, router, searchParams]
   );
 
-  // 7. Navigation Actions
+  // 8. Navigation Actions
   const goToPrevMonth = React.useCallback(() => {
     const prev = getAdjacentMonth(year, month, "prev");
     updatePeriod(prev.year, prev.month);
@@ -139,10 +179,11 @@ function CalendarPageContent() {
   }, [year, month, updatePeriod]);
 
   const goToToday = React.useCallback(() => {
+    setSelectedDateKey(todayDateKey);
     updatePeriod(currentYear, currentMonth);
-  }, [currentYear, currentMonth, updatePeriod]);
+  }, [currentYear, currentMonth, todayDateKey, updatePeriod]);
 
-  // 8. Individual filter removal handler
+  // 9. Individual filter removal handler
   const handleRemoveFilter = React.useCallback(
     (filterId: string) => {
       if (filterId === "search") {
@@ -197,11 +238,12 @@ function CalendarPageContent() {
     return buildMonthGrid(year, month, now);
   }, [year, month, now]);
 
-  // 13. Fetch verified absence and public holiday data with targeted backend filtering
+  // 13. Fetch verified absence and public holiday data with decoupled error handling
   React.useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
-    setError(null);
+    setAbsenceError(null);
+    setHolidayError(null);
 
     const firstCellDateKey = grid.cells[0]?.dateKey;
     const lastCellDateKey = grid.cells[grid.cells.length - 1]?.dateKey;
@@ -213,50 +255,56 @@ function CalendarPageContent() {
     const endYear = parseInt(lastCellDateKey.split("-")[0], 10);
     const holidayYears = Array.from(new Set([year, startYear, endYear]));
 
-    Promise.all([
-      // 1. Fetch targeted absences overlapping visible grid range matching active filters
-      AbsenceApiClient.listAbsences({
-        startDate: firstCellDateKey,
-        endDate: lastCellDateKey,
-        pageSize: 300,
-        search: filters.search || undefined,
-        employeeId: filters.employeeId !== "all" ? filters.employeeId : undefined,
-        siteId: filters.siteId !== "all" ? Number(filters.siteId) : undefined,
-        typeId: filters.typeId !== "all" ? Number(filters.typeId) : undefined,
-        status: filters.status,
-      }),
-      // 2. Fetch public holidays for visible year(s)
-      Promise.all(
-        holidayYears.map((y) =>
-          HolidayApiClient.listHolidays({ year: y, pageSize: 100 }).catch(() => ({
-            data: [],
-            meta: { totalItems: 0, totalPages: 0, page: 1, pageSize: 100, hasNextPage: false, hasPrevPage: false },
-          }))
-        )
-      ),
-    ])
-      .then(([absencesRes, holidayResults]) => {
+    const absencePromise = AbsenceApiClient.listAbsences({
+      startDate: firstCellDateKey,
+      endDate: lastCellDateKey,
+      pageSize: 300,
+      search: filters.search || undefined,
+      employeeId: filters.employeeId !== "all" ? filters.employeeId : undefined,
+      siteId: filters.siteId !== "all" ? Number(filters.siteId) : undefined,
+      typeId: filters.typeId !== "all" ? Number(filters.typeId) : undefined,
+      status: filters.status,
+    });
+
+    const holidayPromise = Promise.all(
+      holidayYears.map((y) =>
+        HolidayApiClient.listHolidays({ year: y, pageSize: 100 })
+      )
+    );
+
+    Promise.allSettled([absencePromise, holidayPromise]).then(
+      ([absenceResult, holidayResult]) => {
         if (!isMounted) return;
 
-        setAbsences(absencesRes.data || []);
+        if (absenceResult.status === "fulfilled") {
+          setAbsences(absenceResult.value.data || []);
+          setAbsenceError(null);
+        } else {
+          const msg =
+            absenceResult.reason instanceof Error
+              ? absenceResult.reason.message
+              : "Impossible de charger les absences pour cette période.";
+          setAbsenceError(msg);
+        }
 
-        // Deduplicate public holidays by ID
-        const allHolidays = holidayResults.flatMap((r) => r.data || []);
-        const uniqueHolidays = Array.from(
-          new Map(allHolidays.map((h) => [String(h.id), h])).values()
-        );
-        setHolidays(uniqueHolidays);
+        if (holidayResult.status === "fulfilled") {
+          const allHolidays = holidayResult.value.flatMap((r) => r.data || []);
+          const uniqueHolidays = Array.from(
+            new Map(allHolidays.map((h) => [String(h.id), h])).values()
+          );
+          setHolidays(uniqueHolidays);
+          setHolidayError(null);
+        } else {
+          const msg =
+            holidayResult.reason instanceof Error
+              ? holidayResult.reason.message
+              : "Impossible de charger les jours fériés légaux.";
+          setHolidayError(msg);
+        }
+
         setIsLoading(false);
-      })
-      .catch((err: unknown) => {
-        if (!isMounted) return;
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger les données du calendrier.";
-        setError(msg);
-        setIsLoading(false);
-      });
+      }
+    );
 
     return () => {
       isMounted = false;
@@ -268,6 +316,15 @@ function CalendarPageContent() {
     const dateKeys = grid.cells.map((c) => c.dateKey);
     return buildEventsLookup(dateKeys, absences, holidays);
   }, [grid.cells, absences, holidays]);
+
+  // Selected day cell and events for Mobile/Tablet day inspector
+  const selectedDayCell = React.useMemo(() => {
+    return grid.cells.find((c) => c.dateKey === selectedDateKey) || grid.cells[0];
+  }, [grid.cells, selectedDateKey]);
+
+  const selectedDayEvents = React.useMemo(() => {
+    return eventsLookup.get(selectedDateKey) || { holidays: [], absences: [] };
+  }, [eventsLookup, selectedDateKey]);
 
   // Quick picker select options
   const monthOptions = React.useMemo(() => {
@@ -317,16 +374,37 @@ function CalendarPageContent() {
           </nav>
         }
         actions={
-          <div className="flex items-center gap-2">
-            {/* View Mode Indicator */}
-            <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 shadow-xs"
-              role="status"
-              aria-label="Mode d'affichage: Vue Mensuelle"
+          <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                viewMode === "grid"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={viewMode === "grid"}
+              aria-label="Afficher la vue calendrier"
             >
-              <CalendarRange className="h-4 w-4 shrink-0" />
-              <span>Vue Mensuelle</span>
-            </div>
+              <CalendarRange className="h-3.5 w-3.5 shrink-0" />
+              <span>Calendrier</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("agenda")}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                viewMode === "agenda"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-pressed={viewMode === "agenda"}
+              aria-label="Afficher la vue agenda chronologique"
+            >
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              <span>Agenda</span>
+            </button>
           </div>
         }
       />
@@ -410,20 +488,46 @@ function CalendarPageContent() {
 
         {/* Quick Month Metrics Summary */}
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap pt-2 border-t border-border/50 text-xs">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-medium">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{approvedCount} absence{approvedCount > 1 ? "s" : ""} validée{approvedCount > 1 ? "s" : ""}</span>
-          </div>
+          {absenceError ? (
+            <div
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 font-medium"
+              title={absenceError}
+            >
+              <AlertCircle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+              <span>Absences indisponibles</span>
+            </div>
+          ) : (
+            <>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-medium">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>
+                  {approvedCount} absence{approvedCount > 1 ? "s" : ""} validée{approvedCount > 1 ? "s" : ""}
+                </span>
+              </div>
 
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-medium">
-            <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-            <span>{pendingCount} en attente</span>
-          </div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-medium">
+                <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                <span>{pendingCount} en attente</span>
+              </div>
+            </>
+          )}
 
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 font-medium">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{visibleHolidaysCount} jour{visibleHolidaysCount > 1 ? "s" : ""} férié{visibleHolidaysCount > 1 ? "s" : ""}</span>
-          </div>
+          {holidayError ? (
+            <div
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 font-medium"
+              title={holidayError}
+            >
+              <AlertCircle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+              <span>Jours fériés indisponibles</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 font-medium">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>
+                {visibleHolidaysCount} jour{visibleHolidaysCount > 1 ? "s" : ""} férié{visibleHolidaysCount > 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
 
           {isLoading && (
             <span className="text-xs text-muted-foreground ml-auto animate-pulse flex items-center gap-1">
@@ -520,30 +624,138 @@ function CalendarPageContent() {
         </FilterBar>
       </div>
 
-      {/* Error Alert (if fetch failed) */}
-      {error && (
-        <div className="p-4 rounded-xl border border-destructive/20 bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+      {/* Error Alert (if absence or holiday fetch failed) */}
+      {(absenceError || holidayError) && (
+        <div className="p-3.5 sm:p-4 rounded-xl border border-destructive/20 bg-rose-500/10 text-rose-800 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-0" />
+            <div>
+              <span className="font-semibold">Erreur de chargement : </span>
+              <span>{[absenceError, holidayError].filter(Boolean).join(" • ")}</span>
+            </div>
           </div>
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setRefreshKey((k) => k + 1)}
-            leftIcon={<RefreshCw className="h-3 w-3" />}
-            className="h-7 text-xs"
+            leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+            className="h-8 text-xs shrink-0 bg-background/80 hover:bg-background"
           >
             Réessayer
           </Button>
         </div>
       )}
 
-      {/* 4. Monthly Calendar Grid */}
-      <CalendarGrid
-        cells={grid.cells}
-        eventsLookup={eventsLookup}
-      />
+      {/* Contextual Empty State Banner (if no absences match period or filters, and not loading or error) */}
+      {!isLoading && !absenceError && absences.length === 0 && (
+        <div className="p-3.5 sm:p-4 rounded-xl border border-border/80 bg-muted/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2.5">
+            <Info className="h-4 w-4 text-primary shrink-0" />
+            <span>
+              {activeFilters.length > 0 ? (
+                <>
+                  Aucune absence ne correspond aux filtres sélectionnés pour{" "}
+                  <strong className="text-foreground">
+                    {grid.monthNameFr} {grid.year}
+                  </strong>
+                  .
+                  {holidays.length > 0 &&
+                    " Les jours fériés légaux restent visibles dans la grille."}
+                </>
+              ) : (
+                <>
+                  Aucune absence enregistrée pour{" "}
+                  <strong className="text-foreground">
+                    {grid.monthNameFr} {grid.year}
+                  </strong>
+                  .
+                  {holidays.length > 0 &&
+                    " Les jours fériés légaux sont affichés ci-dessous."}
+                </>
+              )}
+            </span>
+          </div>
+
+          {activeFilters.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilters}
+              className="h-7 text-xs font-medium shrink-0 self-start sm:self-auto"
+            >
+              Réinitialiser les filtres
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* 4. Calendar Views: Agenda vs (Desktop Grid & Mobile Compact Day Picker) */}
+      {viewMode === "agenda" ? (
+        <CalendarAgendaView
+          cells={grid.cells}
+          eventsLookup={eventsLookup}
+          monthNameFr={grid.monthNameFr}
+          year={grid.year}
+          isLoading={isLoading}
+          onSelectAbsence={setSelectedAbsence}
+          onSelectHoliday={setSelectedHoliday}
+        />
+      ) : (
+        <>
+          {/* Desktop & Large Screen View: Full expanded 7-column CalendarGrid with cell pills */}
+          <div className="hidden lg:block">
+            <CalendarGrid
+              cells={grid.cells}
+              eventsLookup={eventsLookup}
+              isLoading={isLoading}
+              absenceError={absenceError}
+            />
+          </div>
+
+          {/* Mobile & Tablet Responsive View: Touch-friendly Compact Grid + Selected Day Inspector */}
+          <div className="lg:hidden flex flex-col md:grid md:grid-cols-12 gap-4">
+            <div className="md:col-span-5">
+              <CalendarCompactGrid
+                cells={grid.cells}
+                eventsLookup={eventsLookup}
+                selectedDateKey={selectedDateKey}
+                onSelectDate={setSelectedDateKey}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="md:col-span-7">
+              <CalendarDaySelectedView
+                dateKey={selectedDateKey}
+                formattedDateFr={selectedDayCell?.formattedDateFr || selectedDateKey}
+                isToday={selectedDayCell?.isToday}
+                events={selectedDayEvents}
+                isLoading={isLoading}
+                onSelectAbsence={setSelectedAbsence}
+                onSelectHoliday={setSelectedHoliday}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 5. Focused Modals for Absence and Holiday Inspection */}
+      {selectedAbsence && (
+        <CalendarAbsenceDetailModal
+          isOpen={Boolean(selectedAbsence)}
+          onClose={() => setSelectedAbsence(null)}
+          event={selectedAbsence}
+        />
+      )}
+
+      {selectedHoliday && (
+        <CalendarHolidayDetailModal
+          isOpen={Boolean(selectedHoliday)}
+          onClose={() => setSelectedHoliday(null)}
+          holiday={selectedHoliday}
+        />
+      )}
 
       {/* 4. Legend & Work Week Note */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-xl border border-border/60 bg-muted/20 text-xs text-muted-foreground">
