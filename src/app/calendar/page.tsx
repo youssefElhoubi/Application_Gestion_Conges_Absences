@@ -19,6 +19,7 @@ import {
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
 import { PageHeader } from "@/src/components/shared/PageHeader";
+import { FilterBar, ActiveFilter } from "@/src/components/shared/FilterBar";
 import { Button } from "@/src/components/ui/button";
 import { Select } from "@/src/components/ui/select";
 import { CalendarGrid } from "@/src/components/calendar/CalendarGrid";
@@ -30,7 +31,23 @@ import {
 import {
   buildEventsLookup,
 } from "@/src/lib/calendar/calendar-events";
-import { AbsenceApiClient, AbsenceListItem } from "@/src/lib/api/absence-client";
+import {
+  CalendarFilterState,
+  parseFilterState,
+  deriveActiveFilters,
+  buildFilterQueryString,
+} from "@/src/lib/calendar/calendar-filters";
+import {
+  AbsenceApiClient,
+  AbsenceListItem,
+  AbsenceTypeItem,
+  AbsenceStatus,
+} from "@/src/lib/api/absence-client";
+import {
+  EmployeeApiClient,
+  EmployeeListItem,
+  SiteItem,
+} from "@/src/lib/api/employee-client";
 import { HolidayApiClient, PublicHolidayItem } from "@/src/lib/api/holiday-client";
 
 function CalendarPageContent() {
@@ -50,14 +67,53 @@ function CalendarPageContent() {
   const year = !isNaN(urlYear) && urlYear >= 1970 && urlYear <= 2100 ? urlYear : currentYear;
   const month = !isNaN(urlMonth) && urlMonth >= 1 && urlMonth <= 12 ? urlMonth : currentMonth;
 
-  // 2. Data State
+  // 2. Parse multi-criteria filters from URL search params
+  const filters = React.useMemo(() => {
+    return parseFilterState(searchParams);
+  }, [searchParams]);
+
+  // 3. Data State
   const [absences, setAbsences] = React.useState<AbsenceListItem[]>([]);
   const [holidays, setHolidays] = React.useState<PublicHolidayItem[]>([]);
+  const [types, setTypes] = React.useState<AbsenceTypeItem[]>([]);
+  const [sites, setSites] = React.useState<SiteItem[]>([]);
+  const [employees, setEmployees] = React.useState<EmployeeListItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
-  // 3. Synchronize navigation into URL search params
+  // 4. Load reference data (Absence Types, Sites, Employees) on mount
+  React.useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      AbsenceApiClient.getAbsenceTypes().catch(() => []),
+      EmployeeApiClient.listSites().catch(() => []),
+      EmployeeApiClient.listEmployees({ pageSize: 150, active: "true" })
+        .then((res) => res.data || [])
+        .catch(() => []),
+    ]).then(([typesList, sitesList, empList]) => {
+      if (isMounted) {
+        setTypes(typesList);
+        setSites(sitesList);
+        setEmployees(empList);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 5. Synchronize filter updates into URL search params (supporting Back/Forward history)
+  const applyFilterUpdates = React.useCallback(
+    (updates: Partial<CalendarFilterState>) => {
+      const queryString = buildFilterQueryString(searchParams, updates);
+      router.push(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  // 6. Synchronize month/year navigation into URL search params preserving active filters
   const updatePeriod = React.useCallback(
     (newYear: number, newMonth: number) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -66,12 +122,12 @@ function CalendarPageContent() {
       params.set("month", String(newMonth));
 
       const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams]
   );
 
-  // 4. Navigation Actions
+  // 7. Navigation Actions
   const goToPrevMonth = React.useCallback(() => {
     const prev = getAdjacentMonth(year, month, "prev");
     updatePeriod(prev.year, prev.month);
@@ -86,12 +142,62 @@ function CalendarPageContent() {
     updatePeriod(currentYear, currentMonth);
   }, [currentYear, currentMonth, updatePeriod]);
 
-  // 5. Build Month Grid with pure timezone-safe date math
+  // 8. Individual filter removal handler
+  const handleRemoveFilter = React.useCallback(
+    (filterId: string) => {
+      if (filterId === "search") {
+        applyFilterUpdates({ search: "" });
+      } else if (filterId === "employeeId") {
+        applyFilterUpdates({ employeeId: "all" });
+      } else if (filterId === "siteId") {
+        applyFilterUpdates({ siteId: "all" });
+      } else if (filterId === "typeId") {
+        applyFilterUpdates({ typeId: "all" });
+      } else if (filterId === "status") {
+        applyFilterUpdates({ status: "ALL" });
+      }
+    },
+    [applyFilterUpdates]
+  );
+
+  // 9. Reset all filters restoring unfiltered view without resetting active month/year
+  const handleResetFilters = React.useCallback(() => {
+    applyFilterUpdates({
+      search: "",
+      employeeId: "all",
+      siteId: "all",
+      typeId: "all",
+      status: "ALL",
+    });
+  }, [applyFilterUpdates]);
+
+  // 10. Active filter indicators for FilterBar
+  const activeFilters = React.useMemo(() => {
+    const list = deriveActiveFilters(filters, { types, sites, employees });
+    if (filters.search) {
+      list.unshift({
+        id: "search",
+        label: "Recherche",
+        valueLabel: `"${filters.search}"`,
+      });
+    }
+    return list;
+  }, [filters, types, sites, employees]);
+
+  // 11. Employees filtered by active site selection if applicable
+  const filteredEmployeesForSelect = React.useMemo(() => {
+    if (filters.siteId && filters.siteId !== "all") {
+      return employees.filter((e) => String(e.siteId) === filters.siteId);
+    }
+    return employees;
+  }, [employees, filters.siteId]);
+
+  // 12. Build Month Grid with pure timezone-safe date math
   const grid = React.useMemo(() => {
     return buildMonthGrid(year, month, now);
   }, [year, month, now]);
 
-  // 6. Fetch verified absence and public holiday data for the visible calendar period
+  // 13. Fetch verified absence and public holiday data with targeted backend filtering
   React.useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
@@ -108,12 +214,16 @@ function CalendarPageContent() {
     const holidayYears = Array.from(new Set([year, startYear, endYear]));
 
     Promise.all([
-      // 1. Fetch absences overlapping the visible grid range
+      // 1. Fetch targeted absences overlapping visible grid range matching active filters
       AbsenceApiClient.listAbsences({
         startDate: firstCellDateKey,
         endDate: lastCellDateKey,
         pageSize: 300,
-        status: "ALL",
+        search: filters.search || undefined,
+        employeeId: filters.employeeId !== "all" ? filters.employeeId : undefined,
+        siteId: filters.siteId !== "all" ? Number(filters.siteId) : undefined,
+        typeId: filters.typeId !== "all" ? Number(filters.typeId) : undefined,
+        status: filters.status,
       }),
       // 2. Fetch public holidays for visible year(s)
       Promise.all(
@@ -151,7 +261,7 @@ function CalendarPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [grid, refreshKey, year]);
+  }, [grid, refreshKey, year, filters]);
 
   // 7. Build Events Lookup Dictionary
   const eventsLookup = React.useMemo(() => {
@@ -324,6 +434,92 @@ function CalendarPageContent() {
         </div>
       </div>
 
+      {/* 3. Filter Bar with Search and Multi-criteria filters */}
+      <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-xs">
+        <FilterBar
+          searchValue={filters.search}
+          onSearchChange={(val) => applyFilterUpdates({ search: val })}
+          searchPlaceholder="Rechercher par collaborateur, matricule..."
+          activeFilters={activeFilters}
+          onRemoveFilter={handleRemoveFilter}
+          onResetFilters={handleResetFilters}
+          totalResults={absences.length}
+        >
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Employee Selector */}
+            <div className="w-48 sm:w-56">
+              <Select
+                value={filters.employeeId}
+                onChange={(e) => applyFilterUpdates({ employeeId: e.target.value })}
+                className="text-xs h-9"
+                aria-label="Filtrer par collaborateur"
+              >
+                <option value="all">Tous les collaborateurs</option>
+                {filteredEmployeesForSelect.map((emp) => (
+                  <option key={emp.employeeId} value={emp.employeeId}>
+                    {emp.fullName} ({emp.employeeId})
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Site Selector */}
+            <div className="w-36 sm:w-44">
+              <Select
+                value={filters.siteId}
+                onChange={(e) => applyFilterUpdates({ siteId: e.target.value })}
+                className="text-xs h-9"
+                aria-label="Filtrer par site"
+              >
+                <option value="all">Tous les sites</option>
+                {sites.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Absence Type Selector */}
+            <div className="w-44 sm:w-48">
+              <Select
+                value={filters.typeId}
+                onChange={(e) => applyFilterUpdates({ typeId: e.target.value })}
+                className="text-xs h-9"
+                aria-label="Filtrer par type d'absence"
+              >
+                <option value="all">Tous les types d&apos;absence</option>
+                {types.map((t) => (
+                  <option key={t.id} value={String(t.id)}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {/* Status Selector */}
+            <div className="w-36">
+              <Select
+                value={filters.status}
+                onChange={(e) =>
+                  applyFilterUpdates({
+                    status: e.target.value as AbsenceStatus | "ALL",
+                  })
+                }
+                className="text-xs h-9"
+                aria-label="Filtrer par statut"
+              >
+                <option value="ALL">Tous les statuts</option>
+                <option value="APPROVED">Validé</option>
+                <option value="PENDING">En attente</option>
+                <option value="REJECTED">Refusé</option>
+                <option value="CANCELLED">Annulé</option>
+              </Select>
+            </div>
+          </div>
+        </FilterBar>
+      </div>
+
       {/* Error Alert (if fetch failed) */}
       {error && (
         <div className="p-4 rounded-xl border border-destructive/20 bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-center justify-between gap-3 text-xs">
@@ -343,7 +539,7 @@ function CalendarPageContent() {
         </div>
       )}
 
-      {/* 3. Monthly Calendar Grid */}
+      {/* 4. Monthly Calendar Grid */}
       <CalendarGrid
         cells={grid.cells}
         eventsLookup={eventsLookup}

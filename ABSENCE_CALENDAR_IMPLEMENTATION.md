@@ -456,4 +456,50 @@ The smallest, completely safe, non-breaking first implementation step is:
 - `npm test`: 119/119 unit and integration tests passed across 17 test files.
 - `npx next build`: 30/30 pages compiled cleanly with Turbopack, prerendering `○ /calendar`.
 
+---
+
+## 14. Phase 3 Implementation Record: Absence Calendar Filtering Experience
+
+### 14.1 Implemented Features & Architecture
+
+1. **Multi-Criteria Filter State Management:**
+   - Implemented in [`src/lib/calendar/calendar-filters.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/lib/calendar/calendar-filters.ts).
+   - Functions:
+     - `parseFilterState(searchParams)`: Reads `search`, `employeeId`, `siteId`, `typeId`, `status` with robust defaults.
+     - `deriveActiveFilters(filters, options)`: Derives user-friendly filter chips mapping IDs to human-readable names from loaded reference lists.
+     - `buildFilterQueryString(currentSearchParams, updates)`: Modifies or deletes filter parameters while **strictly preserving** `year` and `month`.
+   - Covered by unit tests in [`tests/unit/calendar-filters.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/unit/calendar-filters.test.ts).
+
+2. **Supported Filters in Calendar Interface:**
+   - **Search Input (Employee Name / Matricule):** Reuses [`src/components/shared/SearchInput.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/SearchInput.tsx) with 300ms debounce.
+   - **Employee Selector:** Dedicated `<Select>` populated from `EmployeeApiClient.listEmployees({ pageSize: 150, active: 'true' })`, automatically filtered by the currently selected site when a site filter is active.
+   - **Site Selector:** `<Select>` populated dynamically from `EmployeeApiClient.listSites()`.
+   - **Absence Type Selector:** `<Select>` populated dynamically from `AbsenceApiClient.getAbsenceTypes()` (source of truth from the database, non-hardcoded).
+   - **Status Selector:** `<Select>` supporting standard Moroccan HR statuses (`ALL`, `APPROVED`, `PENDING`, `REJECTED`, `CANCELLED`).
+   - **Clear Filters Action:** "Réinitialiser" button triggers `handleResetFilters`, clearing all filter parameters while preserving the active `year` and `month`.
+   - **Active Filter Badges:** Interactive chips rendered by [`src/components/shared/FilterBar.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/shared/FilterBar.tsx) with individual removal (`×`) buttons.
+
+3. **URL State Synchronization & Navigation:**
+   - All filter criteria are mirrored into URL query parameters (`?year=2026&month=10&siteId=1&status=APPROVED`).
+   - Browser Back / Forward buttons update the URL, triggering automatic re-query and view updates without page reloads.
+   - Navigating between months retains active filter selections.
+   - Clearing filters preserves the currently viewed period.
+
+4. **Query Behavior & Performance:**
+   - Queries use backend-supported filtering in `AbsenceApiClient.listAbsences` and `AbsenceService.listAbsences`.
+   - Queries target the exact visible date range (`startDate` and `endDate` from grid boundary cells) combined with database-level `where` clauses (`employeeId`, `siteId`, `typeId`, `status`, `search`).
+   - The entire organization's absence history is never loaded into client memory.
+
+### 14.2 Limitations & Product Notes
+1. **Public Holidays:** Under Moroccan Labor Law (Loi n° 65-99), statutory public holidays are nationwide legal non-working days without employee or site divisions. Public holidays remain visible as calendar background milestones regardless of employee/site absence filtering.
+2. **Team Timeline / Swimlane:** As defined in the project scope, horizontal timeline views are deferred to a subsequent phase.
+
+### 14.3 Validation Results
+- `npx tsc --noEmit`: 0 errors.
+- `npx vitest run tests/unit/calendar-filters.test.ts`: 5/5 tests passed (100%).
+- `npm run test:unit`: 69/69 tests passed across 9 test files.
+- `npm test`: 124/124 unit and integration tests passed across 18 test files.
+- `npx next build`: 30/30 pages compiled successfully with Turbopack, statically prerendering `○ /calendar`.
+
+
 
