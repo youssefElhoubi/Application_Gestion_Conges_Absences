@@ -7,6 +7,11 @@ import {
 } from '@/src/modules/holiday-work-credits/holiday-work-credit.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 
+interface CustomError {
+  statusCode?: number;
+  message?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await SessionResolver.require();
@@ -14,9 +19,10 @@ export async function GET(request: NextRequest) {
     const query = HolidayCreditQuerySchema.parse(searchParams);
     const result = await HolidayWorkCreditService.listCredits(query, session);
     return NextResponse.json(serializeForClient(result));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const status = err.statusCode ?? 400;
+    return NextResponse.json({ error: err.message || 'Erreur lors de la récupération des crédits.' }, { status });
   }
 }
 
@@ -27,8 +33,9 @@ export async function POST(request: NextRequest) {
     const validated = GrantHolidayCreditSchema.parse(body);
     const credit = await HolidayWorkCreditService.grantCredit(validated, session);
     return NextResponse.json(serializeForClient(credit), { status: 201 });
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const err = error as CustomError;
+    const status = err.statusCode ?? 400;
+    return NextResponse.json({ error: err.message || "Erreur lors de l'attribution du crédit." }, { status });
   }
 }

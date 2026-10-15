@@ -131,7 +131,14 @@ export class HolidayWorkCreditService {
         take,
         orderBy: { createdAt: 'desc' },
         include: {
-          employee: { select: { employeeId: true, fullName: true } },
+          employee: {
+            select: {
+              employeeId: true,
+              fullName: true,
+              jobTitle: true,
+              site: { select: { name: true } },
+            },
+          },
           publicHoliday: true,
         },
       }),
@@ -141,5 +148,46 @@ export class HolidayWorkCreditService {
       data: credits,
       meta: buildPaginationMeta(totalItems, page, pageSize),
     };
+  }
+
+  /**
+   * Retrieve a credit by ID with full employee and public holiday context
+   */
+  public static async getCreditById(creditId: bigint, _session: AuthSession) {
+    return await prisma.holidayWorkCredit.findUniqueOrThrow({
+      where: { id: creditId },
+      include: {
+        employee: {
+          select: {
+            employeeId: true,
+            fullName: true,
+            jobTitle: true,
+            site: { select: { name: true } },
+          },
+        },
+        publicHoliday: true,
+      },
+    });
+  }
+
+  /**
+   * Revoke or delete an unconsumed credit (ADMIN or HR_MANAGER)
+   */
+  public static async deleteCredit(creditId: bigint, session: AuthSession) {
+    AuthGuard.requireRole(session, ['ADMIN', 'HR_MANAGER']);
+
+    const existing = await prisma.holidayWorkCredit.findUniqueOrThrow({
+      where: { id: creditId },
+    });
+
+    if (Number(existing.consumedDays) > 0) {
+      throw new Error(
+        `Impossible de révoquer ce crédit : ${existing.consumedDays} jour(s) ont déjà été consommés par des congés de récupération.`
+      );
+    }
+
+    return await prisma.holidayWorkCredit.delete({
+      where: { id: creditId },
+    });
   }
 }

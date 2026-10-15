@@ -37,6 +37,19 @@ export class PublicHolidayService {
       where: { id },
       include: {
         _count: { select: { holidayWorkCredits: true } },
+        holidayWorkCredits: {
+          include: {
+            employee: {
+              select: {
+                employeeId: true,
+                fullName: true,
+                jobTitle: true,
+                site: { select: { name: true } },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
   }
@@ -70,6 +83,9 @@ export class PublicHolidayService {
         skip,
         take,
         orderBy: { date: 'asc' },
+        include: {
+          _count: { select: { holidayWorkCredits: true } },
+        },
       }),
     ]);
 
