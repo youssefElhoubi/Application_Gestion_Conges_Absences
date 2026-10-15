@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   Clock,
@@ -43,7 +44,10 @@ import {
 } from "@/src/components/absences/AbsenceWorkflowDialogs";
 import { formatDate } from "@/src/lib/utils";
 
-export default function AbsencesDirectoryPage() {
+function AbsencesDirectoryContent() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || searchParams.get("employeeId") || "";
+  const initialStatus = (searchParams.get("status") as AbsenceStatus | "ALL") || "ALL";
 
   // Data State
   const [absences, setAbsences] = React.useState<AbsenceListItem[]>([]);
@@ -59,12 +63,19 @@ export default function AbsencesDirectoryPage() {
   const [totalItems, setTotalItems] = React.useState(0);
 
   // Filters & Search State
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedStatus, setSelectedStatus] = React.useState<AbsenceStatus | "ALL">("ALL");
+  const [searchQuery, setSearchQuery] = React.useState(initialSearch);
+  const [selectedStatus, setSelectedStatus] = React.useState<AbsenceStatus | "ALL">(initialStatus);
   const [selectedTypeId, setSelectedTypeId] = React.useState<string>("all");
   const [selectedSiteId, setSelectedSiteId] = React.useState<string>("all");
   const [startDateFilter, setStartDateFilter] = React.useState<string>("");
   const [endDateFilter, setEndDateFilter] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("employeeId") || "";
+    if (q) setSearchQuery(q);
+    const s = searchParams.get("status") as AbsenceStatus | "ALL" | null;
+    if (s) setSelectedStatus(s);
+  }, [searchParams]);
 
   // Modals & Dialogs State
   const [formModalOpen, setFormModalOpen] = React.useState(false);
@@ -711,5 +722,23 @@ export default function AbsencesDirectoryPage() {
         absence={targetAbsenceForWorkflow}
       />
     </PageContainer>
+  );
+}
+
+export default function AbsencesDirectoryPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <PageContainer>
+          <div className="space-y-6 py-6 animate-pulse">
+            <div className="h-10 w-64 bg-muted rounded" />
+            <div className="h-16 rounded-2xl bg-muted/30" />
+            <div className="h-64 rounded-2xl bg-muted/40" />
+          </div>
+        </PageContainer>
+      }
+    >
+      <AbsencesDirectoryContent />
+    </React.Suspense>
   );
 }

@@ -426,7 +426,151 @@ To implement the Leave Balances and Counters module without regressions or break
 - **Vitest Unit & Integration:** `npm run test` $\rightarrow$ **93 tests passed across 14 test files** (100% green).
 - **Production Next.js Build:** `npm run build` $\rightarrow$ **29/29 routes prerendered cleanly** (including `◐ /leave-balances/[id]`).
 
-### 11.5 Remaining Gaps
-- None for the Leave Balances overview and employee detail views. Both routes are fully integrated with the authoritative backend calculation engine.
+### 11.5 Transition to Section 12
+- The employee-specific Leave Balance details view was enriched with deep integration into the Absence and Recovery Credits modules, detailed below in Section 12.
+
+---
+
+## 12. Completed Implementation: Absence History & Recovery Credits Integration into Leave Balance Details
+
+### 12.1 Overview & Architecture
+This stage finalized the integration of the employee's historical absence activity and compensatory recovery credits directly into the `/leave-balances/[id]` route, enforcing strict data isolation, independent failure resilience, and Moroccan statutory compliance:
+- **Zero Client Recalculation:** The UI strictly presents authoritative backend values (`counter.netAvailableBalance`, `counter.statutoryAccruedDays`, `counter.totalApprovedDeductions`, `counter.activeRecoveryCreditDays`). It never recalculates or estimates balances by summing displayed client records.
+- **Independent Failure Boundaries:** Core employee/counter loading, Absence history loading, and Recovery credits loading operate via decoupled asynchronous lifecycles. A network timeout or 500 error in recovery credits or absences never prevents the employee header or balance summary from rendering.
+- **Section-Level Retry Behavior:** Each sub-section provides localized retry buttons invoking only the failed section's fetcher (`fetchAbsences`, `fetchCredits`) without triggering a full page reload.
+
+### 12.2 Integrated Routes & Navigation
+1. **Employee Leave Balance Details:**
+   - Route: `/leave-balances/[id]`
+   - Parameter: `id` (employee matricule identifier, URL-decoded).
+2. **Absence Directory (Employee-Filtered):**
+   - Route: `/absences?search={employeeId}&employeeId={employeeId}`
+   - Action: "Voir toutes les absences" button on the Absence History section header and quick navigation card.
+   - Capability: `src/app/absences/page.tsx` was enhanced with `useSearchParams()` support inside a `<React.Suspense>` boundary to automatically pre-populate the filter and restrict results to the employee.
+3. **Absence Detail View:**
+   - Route: `/absences/[id]`
+   - Action: "Consulter" action link on each absence record.
+4. **Recovery Credits Ledger:**
+   - Route: `/recovery-credits?search={employeeId}&employeeId={employeeId}`
+   - Action: "Grand livre" button on the Recovery Credits section header and quick navigation card.
+   - Capability: `src/app/recovery-credits/page.tsx` was synchronized with `useSearchParams()` to automatically filter by employee upon arrival.
+5. **Public Holiday Details:**
+   - Route: `/holidays/[id]`
+   - Action: Direct clickable link on each public holiday label in the Recovery Credits table.
+6. **Employee Profile View:**
+   - Route: `/employees/[id]`
+   - Action: "Voir le profil collaborateur" in the employee header.
+
+### 12.3 Data Sources & Field Mapping
+
+| UI Section | Endpoint / Client Source | Data Fields Displayed | Handling & Authoritative Invariants |
+| :--- | :--- | :--- | :--- |
+| **Absence History & Décomptes** | `GET /api/absences?employeeId={id}&pageSize=50`<br>(`AbsenceApiClient.listAbsences`) | • `type.name`, `type.colorHex`<br>• `type.isDeductible` (Déductible badge)<br>• `startDate`, `endDate`<br>• `enteredDays` (calendaires)<br>• `retainedDays` (ouvrés retenus)<br>• `fraction` (½ j Matin / Après-midi)<br>• `status` (`StatusBadge`)<br>• `reason.name` (motif)<br>• `comment` (justification)<br>• `rejectionReason` (motif de refus)<br>• `supportingDocumentProvided` | • **Authoritative Invariant:** The UI does *not* decide which absence statuses affect the balance. Only backend approved deductible absences are reflected in `totalApprovedDeductions`.<br>• **Filter Tabs:** Built-in tab selector: "Toutes", "Approuvées / Décomptées", "En attente", "Refusées / Annulées".<br>• **Pending Requests:** Isolated into an informational warning banner without prematurely debiting the net available balance. |
+| **Recovery Credits (Fériés Travaillés)** | `GET /api/holiday-work-credits?employeeId={id}&pageSize=50`<br>(`HolidayApiClient.listCredits`) | • `publicHoliday.label`<br>• `publicHoliday.date`<br>• `creditedDays`<br>• `consumedDays`<br>• `remaining` (`credited - consumed`)<br>• `isFullyConsumed` (Actif / Épuisé)<br>• `comment` (description / motif permanence) | • **Authoritative Invariant:** The displayed recovery balance (`counter.activeRecoveryCreditDays`) is sourced directly from `CounterApiClient.getEmployeeCounters`. It is **never calculated by summing client records**.<br>• **Public Holiday Link:** Each row links directly to `/holidays/{publicHolidayId}`.<br>• **Statutory Rules:** Permanent validity and FIFO consumption rules highlighted. |
+
+### 12.4 Independent Failure & Loading Architecture
+
+```
+LeaveBalanceDetailContent
+├── 1. fetchCore()
+│   ├── Calls: EmployeeApiClient.getEmployee & CounterApiClient.getEmployeeCounters
+│   ├── Loading: Full page skeleton
+│   └── Error: Page-level ErrorState with onRetry={fetchCore}
+│
+├── 2. fetchAbsences() [INDEPENDENT]
+│   ├── Calls: AbsenceApiClient.listAbsences({ employeeId, pageSize: 50 })
+│   ├── Loading: Localized card skeleton in Absence History card
+│   ├── Error: Inline warning card with error message and localized [Réessayer] button
+│   └── Empty: Localized empty state card
+│
+└── 3. fetchCredits() [INDEPENDENT]
+    ├── Calls: HolidayApiClient.listCredits({ employeeId, pageSize: 50 })
+    ├── Loading: Localized card skeleton in Recovery Credits card
+    ├── Error: Inline warning card with error message and localized [Réessayer] button
+    └── Empty: Localized empty state card
+```
+
+### 12.5 Verification & Validation Results
+
+| Test / Check Suite | Target Command | Actual Result | Status |
+| :--- | :--- | :--- | :--- |
+| **Unit & Integration Tests** | `npm run test` (Vitest) | **95 passed across 14 test files** in 8.65s (including 6 dedicated balance details integration tests). | **PASSED (100% Green)** |
+| **TypeScript Static Check** | `npx tsc --noEmit` | **0 errors (Exit code 0)** across all application components, pages, and test files. | **PASSED** |
+| **Next.js Production Build** | `npm run build` (Turbopack) | **29/29 routes prerendered cleanly** in 2.5s (prerendered `/absences`, `/recovery-credits`, `/leave-balances/[id]`). | **PASSED** |
+
+### 12.6 Remaining Limitations & Boundaries
+1. **Server-Side Pagination for Absences & Recovery Credits on Detail Page:**
+   - Both sub-lists fetch up to `pageSize = 50` records for the specific employee. For employees with more than 50 absence requests across their multi-year tenure, the header action "Voir toutes les absences" routes to the full `/absences` directory with server-side pagination.
+2. **Client-Side Absence Status Aggregation:**
+   - Filtering by "Approuvées", "En attente", and "Refusées" within the details card operates on the returned 50 records. Comprehensive historical filtering across thousands of records is delegated to the primary `/absences` module.
+3. **No Direct Credit Debit Actions on Balance Page:**
+   - Crediting or correcting worked holidays remains strictly governed by the Recovery Credits module (`/recovery-credits`) and Public Holidays module (`/holidays/[id]`), preserving RBAC guard separation.
+
+---
+
+## 13. Completed Review & Polish: Formatting, Visual Hierarchy, Balance Visualization & Warning Guardrails
+
+### 13.1 Overview & Objective
+This review and refinement pass aligned the Leave Balances overview (`/leave-balances`) and employee details view (`/leave-balances/[id]`) with `LEAVE_BALANCES_SPEC.md` and statutory HR usability requirements. The primary objective was making balance and entitlement information immediately legible and intuitive for HR administrators while strictly preserving authoritative backend semantics, avoiding client recalculations, and eliminating arbitrary UI warning thresholds.
+
+### 13.2 Shared Formatting Helpers & French Grammar Precision
+A shared formatting engine was established in `src/lib/utils.ts` and validated with 12 comprehensive unit tests in `tests/unit/leave-formatting.test.ts`:
+
+1. **`toSafeNumber(val: unknown): number`:**
+   - Reliably extracts standard JavaScript numbers from primitives, numeric strings, `null`, `undefined`, and Prisma `Decimal` instances (`.toNumber()`, `.toString()`).
+   - Prevents `NaN` propagation, floating point drift, or runtime exceptions when handling database-serialized decimal values.
+2. **`formatLeaveDays(days: unknown, options?: FormatLeaveDaysOptions): string`:**
+   - **French Grammatical Rules:** Strictly enforces singular form for numbers strictly $< 2$ (`0 jour`, `0,5 jour`, `1 jour`, `1,5 jour`), and plural form for numbers $\ge 2$ (`2 jours`, `15 jours`, `22,5 jours`).
+   - **Locale & Precision:** Formats numbers with French locale decimal comma (e.g. `1,5` instead of `1.5`) and up to 2 decimal places, trimming trailing zeros (`1,5` instead of `1,50`).
+   - **Display Modes:** Supports full wording (`"1,5 jour"`, `"2 jours"`), abbreviated notation (`mode: 'short'`, e.g. `"1,5 j"`, `"14 j"`), and optional sign prefixes (`includeSign: true`, e.g. `"+1,5 jour"`, `"-2 jours"`).
+
+### 13.3 Visual Hierarchy & Usability Improvements
+1. **Overview Page (`/leave-balances`):**
+   - **Column Reordering for Immediate Impact:** Reordered table columns to place **Solde Net Restant** (`netAvailableBalance`) in Column 3, directly adjacent to the employee's name and matricule. HR administrators no longer have to scan past multiple secondary metrics to locate remaining leave.
+   - **Prominent Authoritative Badging:** Formatted `netAvailableBalance` in an enlarged badge (`text-sm font-semibold px-3 py-1.5`) with distinct color themes driven strictly by backend states.
+   - **Standardized Formatting:** Sourced all table columns (`Statutaire`, `Consommé`, `Récupération`, `Solde Net`) and top KPI StatCards via `formatLeaveDays`.
+2. **Employee Details Page (`/leave-balances/[id]`):**
+   - **Authoritative Solde Net Restant Card:** Enhanced the primary KPI card with a prominent badge showing the net remaining balance in `formatLeaveDays(..., { mode: 'full' })`.
+   - **Elimination of Arbitrary Thresholds:** Sourced card color variants strictly from backend flags:
+     - `!isEligibleForAnnualLeave` $\rightarrow$ Warning state (statutory lock, $< 6$ months).
+     - `netAvailableBalance < 0` $\rightarrow$ Destructive state (deficit).
+     - Otherwise $\rightarrow$ Primary emerald state (in good standing).
+   - **Harmonized Numeric Units:** Standardized all sub-cards, historical absence lists (`retainedDays`, `enteredDays`), and recovery credit ledgers (`creditedDays`, `consumedDays`, `remaining`).
+
+### 13.4 Balance Breakdown Visualization ("Équilibre et Décomposition")
+Added a dedicated visualization card on `/leave-balances/[id]` strictly using authoritative backend values:
+- **Statutory Formula Presentation:**
+  $$\text{Droits Acquis (Statutaire)} + \text{Crédits Récupération (Fériés)} - \text{Congés Consommés (Approuvés)} = \text{Solde Net Disponible}$$
+- **Proportional Stacked Bar:** Renders a horizontal breakdown bar illustrating the ratio of approved debited leave vs remaining available balance relative to total accumulated rights.
+- **Authoritative Invariant:** All inputs are sourced directly from `CounterApiClient.getEmployeeCounters`. Displays the backend calculation reference date (`referenceDate`) and statutory articles (Loi n° 65-99, Art. 231 & 232).
+
+### 13.5 Distinction Between Confirmed Balances & Pending Requests
+- **Clear Separation:** Confirmed balances reflect only approved deductible absences recorded by the backend.
+- **Dedicated Pending Alert Banner:** Highlighted pending requests in a distinct amber notice card stating clearly:
+  > *"Ces jours sont en cours de validation par la hiérarchie / RH et ne sont pas encore décomptés du solde statutaire net."*
+- Prevents administrative confusion regarding why pending requests do not appear in `totalApprovedDeductions`.
+
+### 13.6 Strict Backend Warning States (No Arbitrary UI Thresholds)
+In accordance with strict rules, all arbitrary UI thresholds (e.g. `balance < 5`) were removed:
+- **Statutory Eligibility Warning:** Displayed only when `isEligibleForAnnualLeave === false`, citing Article 231 of the Moroccan Labor Code (6 continuous months required before annual leave can be consumed).
+- **Statutory Yearly Cap Notice:** Displayed only when `calculationBreakdown.maxYearlyCapEnforced === true`, citing Article 232 (30-day statutory accrual ceiling).
+- **Deficit Warning:** Displayed only when `netAvailableBalance < 0`.
+
+### 13.7 Entitlement Period Selector Evaluation (Tasks 9 & 10)
+- **Investigation:** Audited `prisma/schema.prisma`, `counter.schema.ts`, and `leave-balance.service.ts` to evaluate backend support for discrete fiscal entitlement periods.
+- **Findings:** The database stores cumulative continuous records anchored to employee `hireDate`, calculating live accruals and deductions up to a given `referenceDate`. There are no discrete annual bucket entities or multi-period balance tables in the schema.
+- **Decision:** In strict compliance with the core instruction (*"Add a period selector only if the backend supports multiple entitlement periods. Never hardcode entitlement years"*), no synthetic client-side period selector was fabricated. Instead, the authoritative `referenceDate` is explicitly communicated in the UI.
+
+### 13.8 Verification & Test Results
+All changes were validated through automated test suites and production build verification:
+
+| Test / Check Suite | Target Command | Result | Status |
+| :--- | :--- | :--- | :--- |
+| **Leave Formatting Unit Tests** | `npx vitest run tests/unit/leave-formatting.test.ts` | **12 passed** (zero, singular $< 2$, plural $\ge 2$, decimals, strings, Prisma Decimals, negative values, sign prefixes). | **PASSED** |
+| **All Unit & Integration Tests** | `npm run test` (Vitest) | **107 passed across 15 test files** (100% green). | **PASSED** |
+| **TypeScript Static Typecheck** | `npx tsc --noEmit` | **0 errors (Exit code 0)**. | **PASSED** |
+| **Next.js Production Build** | `npm run build` (Turbopack) | **29/29 routes prerendered cleanly** in 2.3s. | **PASSED** |
+
+
 
 

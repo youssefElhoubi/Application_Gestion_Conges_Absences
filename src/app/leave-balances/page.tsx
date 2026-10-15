@@ -32,7 +32,7 @@ import {
   EmployeeCounterItem,
 } from "@/src/lib/api/counter-client";
 import { EmployeeApiClient, SiteItem } from "@/src/lib/api/employee-client";
-import { formatDate } from "@/src/lib/utils";
+import { formatDate, formatLeaveDays } from "@/src/lib/utils";
 
 function LeaveBalancesOverviewContent() {
   const router = useRouter();
@@ -303,6 +303,42 @@ function LeaveBalancesOverviewContent() {
       },
     },
     {
+      id: "netAvailableBalance",
+      header: "Solde Net Restant",
+      align: "center",
+      cell: (row) => {
+        const balance = row.netAvailableBalance;
+        const isEligible = row.isEligibleForAnnualLeave;
+        const isNegative = balance < 0;
+
+        return (
+          <div className="flex flex-col items-center min-w-[130px]">
+            <div
+              className={`px-3 py-1.5 rounded-xl font-extrabold text-sm border shadow-2xs flex items-center gap-1.5 ${
+                !isEligible
+                  ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                  : isNegative
+                  ? "bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30"
+                  : "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
+              }`}
+            >
+              <span>{formatLeaveDays(balance, { mode: "full" })}</span>
+            </div>
+            {!isEligible && (
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-0.5 font-medium">
+                <AlertCircle className="h-2.5 w-2.5" /> Droit bloqué (&lt; 6 mois)
+              </span>
+            )}
+            {isEligible && isNegative && (
+              <span className="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 flex items-center gap-0.5 font-medium">
+                <AlertCircle className="h-2.5 w-2.5" /> Solde débiteur
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       id: "site",
       header: "Site",
       sortable: true,
@@ -365,7 +401,7 @@ function LeaveBalancesOverviewContent() {
       cell: (row) => (
         <div className="flex flex-col items-center min-w-[90px]">
           <span className="font-bold text-foreground text-sm">
-            {row.statutoryAccruedDays.toFixed(1)} j
+            {formatLeaveDays(row.statutoryAccruedDays, { mode: "short" })}
           </span>
           <span className="text-[10px] text-muted-foreground">
             {row.calculationBreakdown.monthlyRateApplied} j/mois
@@ -376,12 +412,12 @@ function LeaveBalancesOverviewContent() {
     },
     {
       id: "totalApprovedDeductions",
-      header: "Congés Pris",
+      header: "Congés Consommés",
       align: "center",
       cell: (row) => (
         <div className="flex flex-col items-center min-w-[90px]">
           <span className="font-semibold text-muted-foreground text-sm">
-            {row.totalApprovedDeductions.toFixed(1)} j
+            {formatLeaveDays(row.totalApprovedDeductions, { mode: "short" })}
           </span>
           <span className="text-[10px] text-muted-foreground">Décomptés</span>
         </div>
@@ -395,45 +431,13 @@ function LeaveBalancesOverviewContent() {
         <div className="flex flex-col items-center min-w-[110px]">
           <div className="flex items-center gap-1 text-sm font-semibold text-purple-700 dark:text-purple-300">
             <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-            <span>{row.activeRecoveryCreditDays.toFixed(1)} j</span>
+            <span>{formatLeaveDays(row.activeRecoveryCreditDays, { mode: "short" })}</span>
           </div>
           <span className="text-[10px] text-muted-foreground">
             {row.calculationBreakdown.unconsumedHolidayCreditsCount} férié(s) travaillé(s)
           </span>
         </div>
       ),
-    },
-    {
-      id: "netAvailableBalance",
-      header: "Solde Net Disponible",
-      align: "center",
-      cell: (row) => {
-        const balance = row.netAvailableBalance;
-        const isPositive = balance > 0;
-        const isHigh = balance >= 5;
-
-        return (
-          <div className="flex flex-col items-center min-w-[130px]">
-            <div
-              className={`px-3 py-1 rounded-xl font-extrabold text-sm sm:text-base border shadow-2xs flex items-center gap-1.5 ${
-                isHigh
-                  ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
-                  : isPositive
-                  ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
-                  : "bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30"
-              }`}
-            >
-              <span>{balance.toFixed(1)}</span>
-              <span className="text-xs font-semibold">jours ouvrés</span>
-            </div>
-            {!row.isEligibleForAnnualLeave && (
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-0.5">
-                <AlertCircle className="h-2.5 w-2.5" /> Droit bloqué légalement
-              </span>
-            )}
-          </div>
-        );
-      },
     },
     {
       id: "actions",
@@ -494,23 +498,23 @@ function LeaveBalancesOverviewContent() {
         />
         <StatCard
           title="Moyenne Disponible"
-          value={`${aggregateMetrics.avgAvailable} j`}
+          value={formatLeaveDays(aggregateMetrics.avgAvailable, { mode: "full" })}
           description="Moyenne nette par collaborateur"
           icon={<Briefcase className="h-5 w-5" />}
-          isLoading={isLoading}
-          valueColor="success"
-        />
-        <StatCard
-          title="Droits Acquis (Page)"
-          value={`${aggregateMetrics.totalAccrued} j`}
-          description="Cumul statutaire sur l'affichage actuel"
-          icon={<CalendarCheck className="h-5 w-5" />}
           isLoading={isLoading}
           valueColor="primary"
         />
         <StatCard
+          title="Droits Acquis (Page)"
+          value={formatLeaveDays(aggregateMetrics.totalAccrued, { mode: "full" })}
+          description="Cumul statutaire sur l'affichage actuel"
+          icon={<CalendarCheck className="h-5 w-5" />}
+          isLoading={isLoading}
+          valueColor="default"
+        />
+        <StatCard
           title="Crédits Récupération"
-          value={`${aggregateMetrics.totalRecovery} j`}
+          value={formatLeaveDays(aggregateMetrics.totalRecovery, { mode: "full" })}
           description="Droits fériés sans date d'expiration"
           icon={<Sparkles className="h-5 w-5" />}
           isLoading={isLoading}

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Clock,
   Sparkles,
@@ -28,10 +29,18 @@ import {
 import { EmployeeApiClient, EmployeeListItem } from "@/src/lib/api/employee-client";
 
 function RecoveryCreditsContent() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || searchParams.get("employeeId") || "";
+
   // Filters
   const [selectedHolidayId, setSelectedHolidayId] = React.useState<string>("ALL");
   const [consumedFilter, setConsumedFilter] = React.useState<"all" | "false" | "true">("all");
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState(initialSearch);
+
+  React.useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("employeeId") || "";
+    if (q) setSearchQuery(q);
+  }, [searchParams]);
 
   // Data
   const [credits, setCredits] = React.useState<HolidayWorkCreditItem[]>([]);

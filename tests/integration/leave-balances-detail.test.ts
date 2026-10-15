@@ -4,6 +4,8 @@ import { cleanDatabase } from '@/tests/helpers/db-cleanup';
 import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { CounterService } from '@/src/modules/counters/counter.service';
+import { AbsenceService } from '@/src/modules/absences/absence.service';
+import { HolidayWorkCreditService } from '@/src/modules/holiday-work-credits/holiday-work-credit.service';
 import { ForbiddenError } from '@/src/modules/auth/auth.guard';
 import { Prisma } from '@/src/generated/prisma';
 
@@ -174,5 +176,48 @@ describe('Integration: Employee-Specific Leave Balance Details & Calculations', 
     await expect(
       CounterService.getEmployeeCounters(emp1.employeeId, new Date(), employeeSession)
     ).rejects.toThrow(ForbiddenError);
+  });
+
+  it('5. Integrates absence history: returns employee-specific records with retainedDays, type, and status without leaking other employees', async () => {
+    // Query absences specifically for emp1
+    const emp1Absences = await AbsenceService.listAbsences(
+      { employeeId: emp1.employeeId, page: 1, pageSize: 10, status: 'ALL', sortOrder: 'desc' },
+      hrSession
+    );
+
+    expect(emp1Absences.data.length).toBe(1);
+    const item = emp1Absences.data[0];
+    expect(item.employeeId).toBe(emp1.employeeId);
+    expect(Number(item.retainedDays)).toBe(4.0);
+    expect(item.status).toBe('APPROVED');
+    expect(item.type.name).toBeDefined();
+    expect(item.type.isDeductible).toBe(true);
+
+    // Confirm that querying emp2 yields 0 absences (isolated)
+    const emp2Absences = await AbsenceService.listAbsences(
+      { employeeId: emp2.employeeId, page: 1, pageSize: 10, status: 'ALL', sortOrder: 'desc' },
+      hrSession
+    );
+    expect(emp2Absences.data.length).toBe(0);
+  });
+
+  it('6. Integrates recovery credits: verifies holiday link, credited days, and authoritative balance source', async () => {
+    // Query recovery credits for emp1
+    const emp1Credits = await HolidayWorkCreditService.listCredits(
+      { employeeId: emp1.employeeId, page: 1, pageSize: 10, sortOrder: 'desc', isFullyConsumed: 'all' },
+      hrSession
+    );
+
+    expect(emp1Credits.data.length).toBe(1);
+    const credit = emp1Credits.data[0];
+    expect(credit.employeeId).toBe(emp1.employeeId);
+    expect(Number(credit.creditedDays)).toBe(2.0);
+    expect(Number(credit.consumedDays)).toBe(0.0);
+    expect(credit.isFullyConsumed).toBe(false);
+    expect(credit.publicHoliday.label).toBe('Fête du Travail');
+
+    // Authoritative balance is retrieved from CounterService, not sum of client records
+    const balance = await CounterService.getEmployeeCounters(emp1.employeeId, new Date(), hrSession);
+    expect(balance.activeRecoveryCreditDays).toBe(2.0);
   });
 });
