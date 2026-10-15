@@ -571,6 +571,73 @@ All changes were validated through automated test suites and production build ve
 | **TypeScript Static Typecheck** | `npx tsc --noEmit` | **0 errors (Exit code 0)**. | **PASSED** |
 | **Next.js Production Build** | `npm run build` (Turbopack) | **29/29 routes prerendered cleanly** in 2.3s. | **PASSED** |
 
+---
+
+## 14. Completed UX & Accessibility (A11y) Improvements Pass
+
+### 14.1 Overview & Scope
+This pass executed a targeted UX and accessibility refinement across the Leave Balances overview (`/leave-balances`) and the employee details view (`/leave-balances/[id]`), strictly adhering to existing design system tokens, typography, and spacing without introducing third-party dependencies or altering the global layout.
+
+### 14.2 Responsive Behavior & Adaptive Layouts
+1. **Desktop & Laptop Experience (≥ 1024px):**
+   - High information density preserved with an 8-column consolidated overview table.
+   - Prominent **Solde Net Restant** placed in Column 3 directly adjacent to employee identity.
+   - Side-by-side 3-column split on details page (`lg:grid-cols-3`): Statutory context & navigation on left (1 col), Absence history & Recovery credits on right (2 cols).
+2. **Tablet Experience (768px - 1023px):**
+   - Consolidated `DataTable` with smooth horizontal scrolling inside an accessible container (`role="region"`, `tabIndex={0}`, `aria-label`).
+   - Sticky/clear column widths preventing cell collapse or clipping.
+   - KPI cards adapt gracefully to 2 columns (`sm:grid-cols-2`).
+3. **Mobile Experience (< 768px):**
+   - **Overview Page Mobile Cards:**
+     - Implemented `renderMobileCard` on `DataTable` that switches from a wide 8-column table to an ergonomic card list (`block md:hidden`).
+     - Each card highlights the employee's avatar, matricule, prominent Solde Net Disponible badge, a compact 3-metric acquisition/usage grid, site/seniority metadata, and a full-width touch target (`min-h-[44px]`).
+     - Pagination bar remains accessible and functional on both mobile and desktop.
+   - **Details Page Mobile Sub-Cards:**
+     - Absence History and Recovery Credits provide adaptive card lists on small screens (`block md:hidden`), avoiding frustrating multi-column horizontal scrolling on phones.
+     - Cards highlight absence types with color tokens, deductible status, period dates, debited working days, and direct action links.
+   - **Summary Cards & Filters Stacking:**
+     - KPI StatCards stack from 1 column on mobile to 2 columns on tablet and 4 on desktop (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
+     - FilterBar controls stretch smoothly on mobile (`w-full sm:w-44`, `w-full sm:w-40`).
+
+### 14.3 Accessibility (A11y) & WCAG Compliance
+1. **Accessible Table Markup:**
+   - Added `scope="col"` on all table header cells across `DataTable`, Absence History, and Recovery Credits.
+   - Provided `<caption className="sr-only">` summarizing the purpose of every table for screen readers.
+   - Added `role="region"`, `tabIndex={0}`, and `aria-label` on table scroll containers.
+2. **Keyboard Navigation & Visible Focus:**
+   - Enabled keyboard sorting on table headers: `tabIndex={0}`, `role="button"`, `aria-sort`, and `onKeyDown` handlers for Enter and Space.
+   - Enabled keyboard activation on table rows and mobile cards: `tabIndex={0}`, `role="button"`, and Enter key navigation.
+   - Visible focus indicators (`focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none`) applied to all tabs, buttons, links, and form elements.
+3. **Semantic Headings Hierarchy:**
+   - Strictly enforced `h1` (Page title) $\rightarrow$ `h2` (Employee identity) $\rightarrow$ `h3` (Card titles / section headers) hierarchy without skipping levels.
+4. **Form Labels & ARIA Identifiers:**
+   - Search input enhanced with `aria-label={placeholder}`.
+   - Filter dropdowns equipped with explicit `aria-label="Filtrer par site"` and `aria-label="Filtrer par statut actif ou inactif"`.
+   - Lines-per-page select provided with `aria-label="Nombre de lignes par page"`.
+   - Absence filter tabs structured with `role="tablist"`, `role="tab"`, `aria-selected`, and `aria-controls`.
+5. **Color Independence & Textual Equivalents:**
+   - Active/Inactive avatar indicators include hidden screen-reader text (`<span className="sr-only">{active ? "Collaborateur actif" : "Collaborateur inactif"}</span>`).
+   - Remaining balance badges include textual prefix (`<span className="sr-only">Solde net restant disponible : </span>`).
+   - Proportional balance breakdown bar is accessible via `role="progressbar"`, `aria-label`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, and `aria-valuetext`.
+   - Absence status badges pair iconography with explicit status wording.
+6. **Touch Targets:**
+   - Mobile interactive links, buttons, and card containers respect touch accessibility standards (minimum 40-44px touch targets).
+
+### 14.4 UI Polish & Layout Stability
+- Reused established design tokens (`bg-card`, `border-border`, `text-muted-foreground`, `shadow-xs`).
+- Loading skeletons preserve exact card and table structures, eliminating layout shifts (CLS).
+- Maintained restrained status colors: primary emerald for positive balances, amber for statutory lock or pending alerts, and rose for deficits.
+- Eliminated all arbitrary thresholds; warning badges and notices are sourced strictly from authoritative backend booleans.
+
+### 14.5 Verification & Test Results
+- **Vitest Unit & Integration Tests:** 107 tests passing across 15 test files (100% green).
+- **TypeScript Static Check:** 0 errors (`npx tsc --noEmit`).
+- **Next.js Production Build:** 29/29 routes prerendered cleanly in 1.9s.
+
+### 14.6 Limitations & Known Boundaries
+- **Physical Device Screen Reader Verification:** Automated tests and semantic markup verification were executed. Physical VoiceOver / NVDA screen reader audio verification on physical mobile devices could not be directly executed within the headless CLI environment.
+
+
 
 
 

@@ -68,6 +68,7 @@ export function SearchInput({
         value={currentValue}
         onChange={handleChange}
         placeholder={placeholder}
+        aria-label={placeholder}
         leftIcon={<Search className="h-4 w-4" />}
         rightIcon={
           <div className="flex items-center gap-1.5">

@@ -60,6 +60,8 @@ export interface DataTableProps<T> {
   // Row action click
   onRowClick?: (row: T) => void;
   className?: string;
+  ariaLabel?: string;
+  renderMobileCard?: (row: T, index: number) => React.ReactNode;
 }
 
 export function DataTable<T>({
@@ -90,6 +92,8 @@ export function DataTable<T>({
   batchActions,
   onRowClick,
   className,
+  ariaLabel,
+  renderMobileCard,
 }: DataTableProps<T>) {
   // Client-side fallback sorting if onSortChange is not controlled
   const [internalSortBy, setInternalSortBy] = React.useState<string | null>(sortBy ?? null);
@@ -120,8 +124,12 @@ export function DataTable<T>({
   const getItemKey = React.useCallback(
     (item: T, idx: number): string | number => {
       if (keyExtractor) return keyExtractor(item, idx);
-      const anyItem = item as Record<string, any>;
-      return anyItem.id ?? anyItem.employeeId ?? idx;
+      const anyItem = item as Record<string, unknown>;
+      return (
+        (anyItem.id as string | number | undefined) ??
+        (anyItem.employeeId as string | number | undefined) ??
+        idx
+      );
     },
     [keyExtractor]
   );
@@ -175,12 +183,57 @@ export function DataTable<T>({
 
       {/* Table Container */}
       <div className="relative w-full overflow-hidden rounded-xl border border-border bg-card shadow-xs">
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+        {/* Mobile Cards (Rendered when renderMobileCard prop is provided and on small screens) */}
+        {renderMobileCard && (
+          <div className="block md:hidden">
+            {isLoading ? (
+              <div className="space-y-3 p-3.5">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-32 rounded-xl bg-muted/40 animate-pulse border border-border/60" />
+                ))}
+              </div>
+            ) : data.length === 0 ? (
+              <div className="p-8 text-center">
+                <EmptyState
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  icon={emptyIcon}
+                  onAction={onEmptyAction}
+                  actionLabel={emptyActionLabel}
+                  className="border-0 bg-transparent py-4"
+                />
+              </div>
+            ) : (
+              <div
+                className="space-y-3 p-3.5 bg-muted/15"
+                role="list"
+                aria-label={ariaLabel || "Liste des éléments"}
+              >
+                {data.map((row, idx) => (
+                  <div key={getItemKey(row, idx)} role="listitem">
+                    {renderMobileCard(row, idx)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tabular Table (Hidden on mobile if renderMobileCard is provided, visible on desktop/tablet) */}
+        <div
+          className={cn(
+            "w-full overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            renderMobileCard && "hidden md:block"
+          )}
+          tabIndex={0}
+          role="region"
+          aria-label={ariaLabel || "Tableau des données"}
+        >
+          <table className="w-full text-left text-sm border-collapse" aria-label={ariaLabel || "Tableau des données"}>
             <thead className="bg-muted/50 border-b border-border text-xs text-muted-foreground uppercase font-medium tracking-wider">
               <tr>
                 {isSelectable && (
-                  <th className="w-10 px-4 py-3.5 text-center">
+                  <th scope="col" className="w-10 px-4 py-3.5 text-center">
                     <input
                       type="checkbox"
                       checked={isAllSelected}
@@ -192,15 +245,36 @@ export function DataTable<T>({
                 )}
                 {columns.map((col) => {
                   const isSorted = activeSortBy === col.id;
+                  const headerTitle = typeof col.header === "string" ? col.header : col.id;
                   return (
                     <th
                       key={col.id}
+                      scope="col"
                       style={{ width: col.width }}
                       onClick={() => handleHeaderClick(col)}
+                      onKeyDown={(e) => {
+                        if (col.sortable && (e.key === "Enter" || e.key === " ")) {
+                          e.preventDefault();
+                          handleHeaderClick(col);
+                        }
+                      }}
+                      tabIndex={col.sortable ? 0 : undefined}
+                      role={col.sortable ? "button" : undefined}
+                      aria-sort={
+                        col.sortable
+                          ? isSorted
+                            ? activeSortDir === "asc"
+                              ? "ascending"
+                              : "descending"
+                            : "none"
+                          : undefined
+                      }
+                      aria-label={col.sortable ? `Trier par ${headerTitle}` : undefined}
                       className={cn(
                         "px-4 py-3.5 whitespace-nowrap transition-colors",
                         alignStyles[col.align ?? "left"],
-                        col.sortable && "cursor-pointer hover:text-foreground select-none",
+                        col.sortable &&
+                          "cursor-pointer hover:text-foreground select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
                         col.className
                       )}
                     >
@@ -215,13 +289,13 @@ export function DataTable<T>({
                         {col.sortable && (
                           <span className="shrink-0 text-muted-foreground/80">
                             {isSorted && activeSortDir === "asc" && (
-                              <ChevronUp className="h-3.5 w-3.5 text-primary" />
+                              <ChevronUp className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                             )}
                             {isSorted && activeSortDir === "desc" && (
-                              <ChevronDown className="h-3.5 w-3.5 text-primary" />
+                              <ChevronDown className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                             )}
                             {(!isSorted || !activeSortDir) && (
-                              <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                              <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />
                             )}
                           </span>
                         )}
@@ -267,10 +341,19 @@ export function DataTable<T>({
                     <tr
                       key={key}
                       onClick={() => onRowClick?.(row)}
+                      onKeyDown={(e) => {
+                        if (onRowClick && (e.key === "Enter" || e.key === " ")) {
+                          e.preventDefault();
+                          onRowClick(row);
+                        }
+                      }}
+                      tabIndex={onRowClick ? 0 : undefined}
+                      role={onRowClick ? "button" : undefined}
                       className={cn(
                         "transition-colors hover:bg-muted/40",
                         isSelected && "bg-primary/5",
-                        onRowClick && "cursor-pointer"
+                        onRowClick &&
+                          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
                       )}
                     >
                       {isSelectable && (
@@ -322,6 +405,7 @@ export function DataTable<T>({
                     value={String(pageSize)}
                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
                     className="h-7 text-xs px-2 py-0"
+                    aria-label="Nombre de lignes par page"
                     options={pageSizeOptions.map((opt) => ({
                       value: String(opt),
                       label: String(opt),
