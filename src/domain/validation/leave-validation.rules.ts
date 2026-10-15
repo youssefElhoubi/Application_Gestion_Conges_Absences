@@ -39,7 +39,7 @@ export class LeaveValidationRules {
     }
 
     // 3. Fraction Alignment
-    if (fraction !== 'FULL_DAY') {
+    if (fraction && fraction !== 'FULL_DAY') {
       const s = new Date(startDate).setHours(0, 0, 0, 0);
       const e = new Date(endDate).setHours(0, 0, 0, 0);
       if (s !== e) {

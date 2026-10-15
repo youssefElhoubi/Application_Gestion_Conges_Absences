@@ -1,8 +1,10 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
+  CreatePublicHolidaySchema,
   CreatePublicHolidayInput,
   UpdatePublicHolidayInput,
+  PublicHolidayQuerySchema,
   PublicHolidayQuery,
 } from './public-holiday.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
@@ -40,9 +42,10 @@ export class PublicHolidayService {
   }
 
   public static async listHolidays(
-    query: PublicHolidayQuery,
+    rawQuery: PublicHolidayQuery,
     _session: AuthSession
   ): Promise<PaginatedResult<any>> {
+    const query = PublicHolidayQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
     const where: any = {};
 

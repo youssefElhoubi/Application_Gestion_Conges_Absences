@@ -1,8 +1,10 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
+  CreateLeaveRuleSchema,
   CreateLeaveRuleInput,
   UpdateLeaveRuleInput,
+  LeaveRuleQuerySchema,
   LeaveRuleQuery,
 } from './leave-rule.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
@@ -34,9 +36,10 @@ export class LeaveRuleService {
   }
 
   public static async listRules(
-    query: LeaveRuleQuery,
+    rawQuery: LeaveRuleQuery,
     _session: AuthSession
   ): Promise<PaginatedResult<any>> {
+    const query = LeaveRuleQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
     const where: any = {};
 

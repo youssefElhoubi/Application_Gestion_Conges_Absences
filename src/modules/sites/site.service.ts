@@ -1,11 +1,12 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
-import { CreateSiteInput, UpdateSiteInput, SiteQuery } from './site.schema';
+import { CreateSiteSchema, SiteQuerySchema, CreateSiteInput, UpdateSiteInput, SiteQuery } from './site.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
 
 export class SiteService {
-  public static async createSite(input: CreateSiteInput, session: AuthSession) {
+  public static async createSite(rawInput: CreateSiteInput, session: AuthSession) {
     AuthGuard.requireRole(session, ['ADMIN']);
+    const input = CreateSiteSchema.parse(rawInput);
 
     const existingCode = await prisma.site.findUnique({ where: { code: input.code } });
     if (existingCode) throw new Error(`Site code "${input.code}" already exists.`);
@@ -34,7 +35,8 @@ export class SiteService {
     });
   }
 
-  public static async listSites(query: SiteQuery, _session: AuthSession): Promise<PaginatedResult<any>> {
+  public static async listSites(rawQuery: SiteQuery, _session: AuthSession): Promise<PaginatedResult<any>> {
+    const query = SiteQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
 
     const where: any = {};

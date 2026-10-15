@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@/src/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -10,12 +11,14 @@ const connectionString =
   process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/leave_management';
 const adapter = new PrismaPg(connectionString);
 
+const globalForPrisma = globalThis as unknown as { globalPrisma?: PrismaClient };
+
 export const prisma =
-  globalPrisma ??
+  globalForPrisma.globalPrisma ??
   new PrismaClient({
     adapter,
   });
 
 if (process.env.NODE_ENV !== 'production') {
-  globalPrisma = prisma;
+  globalForPrisma.globalPrisma = prisma;
 }

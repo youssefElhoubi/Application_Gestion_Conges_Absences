@@ -199,6 +199,11 @@ export class DashboardMetricsService {
       if (!session.employeeId) {
         throw new ForbiddenError('No employee record linked to current user session.');
       }
+      if (filter.employeeId && filter.employeeId !== session.employeeId) {
+        throw new ForbiddenError(
+          `Employees are not authorized to view metrics for employee "${filter.employeeId}".`
+        );
+      }
       scope.employeeId = session.employeeId;
       return scope;
     }

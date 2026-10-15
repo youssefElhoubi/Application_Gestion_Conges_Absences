@@ -1,6 +1,7 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
+  CreateAbsenceSchema,
   CreateAbsenceInput,
   AbsenceQuery,
   ApproveAbsenceInput,
@@ -18,7 +19,8 @@ export class AbsenceService {
   /**
    * Create an absence request with full statutory validation
    */
-  public static async createAbsenceRequest(input: CreateAbsenceInput, session: AuthSession) {
+  public static async createAbsenceRequest(rawInput: CreateAbsenceInput, session: AuthSession) {
+    const input = CreateAbsenceSchema.parse(rawInput);
     // 1. Permission check: Applicant must be the employee themselves, or HR/Admin
     AuthGuard.requireAccessEmployee(session, input.employeeId);
 
@@ -47,10 +49,11 @@ export class AbsenceService {
     });
 
     // 4. Calculate Net Statutory Working Days (Public Holidays NEVER consume leave)
+    const fraction = input.fraction ?? 'FULL_DAY';
     const workingDaysCalc = await WorkingDaysService.calculateWorkingDays(
       input.startDate,
       input.endDate,
-      input.fraction,
+      fraction,
       employee.siteId
     );
 
@@ -76,7 +79,7 @@ export class AbsenceService {
       reasonCode: absenceReason?.code,
       startDate: input.startDate,
       endDate: input.endDate,
-      fraction: input.fraction,
+      fraction,
       calculatedWorkingDays: workingDaysCalc.calculatedWorkingDays,
       currentBalance: dynamicBalance,
       hasOverlappingAbsence: overlapCount > 0,
@@ -94,7 +97,7 @@ export class AbsenceService {
           reasonId: input.reasonId ?? null,
           startDate: input.startDate,
           endDate: input.endDate,
-          fraction: input.fraction,
+          fraction,
           calculatedWorkingDays: new Prisma.Decimal(workingDaysCalc.calculatedWorkingDays),
           enteredDays: new Prisma.Decimal(enteredDays),
           retainedDays: new Prisma.Decimal(retainedDays),

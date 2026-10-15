@@ -8,8 +8,8 @@ export const CreateAbsenceSchema = z
     reasonId: z.coerce.number().int().positive().optional().nullable(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
-    fraction: z.enum(['FULL_DAY', 'HALF_DAY_MORNING', 'HALF_DAY_AFTERNOON']).default('FULL_DAY'),
-    supportingDocumentProvided: z.boolean().default(false),
+    fraction: z.enum(['FULL_DAY', 'HALF_DAY_MORNING', 'HALF_DAY_AFTERNOON']).default('FULL_DAY').optional(),
+    supportingDocumentProvided: z.boolean().default(false).optional(),
     comment: z.string().max(500).trim().optional().nullable(),
   })
   .refine((d) => d.endDate >= d.startDate, {
@@ -53,7 +53,8 @@ export const AbsenceQuerySchema = PaginationQuerySchema.extend({
   search: z.string().trim().optional(),
 });
 
-export type CreateAbsenceInput = z.infer<typeof CreateAbsenceSchema>;
+export type CreateAbsenceInput = z.input<typeof CreateAbsenceSchema>;
+export type CreateAbsenceValidated = z.output<typeof CreateAbsenceSchema>;
 export type ApproveAbsenceInput = z.infer<typeof ApproveAbsenceSchema>;
 export type RejectAbsenceInput = z.infer<typeof RejectAbsenceSchema>;
 export type CancelAbsenceInput = z.infer<typeof CancelAbsenceSchema>;

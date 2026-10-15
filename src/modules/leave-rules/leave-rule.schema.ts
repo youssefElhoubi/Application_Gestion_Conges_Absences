@@ -18,4 +18,4 @@ export const LeaveRuleQuerySchema = PaginationQuerySchema.extend({
 
 export type CreateLeaveRuleInput = z.infer<typeof CreateLeaveRuleSchema>;
 export type UpdateLeaveRuleInput = z.infer<typeof UpdateLeaveRuleSchema>;
-export type LeaveRuleQuery = z.infer<typeof LeaveRuleQuerySchema>;
+export type LeaveRuleQuery = z.input<typeof LeaveRuleQuerySchema>;

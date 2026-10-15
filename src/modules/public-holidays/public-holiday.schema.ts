@@ -19,4 +19,4 @@ export const PublicHolidayQuerySchema = PaginationQuerySchema.extend({
 
 export type CreatePublicHolidayInput = z.infer<typeof CreatePublicHolidaySchema>;
 export type UpdatePublicHolidayInput = z.infer<typeof UpdatePublicHolidaySchema>;
-export type PublicHolidayQuery = z.infer<typeof PublicHolidayQuerySchema>;
+export type PublicHolidayQuery = z.input<typeof PublicHolidayQuerySchema>;
