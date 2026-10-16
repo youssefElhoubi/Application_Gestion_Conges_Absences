@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { CalendarDays, ArrowRight, Calendar, Clock } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { StatusBadge } from "@/src/components/shared/StatusBadge";
 import { AbsenceListItem } from "@/src/lib/api/absence-client";
 import { formatDate } from "@/src/lib/utils";
 
@@ -85,12 +86,14 @@ export function PortalUpcomingLeaves({
                   />
                   <div className="space-y-0.5">
                     <div className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="text-[11px] font-mono text-muted-foreground font-semibold">#{absence.id}</span>
                       <span>{absence.type.name}</span>
                       {absence.reason && (
                         <span className="text-xs font-normal text-muted-foreground">
                           • {absence.reason.name}
                         </span>
                       )}
+                      <StatusBadge status={absence.status} size="sm" />
                     </div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-muted-foreground" />

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { RejectAbsenceSchema } from '@/src/modules/absences/absence.schema';
@@ -11,9 +12,24 @@ export async function POST(
   try {
     const session = await SessionResolver.require();
     const { id } = await params;
-    const body = await request.json();
+    let body = {};
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
     const validated = RejectAbsenceSchema.parse(body);
     const rejected = await AbsenceService.rejectAbsence(BigInt(id), validated, session);
+
+    // Revalidate affected views for HR and employees
+    revalidatePath('/absences');
+    revalidatePath(`/absences/${id}`);
+    revalidatePath('/portal/requests');
+    revalidatePath(`/portal/requests/${id}`);
+    revalidatePath('/portal');
+    revalidatePath('/leave-balances');
+    revalidatePath('/');
+
     return NextResponse.json(serializeForClient(rejected));
   } catch (error: any) {
     const status = error.statusCode ?? 400;

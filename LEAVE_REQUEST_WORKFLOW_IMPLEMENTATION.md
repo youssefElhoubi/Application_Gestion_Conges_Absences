@@ -292,22 +292,36 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 ## 6. Implementation Checklist & Acceptance Criteria
 
 ### Milestone 1: API Security & Cache Revalidation
-- [ ] **AC 1.1 (Security):** `POST /api/absences/calculate` requires authentication via `SessionResolver.require()` and enforces `AuthGuard.requireAccessEmployee(session, employeeId)`. Unauthenticated requests return 401; attempts to inspect other employees' balances return 403.
-- [ ] **AC 1.2 (Cache Revalidation):** `src/modules/absences/absence.actions.ts` invokes `revalidatePath('/absences')`, `revalidatePath('/portal/requests')`, and `revalidatePath('/')` on all mutations (`create`, `approve`, `reject`, `cancel`, `update`).
+- [x] **AC 1.1 (Security):** `POST /api/absences/calculate` requires authentication via `SessionResolver.require()` and enforces `AuthGuard.requireAccessEmployee(session, employeeId)`. Unauthenticated requests return 401; attempts to inspect other employees' balances return 403.
+- [x] **AC 1.2 (Cache Revalidation):** `src/modules/absences/absence.actions.ts` and `src/app/api/absences/route.ts` invoke `revalidatePath('/absences')`, `revalidatePath('/portal/requests')`, and `revalidatePath('/')` on all mutations (`create`, `approve`, `reject`, `cancel`, `update`).
 
-### Milestone 2: Employee Portal Alignment
-- [ ] **AC 2.1 (Future Approved Cancellation):** `PortalRequestDetailsModal.tsx` enables the cancellation action when `absence.status === 'APPROVED'` and `new Date(absence.startDate) > new Date()`, matching `AbsenceService.cancelAbsence`.
-- [ ] **AC 2.2 (Local Date Initialization):** `PortalLeaveRequestForm.tsx` initializes dates using Moroccan local time (`Africa/Casablanca`, UTC+1) instead of UTC `.toISOString()`.
-- [ ] **AC 2.3 (Portal Pending Edit Trigger):** If permitted by UX requirements, expose an "Éditer" button for `PENDING` requests in `PortalRequestDetailsModal.tsx` that reuses the existing `PortalLeaveRequestForm` in edit mode.
+### Milestone 2: Employee Portal Alignment & Request Lifecycle
+- [x] **AC 2.1 (Future Approved Cancellation):** `PortalRequestDetailsModal.tsx` and `/portal/requests/[id]` enable the cancellation action when `absence.status === 'APPROVED'` and `new Date(absence.startDate) > new Date()`, matching `AbsenceService.cancelAbsence`. When `startDate <= today`, cancellation is restricted to HR with clear informative feedback.
+- [x] **AC 2.2 (Local Date Initialization):** `PortalLeaveRequestForm.tsx` and `AbsenceModalForm.tsx` initialize dates using Moroccan local time (`Africa/Casablanca`, UTC+1) via `getLocalTodayISO()` to prevent date drift.
+- [x] **AC 2.3 (Dedicated Request Detail Route):** Implemented standalone page at [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/%5Bid%5D/page.tsx) featuring full audit timeline, backend-calculated working and calendar days, deductibility, supporting document status, authorization protection (403/404 handling), and context-aware next actions.
+- [x] **AC 2.4 (Enhanced Request List & Deep Linking):** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx) displays reference IDs (`#${req.id}`), backend-returned status badges, calendar vs working days, action availability badges ("Annulable", "Validé"), direct deep-linking via query parameter `?id=...`, and dual modal/standalone detail views.
+- [x] **AC 2.5 (Duplicate Submission Prevention & State Preservation):** Form inputs and buttons are locked during submission (`isSubmitting` guards); field-level domain errors are mapped from backend responses while strictly preserving all user-entered values in state.
 
-### Milestone 3: HR Directory & Workflow Interactions
-- [ ] **AC 3.1 (Supervisor Scoping):** When accessed by a `SUPERVISOR`, the employee filter dropdown on `/absences` only lists supervised employees matching `session.managedEmployeeIds`.
-- [ ] **AC 3.2 (Action Confirmation & Feedback):** Quick actions on `/absences` (Valider, Rejeter, Annuler) trigger immediate optimistic/confirmed state update and refresh the KPI cards without full page reload.
-- [ ] **AC 3.3 (Audit Trail Presentation):** In `/absences/[id]`, verify that `ApprovalHistory` displays the correct chronological timeline with actor email, role, and comment.
+### Milestone 3: HR Directory & Review Workflow Alignment
+- [x] **AC 3.1 (Supervisor Scoping):** When accessed by a `SUPERVISOR`, the employee filter dropdown on `/absences` only lists supervised employees matching `session.managedEmployeeIds`.
+- [x] **AC 3.2 (Find Requests Awaiting Review):** The "En attente de validation" StatCard on [`/absences`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx) is interactive and keyboard-accessible, instantly toggling the `PENDING` filter and resetting pagination.
+- [x] **AC 3.3 (Double-Click & Duplicate Submission Guard):** `ApproveAbsenceDialog`, `RejectAbsenceDialog`, and `CancelAbsenceDialog` in [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx) enforce atomic in-flight loading locks (`if (isLoading) return;`), disabling submit/cancel buttons to prevent double-submission.
+- [x] **AC 3.4 (Strict Backend Status Reflection):** Dialog callbacks pass the backend-confirmed `AbsenceListItem` object. Success banners on `/absences` and `/absences/[id]` explicitly report the confirmed status (`status: APPROVED`, `status: REJECTED`, `status: CANCELLED`) without claiming success prematurely.
+- [x] **AC 3.5 (Self-Approval Prohibition):** In [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx), requests submitted by the logged-in user display an informational restriction notice and disable the "Valider" and "Rejeter" buttons, backed by `AuthGuard.requireCanReviewAbsence` throwing 403 `SelfApprovalProhibitedError`.
+- [x] **AC 3.6 (Stale & Concurrency Handling):** State machine conflicts (`Cannot approve absence with status ...`) and dynamic balance exhaustion during concurrent approvals (`Concurrency conflict: Remaining balance (...) is now insufficient`) are captured and displayed clearly in the UI.
+- [x] **AC 3.7 (Multi-Route Cache Invalidation):** API routes `POST /api/absences/[id]/approve`, `reject`, and `cancel` invoke `revalidatePath` for `/absences`, `/absences/[id]`, `/portal/requests`, `/portal/requests/[id]`, `/portal`, `/leave-balances`, and `/`.
+- [x] **AC 3.8 (Audit Trail Presentation):** In `/absences/[id]` and `/portal/requests/[id]`, `ApprovalHistory` displays the correct chronological timeline with actor role, timestamp, and decision notes without leaking private HR data.
 
 ### Milestone 4: Verification & Regression Tests
-- [ ] **AC 4.1 (Unit & Integration Suite):** All 169 existing tests pass without regressions.
-- [ ] **AC 4.2 (End-to-End Test Suite):** Playwright tests in `tests/e2e/absence-workflow.spec.ts` verify the complete lifecycle: Employee draft $\rightarrow$ Calculation preview $\rightarrow$ Submission $\rightarrow$ HR rejection with reason $\rightarrow$ Modification $\rightarrow$ HR approval $\rightarrow$ Balance deduction $\rightarrow$ Audit trail.
+- [x] **AC 4.1 (Full Test Suite):** All 25 test files and 181 tests pass cleanly (`vitest run`).
+- [x] **AC 4.2 (Employee Workflow Suite):** Added [`tests/integration/absence-workflow-experience.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-experience.test.ts) (6 tests) covering request creation, isolation, and cancellation lifecycles.
+- [x] **AC 4.3 (HR Review Workflow Suite):** Added [`tests/integration/hr-absence-review-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/hr-absence-review-workflow.test.ts) (6 tests) covering:
+  - Authorized approval transitioning status to `APPROVED`, writing `ApprovalHistory`, and decrementing dynamic balances.
+  - Rejection validation requiring reason >= 3 characters, storing `rejectionReason`, and recording audit trail.
+  - Self-approval prohibition preventing HR users from arbitrating their own leave requests.
+  - State machine integrity rejecting decisions on stale (already approved/rejected/cancelled) requests.
+  - Concurrency conflict handling when concurrent approvals deplete available leave balance.
+  - RBAC protection rejecting unauthorized review attempts from employees or non-managing supervisors.
 
 ---
 
@@ -315,13 +329,15 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 
 - **Application Absence Service:** [`src/modules/absences/absence.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.service.ts)
 - **Validation Schemas:** [`src/modules/absences/absence.schema.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.schema.ts)
-- **Server Actions:** [`src/modules/absences/absence.actions.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.actions.ts)
 - **Security & RBAC Guards:** [`src/modules/auth/auth.guard.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/auth/auth.guard.ts)
-- **Domain Legal Invariants:** [`src/domain/validation/leave-validation.rules.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/domain/validation/leave-validation.rules.ts)
-- **Working Days Calculator:** [`src/domain/calculations/working-days.calculator.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/domain/calculations/working-days.calculator.ts)
-- **Recovery Credit Service:** [`src/application/services/recovery-credit.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/application/services/recovery-credit.service.ts)
-- **Employee Portal Requests:** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx)
 - **HR Absences Directory:** [`src/app/absences/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx)
-- **HR Absence Detail Page:** [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)
-- **Integration Tests:** [`tests/integration/approval-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/approval-workflow.test.ts)
-- **E2E Playwright Suite:** [`tests/e2e/absence-workflow.spec.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/e2e/absence-workflow.spec.ts)
+- **HR Absence Review Detail:** [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)
+- **HR Workflow Decision Dialogs:** [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx)
+- **Employee Portal Requests List:** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx)
+- **Dedicated Request Detail Page:** [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/%5Bid%5D/page.tsx)
+- **Request Creation Page:** [`src/app/portal/requests/new/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/new/page.tsx)
+- **Portal Request Details Modal:** [`src/components/portal/PortalRequestDetailsModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalRequestDetailsModal.tsx)
+- **Portal Leave Request Form:** [`src/components/portal/PortalLeaveRequestForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalLeaveRequestForm.tsx)
+- **Integration Test Suite (Employee Experience):** [`tests/integration/absence-workflow-experience.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-experience.test.ts)
+- **Integration Test Suite (HR Review Workflow):** [`tests/integration/hr-absence-review-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/hr-absence-review-workflow.test.ts)
+

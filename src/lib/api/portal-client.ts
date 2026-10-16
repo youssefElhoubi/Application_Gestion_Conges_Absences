@@ -4,7 +4,13 @@
  */
 
 import { EmployeeBalances, EmployeeListItem, EmployeeCreditItem } from './employee-client';
-import { AbsenceListItem, AbsenceTypeItem, AbsenceFraction, CalculationPreviewResult } from './absence-client';
+import {
+  AbsenceListItem,
+  AbsenceDetail,
+  AbsenceTypeItem,
+  AbsenceFraction,
+  CalculationPreviewResult,
+} from './absence-client';
 
 export interface PortalUpcomingHoliday {
   id: string | number;
@@ -128,7 +134,7 @@ export class PortalApiClient {
   /**
    * Fetch single request detail
    */
-  public static async getMyRequest(id: string | number): Promise<AbsenceListItem> {
+  public static async getMyRequest(id: string | number): Promise<AbsenceDetail> {
     const res = await fetch(`/api/absences/${encodeURIComponent(String(id))}`, {
       headers: this.defaultHeaders,
       cache: 'no-store',

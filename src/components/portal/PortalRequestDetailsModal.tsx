@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   CalendarDays,
   Clock,
@@ -9,6 +10,10 @@ import {
   AlertTriangle,
   FileCheck2,
   FileX2,
+  History,
+  ExternalLink,
+  PlusCircle,
+  Info,
 } from "lucide-react";
 import {
   Dialog,
@@ -36,28 +41,61 @@ export function PortalRequestDetailsModal({
   absence,
   onCancelSuccess,
 }: PortalRequestDetailsModalProps) {
+  const [detail, setDetail] = React.useState<AbsenceDetail | null>(null);
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
+  // Fetch full details (with approval history) whenever the modal is opened
+  React.useEffect(() => {
+    let isMounted = true;
+    if (isOpen && absence?.id) {
+      PortalApiClient.getMyRequest(absence.id)
+        .then((data) => {
+          if (isMounted) setDetail(data);
+        })
+        .catch(() => {
+          // Fall back gracefully to the passed absence
+        });
+    } else {
+      setDetail(null);
+      setCancelConfirmOpen(false);
+      setCancelReason("");
+      setError(null);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, absence?.id]);
+
   if (!absence) return null;
 
-  const isPending = absence.status === "PENDING";
-  const isApproved = absence.status === "APPROVED";
-  const isRejected = absence.status === "REJECTED";
-  const isCancelled = absence.status === "CANCELLED";
+  const currentAbsence = detail ?? absence;
+  const isPending = currentAbsence.status === "PENDING";
+  const isApproved = currentAbsence.status === "APPROVED";
+  const isRejected = currentAbsence.status === "REJECTED";
+  const isCancelled = currentAbsence.status === "CANCELLED";
 
-  const start = formatDate(absence.startDate);
-  const end = formatDate(absence.endDate);
-  const workingDays = Number(absence.retainedDays || absence.calculatedWorkingDays);
-  const calendarDays = Number(absence.enteredDays);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const absenceStartDate = new Date(currentAbsence.startDate);
+  absenceStartDate.setHours(0, 0, 0, 0);
+
+  const isFutureApproved = isApproved && absenceStartDate > today;
+  const isStartedApproved = isApproved && absenceStartDate <= today;
+  const canCancel = isPending || isFutureApproved;
+
+  const start = formatDate(currentAbsence.startDate);
+  const end = formatDate(currentAbsence.endDate);
+  const workingDays = Number(currentAbsence.retainedDays || currentAbsence.calculatedWorkingDays);
+  const calendarDays = Number(currentAbsence.enteredDays);
 
   const handleCancel = async () => {
     setIsCancelling(true);
     setError(null);
     try {
-      await PortalApiClient.cancelMyRequest(absence.id, cancelReason);
+      await PortalApiClient.cancelMyRequest(currentAbsence.id, cancelReason);
       setCancelConfirmOpen(false);
       if (onCancelSuccess) onCancelSuccess();
       onClose();
@@ -76,13 +114,13 @@ export function PortalRequestDetailsModal({
           <div className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" />
             <div>
-              <DialogTitle>Détail de votre demande #{absence.id}</DialogTitle>
+              <DialogTitle>Détail de votre demande #{currentAbsence.id}</DialogTitle>
               <DialogDescription>
-                Soumise le {formatDate(absence.requestDate)}
+                Soumise le {formatDate(currentAbsence.requestDate || currentAbsence.createdAt)}
               </DialogDescription>
             </div>
           </div>
-          <StatusBadge status={absence.status} size="md" />
+          <StatusBadge status={currentAbsence.status} size="md" />
         </div>
       </DialogHeader>
 
@@ -97,25 +135,25 @@ export function PortalRequestDetailsModal({
         <div className="p-3.5 rounded-xl border border-border bg-muted/30 text-xs space-y-1">
           {isPending && (
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4 shrink-0" />
               <span>Demande en attente d&apos;arbitrage managérial ou RH</span>
             </div>
           )}
           {isApproved && (
             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Congé approuvé et décompté de votre solde</span>
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>Congé validé et décompté de votre solde</span>
             </div>
           )}
           {isRejected && (
             <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-semibold">
-              <XCircle className="h-4 w-4" />
+              <XCircle className="h-4 w-4 shrink-0" />
               <span>Demande refusée par les Ressources Humaines</span>
             </div>
           )}
           {isCancelled && (
             <div className="flex items-center gap-2 text-muted-foreground font-semibold">
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>Demande clôturée et annulée</span>
             </div>
           )}
@@ -128,16 +166,19 @@ export function PortalRequestDetailsModal({
             <div className="font-bold text-foreground text-sm flex items-center gap-1.5">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: absence.type.colorHex || "#3b82f6" }}
+                style={{ backgroundColor: currentAbsence.type?.colorHex || "#3b82f6" }}
               />
-              <span>{absence.type.name}</span>
+              <span className="truncate">{currentAbsence.type?.name || "Absence"}</span>
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {currentAbsence.type?.isDeductible ? "Déductible du solde annuel" : "Non déductible"}
             </div>
           </div>
 
           <div className="p-3 rounded-xl border border-border bg-card space-y-1">
             <span className="text-muted-foreground">Motif statutaire</span>
-            <div className="font-bold text-foreground text-sm">
-              {absence.reason?.name || "Congé annuel payé"}
+            <div className="font-bold text-foreground text-sm truncate">
+              {currentAbsence.reason?.name || "Congé annuel standard"}
             </div>
           </div>
 
@@ -147,12 +188,16 @@ export function PortalRequestDetailsModal({
               {start === end ? `Le ${start}` : `Du ${start} au ${end}`}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              {absence.fraction === "FULL_DAY" ? "Journée entière" : "Demi-journée"}
+              {currentAbsence.fraction === "FULL_DAY"
+                ? "Journée entière"
+                : currentAbsence.fraction === "HALF_DAY_MORNING"
+                ? "Demi-journée (Matin)"
+                : "Demi-journée (Après-midi)"}
             </div>
           </div>
 
           <div className="p-3 rounded-xl border border-primary/20 bg-primary/5 space-y-1">
-            <span className="text-primary font-medium">Jours ouvrés décomptés</span>
+            <span className="text-primary font-medium">Jours ouvrés retenus</span>
             <div className="font-extrabold text-primary text-base">
               {workingDays} <span className="text-xs font-normal">jours</span>
             </div>
@@ -162,38 +207,74 @@ export function PortalRequestDetailsModal({
           </div>
         </div>
 
-        {/* Supporting Document */}
+        {/* Supporting Document Status */}
         <div className="p-3 rounded-xl border border-border bg-card text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {absence.supportingDocumentProvided ? (
-              <FileCheck2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            {currentAbsence.supportingDocumentProvided ? (
+              <FileCheck2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             ) : (
-              <FileX2 className="h-4 w-4 text-muted-foreground" />
+              <FileX2 className="h-4 w-4 text-muted-foreground shrink-0" />
             )}
             <span className="text-foreground">
-              Justificatif : {absence.supportingDocumentProvided ? "Fourni et enregistré" : "Aucun justificatif déclaré"}
+              Justificatif : {currentAbsence.supportingDocumentProvided ? "Fourni et enregistré au dossier RH" : "Aucun justificatif déclaré"}
             </span>
           </div>
         </div>
 
         {/* Comment */}
-        {absence.comment && (
+        {currentAbsence.comment && (
           <div className="space-y-1 text-xs">
             <span className="text-muted-foreground font-medium">Votre note :</span>
             <div className="p-2.5 rounded-lg border border-border bg-muted/20 text-foreground">
-              {absence.comment}
+              {currentAbsence.comment}
             </div>
           </div>
         )}
 
         {/* Rejection justification if rejected */}
-        {isRejected && absence.rejectionReason && (
+        {isRejected && currentAbsence.rejectionReason && (
           <div className="p-3 rounded-xl border border-rose-300 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 text-xs space-y-1">
             <div className="font-semibold flex items-center gap-1.5">
-              <XCircle className="h-4 w-4 text-rose-600" />
+              <XCircle className="h-4 w-4 text-rose-600 shrink-0" />
               Motif du refus administratif :
             </div>
-            <p>{absence.rejectionReason}</p>
+            <p>{currentAbsence.rejectionReason}</p>
+          </div>
+        )}
+
+        {/* Audit Trail Timeline */}
+        {detail?.approvalHistory && detail.approvalHistory.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border/60">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <History className="h-3.5 w-3.5 text-primary" />
+              Historique des actions
+            </span>
+            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              {detail.approvalHistory.map((h) => (
+                <div key={h.id} className="p-2 rounded-lg border border-border/60 bg-muted/20 text-xs space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground">
+                      {h.action === "SUBMITTED" && "Demande transmise"}
+                      {h.action === "APPROVED" && "Demande approuvée"}
+                      {h.action === "REJECTED" && "Demande refusée"}
+                      {h.action === "CANCELLED" && "Demande annulée"}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">{formatDate(h.createdAt)}</span>
+                  </div>
+                  {h.comment && (
+                    <p className="text-[11px] text-muted-foreground italic">&ldquo;{h.comment}&rdquo;</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Informative notice for started approved leaves */}
+        {isStartedApproved && (
+          <div className="p-3 rounded-xl border border-border bg-muted/30 text-xs text-muted-foreground flex items-center gap-2">
+            <Info className="h-4 w-4 text-primary shrink-0" />
+            <span>Ce congé a déjà débuté ou est passé. Toute régularisation nécessite l&apos;intervention du service RH.</span>
           </div>
         )}
 
@@ -205,7 +286,7 @@ export function PortalRequestDetailsModal({
             </p>
             <input
               type="text"
-              placeholder="Motif d'annulation optionnel (ex: changement de projet...)"
+              placeholder="Motif d'annulation optionnel (ex: changement d'agenda...)"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               className="w-full px-2.5 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none"
@@ -235,15 +316,34 @@ export function PortalRequestDetailsModal({
       </div>
 
       <DialogFooter>
-        {isPending && !cancelConfirmOpen && (
+        <Link
+          href={`/portal/requests/${currentAbsence.id}`}
+          onClick={onClose}
+          className="text-xs text-primary hover:underline flex items-center gap-1 mr-auto font-medium"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Fiche complète
+        </Link>
+
+        {canCancel && !cancelConfirmOpen && (
           <Button
             variant="outline"
             onClick={() => setCancelConfirmOpen(true)}
-            className="text-xs text-muted-foreground hover:text-destructive hover:border-destructive mr-auto"
+            className="text-xs text-muted-foreground hover:text-destructive hover:border-destructive"
           >
             Annuler cette demande
           </Button>
         )}
+
+        {(isRejected || isCancelled) && (
+          <Link href="/portal/requests/new" onClick={onClose}>
+            <Button size="sm" variant="outline" className="text-xs flex items-center gap-1">
+              <PlusCircle className="h-3.5 w-3.5" />
+              Nouvelle demande
+            </Button>
+          </Link>
+        )}
+
         <Button variant="outline" onClick={onClose} className="text-xs">
           Fermer
         </Button>

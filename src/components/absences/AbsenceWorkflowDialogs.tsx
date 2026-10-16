@@ -16,7 +16,7 @@ import { AbsenceApiClient, AbsenceListItem, AbsenceDetail } from "@/src/lib/api/
 interface WorkflowDialogBaseProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (updated?: AbsenceListItem) => void;
   absence: AbsenceListItem | AbsenceDetail | null;
 }
 
@@ -33,14 +33,22 @@ export function ApproveAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setComment("");
+      setError(null);
+    }
+  }, [isOpen]);
+
   if (!absence) return null;
 
   const handleApprove = async () => {
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
     try {
-      await AbsenceApiClient.approveAbsence(absence.id, comment);
-      onSuccess();
+      const updated = await AbsenceApiClient.approveAbsence(absence.id, comment);
+      onSuccess(updated);
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur lors de l'approbation.";
@@ -51,7 +59,7 @@ export function ApproveAbsenceDialog({
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} size="sm">
+    <Dialog isOpen={isOpen} onClose={isLoading ? () => {} : onClose} size="sm">
       <DialogHeader>
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -119,6 +127,7 @@ export function ApproveAbsenceDialog({
         <Button
           onClick={handleApprove}
           isLoading={isLoading}
+          disabled={isLoading}
           className="bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           Valider la demande
@@ -141,9 +150,17 @@ export function RejectAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setReason("");
+      setError(null);
+    }
+  }, [isOpen]);
+
   if (!absence) return null;
 
   const handleReject = async () => {
+    if (isLoading) return;
     if (!reason.trim() || reason.trim().length < 3) {
       setError("Le motif de refus est obligatoire (minimum 3 caractères).");
       return;
@@ -152,8 +169,8 @@ export function RejectAbsenceDialog({
     setIsLoading(true);
     setError(null);
     try {
-      await AbsenceApiClient.rejectAbsence(absence.id, reason.trim());
-      onSuccess();
+      const updated = await AbsenceApiClient.rejectAbsence(absence.id, reason.trim());
+      onSuccess(updated);
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur lors du refus.";
@@ -164,7 +181,7 @@ export function RejectAbsenceDialog({
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} size="sm">
+    <Dialog isOpen={isOpen} onClose={isLoading ? () => {} : onClose} size="sm">
       <DialogHeader>
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
@@ -235,7 +252,7 @@ export function RejectAbsenceDialog({
           variant="destructive"
           onClick={handleReject}
           isLoading={isLoading}
-          disabled={!reason.trim()}
+          disabled={isLoading || reason.trim().length < 3}
         >
           Rejeter la demande
         </Button>
@@ -257,14 +274,22 @@ export function CancelAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setReason("");
+      setError(null);
+    }
+  }, [isOpen]);
+
   if (!absence) return null;
 
   const handleCancel = async () => {
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
     try {
-      await AbsenceApiClient.cancelAbsence(absence.id, reason.trim());
-      onSuccess();
+      const updated = await AbsenceApiClient.cancelAbsence(absence.id, reason.trim());
+      onSuccess(updated);
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur lors de l'annulation.";
@@ -275,7 +300,7 @@ export function CancelAbsenceDialog({
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} size="sm">
+    <Dialog isOpen={isOpen} onClose={isLoading ? () => {} : onClose} size="sm">
       <DialogHeader>
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
@@ -339,6 +364,7 @@ export function CancelAbsenceDialog({
           variant="destructive"
           onClick={handleCancel}
           isLoading={isLoading}
+          disabled={isLoading}
         >
           Confirmer l&apos;annulation
         </Button>
@@ -346,3 +372,4 @@ export function CancelAbsenceDialog({
     </Dialog>
   );
 }
+

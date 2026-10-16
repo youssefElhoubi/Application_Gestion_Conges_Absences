@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   PlusCircle,
   FileCheck2,
   Eye,
   RotateCcw,
+  ExternalLink,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
@@ -27,6 +30,9 @@ import { AbsenceListItem, AbsenceTypeItem } from "@/src/lib/api/absence-client";
 import { formatDate } from "@/src/lib/utils";
 
 function MyRequestsContent() {
+  const searchParams = useSearchParams();
+  const queryId = searchParams.get("id");
+
   const [profileData, setProfileData] = React.useState<PortalProfileData | null>(null);
   const [requests, setRequests] = React.useState<AbsenceListItem[]>([]);
   const [types, setTypes] = React.useState<AbsenceTypeItem[]>([]);
@@ -49,6 +55,15 @@ function MyRequestsContent() {
   const [newRequestOpen, setNewRequestOpen] = React.useState(false);
   const [selectedAbsence, setSelectedAbsence] = React.useState<AbsenceListItem | null>(null);
   const [refreshKey, setRefreshKey] = React.useState(0);
+
+  // Deep link opening if ?id= is in query string
+  React.useEffect(() => {
+    if (queryId) {
+      PortalApiClient.getMyRequest(queryId)
+        .then((data) => setSelectedAbsence(data))
+        .catch(() => {});
+    }
+  }, [queryId]);
 
   // Load profile context and types
   React.useEffect(() => {
@@ -307,6 +322,9 @@ function MyRequestsContent() {
                   />
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] font-mono text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded font-semibold">
+                        #{req.id}
+                      </span>
                       <span className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
                         {req.type.name}
                       </span>
@@ -316,6 +334,16 @@ function MyRequestsContent() {
                         </span>
                       )}
                       <StatusBadge status={req.status} size="sm" />
+                      {req.status === "PENDING" && (
+                        <span className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full font-medium">
+                          Annulable
+                        </span>
+                      )}
+                      {req.status === "APPROVED" && (
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium">
+                          {new Date(req.startDate) > new Date() ? "Validé (Annulable)" : "Validé"}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
@@ -334,24 +362,36 @@ function MyRequestsContent() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-2 md:pt-0 border-border/50">
+                <div className="flex items-center justify-between md:justify-end gap-3 border-t md:border-t-0 pt-2 md:pt-0 border-border/50">
                   <div className="text-right">
                     <div className="text-sm font-extrabold text-foreground">
                       {days} {days > 1 ? "jours ouvrés" : "jour ouvré"}
                     </div>
                     <div className="text-[11px] text-muted-foreground">
-                      Demandé le {formatDate(req.requestDate)}
+                      {Number(req.enteredDays)} j. cal. • Demandé le {formatDate(req.requestDate || req.createdAt)}
                     </div>
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground group-hover:text-primary h-8 px-2"
-                  >
-                    <Eye className="h-3.5 w-3.5 mr-1" />
-                    Détails
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedAbsence(req)}
+                      className="text-xs text-muted-foreground group-hover:text-primary h-8 px-2"
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1" />
+                      Détails
+                    </Button>
+
+                    <Link
+                      href={`/portal/requests/${req.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center text-xs text-muted-foreground hover:text-primary p-1.5 rounded-md hover:bg-muted transition-colors"
+                      title="Ouvrir la fiche complète"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

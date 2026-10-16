@@ -506,13 +506,31 @@ function AbsencesDirectoryContent() {
 
       {/* KPI Stats Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard
-          title="En attente de validation"
-          value={pendingCount}
-          description="Demandes nécessitant l'arbitrage RH"
-          valueColor={pendingCount > 0 ? "warning" : "default"}
-          icon={<Clock className="h-5 w-5 text-amber-500" />}
-        />
+        <div
+          onClick={() => {
+            setSelectedStatus((prev) => (prev === "PENDING" ? "ALL" : "PENDING"));
+            setCurrentPage(1);
+          }}
+          className="cursor-pointer group"
+          title="Cliquer pour afficher uniquement les demandes en attente d'arbitrage RH"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              setSelectedStatus((prev) => (prev === "PENDING" ? "ALL" : "PENDING"));
+              setCurrentPage(1);
+            }
+          }}
+        >
+          <StatCard
+            title="En attente de validation"
+            value={pendingCount}
+            description="Demandes nécessitant l'arbitrage RH"
+            valueColor={pendingCount > 0 ? "warning" : "default"}
+            icon={<Clock className="h-5 w-5 text-amber-500" />}
+            className={selectedStatus === "PENDING" ? "ring-2 ring-amber-500 bg-amber-500/5 shadow-sm" : undefined}
+          />
+        </div>
 
         <StatCard
           title="Congés en cours aujourd'hui"
@@ -687,8 +705,9 @@ function AbsencesDirectoryContent() {
           setApproveDialogOpen(false);
           setTargetAbsenceForWorkflow(null);
         }}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été validée avec succès.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "APPROVED";
+          setSuccessMessage(`La demande #${targetAbsenceForWorkflow?.id} a été validée avec succès (statut confirmé : ${status}).`);
           triggerRefresh();
         }}
         absence={targetAbsenceForWorkflow}
@@ -701,8 +720,9 @@ function AbsencesDirectoryContent() {
           setRejectDialogOpen(false);
           setTargetAbsenceForWorkflow(null);
         }}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été refusée.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "REJECTED";
+          setSuccessMessage(`La demande #${targetAbsenceForWorkflow?.id} a été refusée (statut confirmé : ${status}).`);
           triggerRefresh();
         }}
         absence={targetAbsenceForWorkflow}
@@ -715,8 +735,9 @@ function AbsencesDirectoryContent() {
           setCancelDialogOpen(false);
           setTargetAbsenceForWorkflow(null);
         }}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été annulée.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "CANCELLED";
+          setSuccessMessage(`La demande #${targetAbsenceForWorkflow?.id} a été annulée (statut confirmé : ${status}).`);
           triggerRefresh();
         }}
         absence={targetAbsenceForWorkflow}

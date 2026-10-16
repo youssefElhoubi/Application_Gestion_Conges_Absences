@@ -35,6 +35,7 @@ import {
   AbsenceDetail,
 } from "@/src/lib/api/absence-client";
 import { EmployeeApiClient, EmployeeBalances } from "@/src/lib/api/employee-client";
+import { PortalApiClient, PortalProfileData } from "@/src/lib/api/portal-client";
 import { AbsenceModalForm } from "@/src/components/absences/AbsenceModalForm";
 import {
   ApproveAbsenceDialog,
@@ -51,6 +52,7 @@ function AbsenceDetailsContent() {
   // Data State
   const [absence, setAbsence] = React.useState<AbsenceDetail | null>(null);
   const [balances, setBalances] = React.useState<EmployeeBalances | null>(null);
+  const [currentProfile, setCurrentProfile] = React.useState<PortalProfileData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
@@ -62,6 +64,13 @@ function AbsenceDetailsContent() {
   const [cancelDialogOpen, setCancelDialogOpen] = React.useState(false);
 
   const [refreshKey, setRefreshKey] = React.useState(0);
+
+  // Load current user profile for role & self-approval validation
+  React.useEffect(() => {
+    PortalApiClient.getPortalData()
+      .then((p: PortalProfileData) => setCurrentProfile(p))
+      .catch(() => {});
+  }, []);
 
   // Fetch Absence Detail and Employee Balances
   React.useEffect(() => {
@@ -159,6 +168,12 @@ function AbsenceDetailsContent() {
   const workingDays = Number(absence.retainedDays || absence.calculatedWorkingDays);
   const calendarDays = Number(absence.enteredDays);
 
+  const isSelfRequester = Boolean(
+    currentProfile?.employee?.employeeId &&
+    absence.employeeId &&
+    currentProfile.employee.employeeId === absence.employeeId
+  );
+
   return (
     <PageContainer>
       {/* Back Link & Breadcrumb */}
@@ -210,47 +225,60 @@ function AbsenceDetailsContent() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {isPending && (
-            <>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {isSelfRequester && isPending && (
+            <div className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+              <span>Auto-arbitrage interdit : vous ne pouvez pas valider ou rejeter votre propre demande.</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {isPending && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditModalOpen(true)}
+                  leftIcon={<Edit2 className="h-3.5 w-3.5" />}
+                >
+                  Modifier
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setRejectDialogOpen(true)}
+                  disabled={isSelfRequester}
+                  title={isSelfRequester ? "L'auto-approbation est interdite" : "Rejeter la demande"}
+                  leftIcon={<XCircle className="h-3.5 w-3.5" />}
+                >
+                  Rejeter
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setApproveDialogOpen(true)}
+                  disabled={isSelfRequester}
+                  title={isSelfRequester ? "L'auto-approbation est interdite" : "Valider la demande"}
+                  leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-50"
+                >
+                  Valider
+                </Button>
+              </>
+            )}
+
+            {(isPending || isApproved) && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setEditModalOpen(true)}
-                leftIcon={<Edit2 className="h-3.5 w-3.5" />}
+                onClick={() => setCancelDialogOpen(true)}
+                leftIcon={<AlertTriangle className="h-3.5 w-3.5" />}
+                className="text-muted-foreground hover:text-destructive hover:border-destructive"
               >
-                Modifier
+                Annuler la demande
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setRejectDialogOpen(true)}
-                leftIcon={<XCircle className="h-3.5 w-3.5" />}
-              >
-                Rejeter
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setApproveDialogOpen(true)}
-                leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-              >
-                Valider
-              </Button>
-            </>
-          )}
-
-          {(isPending || isApproved) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCancelDialogOpen(true)}
-              leftIcon={<AlertTriangle className="h-3.5 w-3.5" />}
-              className="text-muted-foreground hover:text-destructive hover:border-destructive"
-            >
-              Annuler la demande
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -662,8 +690,9 @@ function AbsenceDetailsContent() {
       <ApproveAbsenceDialog
         isOpen={approveDialogOpen}
         onClose={() => setApproveDialogOpen(false)}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été validée avec succès.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "APPROVED";
+          setSuccessMessage(`La demande #${absence.id} a été validée avec succès. Statut confirmé par le serveur : ${status}.`);
           triggerRefresh();
         }}
         absence={absence}
@@ -673,8 +702,9 @@ function AbsenceDetailsContent() {
       <RejectAbsenceDialog
         isOpen={rejectDialogOpen}
         onClose={() => setRejectDialogOpen(false)}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été refusée.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "REJECTED";
+          setSuccessMessage(`La demande #${absence.id} a été refusée. Statut confirmé par le serveur : ${status}.`);
           triggerRefresh();
         }}
         absence={absence}
@@ -684,8 +714,9 @@ function AbsenceDetailsContent() {
       <CancelAbsenceDialog
         isOpen={cancelDialogOpen}
         onClose={() => setCancelDialogOpen(false)}
-        onSuccess={() => {
-          setSuccessMessage("La demande d'absence a été annulée.");
+        onSuccess={(updated) => {
+          const status = updated?.status ?? "CANCELLED";
+          setSuccessMessage(`La demande #${absence.id} a été annulée. Statut confirmé par le serveur : ${status}.`);
           triggerRefresh();
         }}
         absence={absence}
