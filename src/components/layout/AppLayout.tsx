@@ -42,26 +42,36 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => 
   return (
     <div className={cn("min-h-screen flex bg-background text-foreground antialiased", className)}>
       {/* Mobile Drawer Navigation (Small/Medium screens) */}
+
+      {/* Mobile Drawer Navigation */}
       <MobileNav
         isOpen={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
       />
 
-      {/* Desktop Collapsible Sidebar (Large screens) */}
-      <div className="hidden lg:flex">
+      {/* Desktop Layout */}
+      <div className="hidden lg:block">
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
+          className="fixed inset-y-0 left-0 z-40"
         />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div
+        className={cn(
+          "flex min-h-screen min-w-0 flex-col transition-[margin] duration-300 ease-in-out",
+          sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
+        )}
+      >
         <Header onOpenMobileNav={() => setMobileNavOpen(true)} />
-        <div className="flex-1 flex flex-col min-w-0">
+
+        <div className="flex min-w-0 flex-1 flex-col">
           {children}
         </div>
       </div>
+
     </div>
   );
 };

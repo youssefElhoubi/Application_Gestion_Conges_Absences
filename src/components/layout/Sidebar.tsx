@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "relative flex flex-col h-screen border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out shrink-0 select-none z-30",
+        "sticky flex flex-col h-screen border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out shrink-0 select-none z-30",
         collapsed ? "w-18" : "w-64",
         className
       )}
