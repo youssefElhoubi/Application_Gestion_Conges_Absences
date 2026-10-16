@@ -19,6 +19,7 @@ import {
   Send,
   Building2,
   Calendar,
+  Edit2,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
@@ -31,6 +32,7 @@ import {
   PortalProfileData,
 } from "@/src/lib/api/portal-client";
 import { AbsenceDetail } from "@/src/lib/api/absence-client";
+import { AbsenceModalForm } from "@/src/components/absences/AbsenceModalForm";
 import { formatDate } from "@/src/lib/utils";
 
 function RequestDetailContent() {
@@ -43,7 +45,8 @@ function RequestDetailContent() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Cancellation state
+  // Edit and cancellation state
+  const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState("");
   const [isCancelling, setIsCancelling] = React.useState(false);
@@ -388,6 +391,18 @@ function RequestDetailContent() {
 
               {canCancel ? (
                 <div className="space-y-3 text-xs">
+                  {isPending && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditModalOpen(true)}
+                      className="w-full text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Edit2 className="h-3.5 w-3.5 text-primary" />
+                      Modifier ma demande
+                    </Button>
+                  )}
+
                   {!cancelOpen ? (
                     <div>
                       <p className="text-muted-foreground mb-3">
@@ -499,6 +514,18 @@ function RequestDetailContent() {
             </div>
           </div>
         </div>
+
+        {/* Edit Absence Modal */}
+        <AbsenceModalForm
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onSuccess={() => {
+            setCancelSuccessMsg("Votre demande d'absence a été modifiée avec succès.");
+            loadData();
+          }}
+          mode="edit"
+          initialData={absence}
+        />
       </div>
     </PageContainer>
   );

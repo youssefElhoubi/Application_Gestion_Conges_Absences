@@ -14,6 +14,7 @@ import {
   ExternalLink,
   PlusCircle,
   Info,
+  Edit2,
 } from "lucide-react";
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { StatusBadge } from "@/src/components/shared/StatusBadge";
 import { AbsenceListItem, AbsenceDetail } from "@/src/lib/api/absence-client";
+import { AbsenceModalForm } from "@/src/components/absences/AbsenceModalForm";
 import { PortalApiClient } from "@/src/lib/api/portal-client";
 import { formatDate } from "@/src/lib/utils";
 
@@ -42,6 +44,7 @@ export function PortalRequestDetailsModal({
   onCancelSuccess,
 }: PortalRequestDetailsModalProps) {
   const [detail, setDetail] = React.useState<AbsenceDetail | null>(null);
+  const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState("");
@@ -325,6 +328,18 @@ export function PortalRequestDetailsModal({
           Fiche complète
         </Link>
 
+        {isPending && !cancelConfirmOpen && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditModalOpen(true)}
+            className="text-xs flex items-center gap-1"
+          >
+            <Edit2 className="h-3.5 w-3.5 text-primary" />
+            Modifier
+          </Button>
+        )}
+
         {canCancel && !cancelConfirmOpen && (
           <Button
             variant="outline"
@@ -348,6 +363,18 @@ export function PortalRequestDetailsModal({
           Fermer
         </Button>
       </DialogFooter>
+
+      {/* Edit Absence Modal */}
+      <AbsenceModalForm
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={() => {
+          if (onCancelSuccess) onCancelSuccess();
+          onClose();
+        }}
+        mode="edit"
+        initialData={currentAbsence}
+      />
     </Dialog>
   );
 }

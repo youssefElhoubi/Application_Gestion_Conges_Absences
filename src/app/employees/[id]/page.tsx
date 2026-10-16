@@ -18,6 +18,7 @@ import {
   Award,
   Sparkles,
   CheckCircle2,
+  Plus,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
@@ -43,6 +44,7 @@ import {
 } from "@/src/lib/api/employee-client";
 import { toggleEmployeeActiveAction } from "@/src/modules/employees/employee.actions";
 import { EmployeeModalForm } from "@/src/components/employees/EmployeeModalForm";
+import { AbsenceModalForm } from "@/src/components/absences/AbsenceModalForm";
 import { formatDate } from "@/src/lib/utils";
 
 export default function EmployeeProfilePage() {
@@ -64,6 +66,7 @@ export default function EmployeeProfilePage() {
 
   // Modals
   const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [createAbsenceModalOpen, setCreateAbsenceModalOpen] = React.useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
   const [statusToggling, setStatusToggling] = React.useState(false);
 
@@ -614,6 +617,16 @@ export default function EmployeeProfilePage() {
           <SectionHeader
             title="Historique Complet des Demandes d'Absence"
             description={`Toutes les demandes enregistrées au registre pour ${employee.fullName}`}
+            actions={
+              <Button
+                size="sm"
+                onClick={() => setCreateAbsenceModalOpen(true)}
+                leftIcon={<Plus className="h-4 w-4" />}
+                className="text-xs"
+              >
+                Nouvelle Demande
+              </Button>
+            }
           />
 
           {absences.length === 0 ? (
@@ -639,6 +652,7 @@ export default function EmployeeProfilePage() {
                       <th className="px-4 py-3">Statut</th>
                       <th className="px-4 py-3">Justificatif</th>
                       <th className="px-4 py-3">Motif / Commentaire</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -674,6 +688,13 @@ export default function EmployeeProfilePage() {
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground max-w-xs truncate">
                           {abs.comment || abs.reason?.name || "—"}
+                        </td>
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                          <Link href={`/absences/${abs.id}`}>
+                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                              Détails
+                            </Button>
+                          </Link>
                         </td>
                       </tr>
                     ))}
@@ -791,6 +812,18 @@ export default function EmployeeProfilePage() {
         cancelLabel="Annuler"
         variant={employee.active ? "destructive" : "primary"}
         isLoading={statusToggling}
+      />
+
+      {/* Create Absence Modal for this Employee */}
+      <AbsenceModalForm
+        isOpen={createAbsenceModalOpen}
+        onClose={() => setCreateAbsenceModalOpen(false)}
+        mode="create"
+        defaultEmployeeId={employee.employeeId}
+        onSuccess={() => {
+          setSuccessMessage("La demande d'absence a été créée avec succès pour ce collaborateur.");
+          reloadData();
+        }}
       />
     </PageContainer>
   );

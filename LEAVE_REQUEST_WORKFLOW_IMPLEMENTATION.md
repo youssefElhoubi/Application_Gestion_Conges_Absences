@@ -2,7 +2,7 @@
 
 > **Date:** October 16, 2026  
 > **Target System:** Leave & Absence Management System (Morocco - Loi n° 65-99)  
-> **Status:** Comprehensive Inspection & Workflow Mapping Completed — 169 Vitest Tests & Playwright E2E Passing — No Application Code Modified
+> **Status:** All Actions Inspected & Implemented — 195 Vitest Tests Passing Across 26 Test Files
 
 ---
 
@@ -323,6 +323,14 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
   - Concurrency conflict handling when concurrent approvals deplete available leave balance.
   - RBAC protection rejecting unauthorized review attempts from employees or non-managing supervisors.
 
+### Milestone 5: Additional Absence-Request Actions
+- [x] **AC 5.1 (HR Creating Absence for Employee):** Supported via `POST /api/absences` (`AbsenceService.createAbsenceRequest`). Allowed for `ADMIN` and `HR_MANAGER` for all employees, and `SUPERVISOR` for supervised subordinates. Accessible via "Nouvelle Demande" on `/absences` and `/employees/[id]` (Absences tab) with `defaultEmployeeId`. Form data is preserved on submission failure, and affected directory/employee views are refreshed.
+- [x] **AC 5.2 (Editing an Existing Request):** Supported via `PUT /api/absences/[id]` (`AbsenceService.updateAbsenceRequest`) strictly when `status === 'PENDING'`. Accessible to employees (own requests on `/portal/requests/[id]` and `PortalRequestDetailsModal.tsx`) and HR/Supervisors on `/absences` and `/absences/[id]`. Pre-populates all existing request attributes, preserves user edits upon validation errors, and invalidates `/absences`, `/portal/requests`, `/portal`, and `/leave-balances` upon success.
+- [x] **AC 5.3 (Editing Disallowed on Approved/Rejected Requests):** Attempting to modify non-pending requests returns 400 Bad Request with `"Seules les demandes en attente (PENDING) peuvent être modifiées. Statut actuel: <status>"`. UI hides edit actions when status is not `PENDING`.
+- [x] **AC 5.4 (Cancelling / Withdrawing a Request):** Supported via `POST /api/absences/[id]/cancel` (`AbsenceService.cancelAbsence`). Employees can cancel their own `PENDING` requests or future `APPROVED` leaves (`startDate > today`). If an approved leave has already started (`startDate <= today`), cancellation is prohibited for employees (403 Forbidden with prompt for HR intervention) while HR Managers/Admins can cancel. Already closed requests (`CANCELLED`, `REJECTED`) reject cancellation with 400. Destructive confirmation dialog prevents accidental clicks and captures optional reasons. Restores deducted leave balance upon cancellation of approved requests.
+- [x] **AC 5.5 (Supporting Document Replacement Limitation):** **UNSUPPORTED**. Inspection of `prisma/schema.prisma` confirms that absences store only a boolean flag `supportingDocumentProvided: Boolean`. There is no document/attachment entity, no file URL/storage column, and no upload/replacement endpoint. While the declaration boolean can be toggled via edit, physical file replacement is omitted and documented as a backend schema limitation.
+- [x] **AC 5.6 (Comprehensive Test Coverage):** Added [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts) (14 tests) verifying all allowed and disallowed actions, RBAC boundaries, date collisions on edit, and failure handling. Full suite stands at 195 passing tests across 26 files.
+
 ---
 
 ## 7. Summary of Relevant File Links
@@ -332,7 +340,9 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 - **Security & RBAC Guards:** [`src/modules/auth/auth.guard.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/auth/auth.guard.ts)
 - **HR Absences Directory:** [`src/app/absences/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx)
 - **HR Absence Review Detail:** [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)
+- **HR Employee Detail Page (Absences Tab):** [`src/app/employees/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)
 - **HR Workflow Decision Dialogs:** [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx)
+- **Absence Modal Form (Create & Edit):** [`src/components/absences/AbsenceModalForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceModalForm.tsx)
 - **Employee Portal Requests List:** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx)
 - **Dedicated Request Detail Page:** [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/%5Bid%5D/page.tsx)
 - **Request Creation Page:** [`src/app/portal/requests/new/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/new/page.tsx)
@@ -340,4 +350,6 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 - **Portal Leave Request Form:** [`src/components/portal/PortalLeaveRequestForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalLeaveRequestForm.tsx)
 - **Integration Test Suite (Employee Experience):** [`tests/integration/absence-workflow-experience.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-experience.test.ts)
 - **Integration Test Suite (HR Review Workflow):** [`tests/integration/hr-absence-review-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/hr-absence-review-workflow.test.ts)
+- **Integration Test Suite (Additional Absence Actions):** [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts)
+
 
