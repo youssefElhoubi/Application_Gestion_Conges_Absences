@@ -304,7 +304,11 @@ function PortalHomeContent() {
         onClose={() => setSelectedAbsence(null)}
         absence={selectedAbsence}
         onCancelSuccess={() => {
-          setSuccessMessage("La demande a été annulée avec succès.");
+          setSuccessMessage("La demande d'absence a été annulée avec succès.");
+          triggerRefresh();
+        }}
+        onEditSuccess={(updated) => {
+          setSuccessMessage(`Votre demande d'absence #${updated.id} a été modifiée avec succès.`);
           triggerRefresh();
         }}
       />

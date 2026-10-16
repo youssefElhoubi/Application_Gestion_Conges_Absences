@@ -4,6 +4,7 @@ import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { CreateAbsenceSchema, AbsenceQuerySchema } from '@/src/modules/absences/absence.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,9 +25,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = CreateAbsenceSchema.parse(body);
     const created = await AbsenceService.createAbsenceRequest(validated, session);
-    revalidatePath('/absences');
-    revalidatePath('/portal/requests');
-    revalidatePath('/');
+    revalidateAbsencePaths(created.id, created.employeeId);
     return NextResponse.json(serializeForClient(created), { status: 201 });
   } catch (error: any) {
     const status = error.statusCode ?? 400;

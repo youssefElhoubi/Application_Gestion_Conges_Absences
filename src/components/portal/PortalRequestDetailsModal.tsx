@@ -35,6 +35,7 @@ export interface PortalRequestDetailsModalProps {
   onClose: () => void;
   absence: AbsenceListItem | AbsenceDetail | null;
   onCancelSuccess?: () => void;
+  onEditSuccess?: (updated: AbsenceListItem) => void;
 }
 
 export function PortalRequestDetailsModal({
@@ -42,6 +43,7 @@ export function PortalRequestDetailsModal({
   onClose,
   absence,
   onCancelSuccess,
+  onEditSuccess,
 }: PortalRequestDetailsModalProps) {
   const [detail, setDetail] = React.useState<AbsenceDetail | null>(null);
   const [editModalOpen, setEditModalOpen] = React.useState(false);
@@ -368,8 +370,13 @@ export function PortalRequestDetailsModal({
       <AbsenceModalForm
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        onSuccess={() => {
-          if (onCancelSuccess) onCancelSuccess();
+        onSuccess={(updated) => {
+          setEditModalOpen(false);
+          if (onEditSuccess) {
+            onEditSuccess(updated);
+          } else if (onCancelSuccess) {
+            onCancelSuccess();
+          }
           onClose();
         }}
         mode="edit"

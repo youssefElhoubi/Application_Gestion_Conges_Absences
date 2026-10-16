@@ -2,7 +2,7 @@
 
 > **Date:** October 16, 2026  
 > **Target System:** Leave & Absence Management System (Morocco - Loi n° 65-99)  
-> **Status:** All Actions Inspected & Implemented — 195 Vitest Tests Passing Across 26 Test Files
+> **Status:** Full End-to-End Workflow Audit & Synchronization Completed — 201 Vitest Tests Passing Across 27 Test Files
 
 ---
 
@@ -279,13 +279,13 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 
 | Flow | Initiator Role | Route / Component | API Operation | From Status $\rightarrow$ To Status | Success Response | Error Codes | Screens / Queries to Refresh |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1. Create Request (Self)** | `EMPLOYEE` | `/portal/requests/new`<br>`PortalLeaveRequestForm` | `POST /api/absences` | `None` $\rightarrow$ `PENDING` | `201 Created`<br>`AbsenceListItem` | 400 (Bad input/Domain)<br>401 (Unauth)<br>403 (Mismatch) | `/portal/requests`<br>`/portal` (`/api/me`)<br>`/` (Dashboard Actions)<br>`/absences`<br>`/calendar` |
-| **2. Create Request (HR for Emp)**| `HR_MANAGER`<br>`ADMIN`<br>`SUPERVISOR` | `/absences`<br>`AbsenceModalForm` | `POST /api/absences` | `None` $\rightarrow$ `PENDING` | `201 Created`<br>`AbsenceListItem` | 400 (Bad input/Domain)<br>403 (Not subordinate)<br>401 (Unauth) | `/absences`<br>`/` (Dashboard Actions)<br>Target employee portal |
-| **3. Edit Pending Request** | `EMPLOYEE`<br>`SUPERVISOR`<br>`HR_MANAGER` | `/absences/[id]`<br>`/absences`<br>`AbsenceModalForm` | `PUT /api/absences/:id` | `PENDING` $\rightarrow$ `PENDING` | `200 OK`<br>`AbsenceListItem` | 400 (Not PENDING/Collision)<br>403 (Forbidden)<br>404 (Not found) | `/absences/[id]`<br>`/absences`<br>`/calendar`<br>Employee portal |
-| **4. Cancel Absence** | `EMPLOYEE` (pending/future)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`CancelAbsenceDialog`<br>`PortalRequestDetailsModal` | `POST /api/absences/:id/cancel` | `PENDING` or `APPROVED` $\rightarrow$ `CANCELLED` | `200 OK`<br>`AbsenceListItem` | 400 (Already closed)<br>403 (Started approved / unauth) | `/absences/[id]`<br>`/absences`<br>`/leave-balances`<br>`/` (Dashboard Actions)<br>`/portal/requests` |
-| **5. Approve Absence** | `SUPERVISOR` (team)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`ApproveAbsenceDialog` | `POST /api/absences/:id/approve` | `PENDING` $\rightarrow$ `APPROVED` | `200 OK`<br>`AbsenceListItem` | 400 (Not PENDING/Balance race)<br>403 (Self-approval/unauth) | `/absences/[id]`<br>`/absences`<br>`/leave-balances`<br>`/` (Dashboard Actions)<br>`/calendar`<br>`/portal` |
-| **6. Reject Absence** | `SUPERVISOR` (team)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`RejectAbsenceDialog` | `POST /api/absences/:id/reject` | `PENDING` $\rightarrow$ `REJECTED` | `200 OK`<br>`AbsenceListItem` | 400 (Missing reason < 3 chars)<br>403 (Self-approval/unauth) | `/absences/[id]`<br>`/absences`<br>`/` (Dashboard Actions)<br>`/portal/requests` |
-| **7. Pre-flight Calculation** | Any authenticated user | `PortalLeaveRequestForm`<br>`AbsenceModalForm` | `POST /api/absences/calculate` | No State Change | `200 OK`<br>`CalculationPreviewResult` | 400 (Invalid dates/Missing)<br>404 (Emp not found) | Live preview UI card only |
+| **1. Create Request (Self)** | `EMPLOYEE` | `/portal/requests/new`<br>`PortalLeaveRequestForm` | `POST /api/absences` | `None` $\rightarrow$ `PENDING` | `201 Created`<br>`AbsenceListItem` | 400 (Bad input/Domain)<br>401 (Unauth)<br>403 (Mismatch) | `/portal`, `/portal/requests`, `/absences`, `/calendar`, `/leave-balances`, `/`, `/employees/[id]` |
+| **2. Create Request (HR for Emp)**| `HR_MANAGER`<br>`ADMIN`<br>`SUPERVISOR` | `/absences`<br>`AbsenceModalForm` | `POST /api/absences` | `None` $\rightarrow$ `PENDING` | `201 Created`<br>`AbsenceListItem` | 400 (Bad input/Domain)<br>403 (Not subordinate)<br>401 (Unauth) | `/portal`, `/portal/requests`, `/absences`, `/calendar`, `/leave-balances`, `/`, Target `/employees/[id]` |
+| **3. Edit Pending Request** | `EMPLOYEE`<br>`SUPERVISOR`<br>`HR_MANAGER` | `/absences/[id]`<br>`/absences`<br>`AbsenceModalForm` | `PUT /api/absences/:id` | `PENDING` $\rightarrow$ `PENDING` | `200 OK`<br>`AbsenceListItem` | 400 (Not PENDING/Collision)<br>403 (Forbidden)<br>404 (Not found) | `/absences`, `/absences/[id]`, `/portal`, `/portal/requests`, `/portal/requests/[id]`, `/leave-balances`, `/calendar`, `/`, `/employees/[id]` |
+| **4. Cancel Absence** | `EMPLOYEE` (pending/future)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`CancelAbsenceDialog`<br>`PortalRequestDetailsModal` | `POST /api/absences/:id/cancel` | `PENDING` or `APPROVED` $\rightarrow$ `CANCELLED` | `200 OK`<br>`AbsenceListItem` | 400 (Already closed)<br>403 (Started approved / unauth) | `/absences`, `/absences/[id]`, `/portal`, `/portal/requests`, `/portal/requests/[id]`, `/leave-balances`, `/leave-balances/[id]`, `/calendar`, `/`, `/employees/[id]` |
+| **5. Approve Absence** | `SUPERVISOR` (team)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`ApproveAbsenceDialog` | `POST /api/absences/:id/approve` | `PENDING` $\rightarrow$ `APPROVED` | `200 OK`<br>`AbsenceListItem` | 400 (Not PENDING/Balance race)<br>403 (Self-approval/unauth) | `/absences`, `/absences/[id]`, `/portal`, `/portal/requests`, `/portal/requests/[id]`, `/leave-balances`, `/leave-balances/[id]`, `/calendar`, `/`, `/employees/[id]` |
+| **6. Reject Absence** | `SUPERVISOR` (team)<br>`HR_MANAGER` (all) | `/absences/[id]`<br>`RejectAbsenceDialog` | `POST /api/absences/:id/reject` | `PENDING` $\rightarrow$ `REJECTED` | `200 OK`<br>`AbsenceListItem` | 400 (Missing reason < 3 chars)<br>403 (Self-approval/unauth) | `/absences`, `/absences/[id]`, `/portal`, `/portal/requests`, `/portal/requests/[id]`, `/leave-balances`, `/leave-balances/[id]`, `/calendar`, `/`, `/employees/[id]` |
+| **7. Pre-flight Calculation** | Any authenticated user | `PortalLeaveRequestForm`<br>`AbsenceModalForm` | `POST /api/absences/calculate` | No State Change | `200 OK`<br>`CalculationPreviewResult` | 400 (Invalid dates/Missing)<br>404 (Emp not found) | Live preview UI card only (No DB mutation) |
 
 ---
 
@@ -329,20 +329,41 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 - [x] **AC 5.3 (Editing Disallowed on Approved/Rejected Requests):** Attempting to modify non-pending requests returns 400 Bad Request with `"Seules les demandes en attente (PENDING) peuvent être modifiées. Statut actuel: <status>"`. UI hides edit actions when status is not `PENDING`.
 - [x] **AC 5.4 (Cancelling / Withdrawing a Request):** Supported via `POST /api/absences/[id]/cancel` (`AbsenceService.cancelAbsence`). Employees can cancel their own `PENDING` requests or future `APPROVED` leaves (`startDate > today`). If an approved leave has already started (`startDate <= today`), cancellation is prohibited for employees (403 Forbidden with prompt for HR intervention) while HR Managers/Admins can cancel. Already closed requests (`CANCELLED`, `REJECTED`) reject cancellation with 400. Destructive confirmation dialog prevents accidental clicks and captures optional reasons. Restores deducted leave balance upon cancellation of approved requests.
 - [x] **AC 5.5 (Supporting Document Replacement Limitation):** **UNSUPPORTED**. Inspection of `prisma/schema.prisma` confirms that absences store only a boolean flag `supportingDocumentProvided: Boolean`. There is no document/attachment entity, no file URL/storage column, and no upload/replacement endpoint. While the declaration boolean can be toggled via edit, physical file replacement is omitted and documented as a backend schema limitation.
-- [x] **AC 5.6 (Comprehensive Test Coverage):** Added [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts) (14 tests) verifying all allowed and disallowed actions, RBAC boundaries, date collisions on edit, and failure handling. Full suite stands at 195 passing tests across 26 files.
+- [x] **AC 5.6 (Comprehensive Test Coverage):** Added [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts) (14 tests) verifying all allowed and disallowed actions, RBAC boundaries, date collisions on edit, and failure handling.
+
+### Milestone 6: Workflow Consistency, Cross-View Synchronization & System Audit
+- [x] **AC 6.1 (Centralized Cache Revalidation):** Created [`src/modules/absences/absence-revalidation.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence-revalidation.ts) with `revalidateAbsencePaths(absenceId, employeeId)`. Revalidates `/absences`, `/portal/requests`, `/portal`, `/leave-balances`, `/calendar`, `/`, `/absences/[id]`, `/portal/requests/[id]`, `/employees/[id]`, and `/leave-balances/[id]`. Uniformly invoked across all mutation API route handlers (`POST /api/absences`, `PUT /api/absences/[id]`, `POST /api/absences/[id]/approve`, `POST /api/absences/[id]/reject`, `POST /api/absences/[id]/cancel`) and all server actions in `src/modules/absences/absence.actions.ts`.
+- [x] **AC 6.2 (End-to-End Cross-View Synchronization):** Verified that every mutation updates all affected surfaces without manual browser reload:
+  - Employee Portal (`/portal`): Updates balance cards, upcoming leaves list, and recent requests table.
+  - Employee Requests List (`/portal/requests`): Refreshes table rows, pagination, and status filters.
+  - Dedicated Request Details (`/portal/requests/[id]`): Reloads updated record, audit history timeline, and next actions.
+  - HR Directory (`/absences`): Updates rows and live StatCards (pending, active today, approved this month, total days).
+  - HR Request Review (`/absences/[id]`): Refreshes statutory timeline, live employee balances, and action buttons.
+  - HR Dashboard (`/`): Synchronizes pending items in `DashboardActionRequired` and category distribution.
+  - Employee Master Record (`/employees/[id]`): Updates Absences tab history and available statutory balances.
+  - Team Calendar (`/calendar`): Renders approved absence blocks and updates pending event badges.
+- [x] **AC 6.3 (Consistent Notifications & Modal Feedback):** Fixed notification mismatch in `PortalRequestDetailsModal.tsx` by introducing `onEditSuccess` so editing reports `"Votre demande d'absence #${updated.id} a été modifiée avec succès."` rather than erroneously claiming cancellation. Standardized alert titles to `"Opération réussie"` across portal views.
+- [x] **AC 6.4 (Form State Preservation & Safe Retries):** On recoverable failures (overlap collision, seniority threshold, insufficient quota, network issue), both `PortalLeaveRequestForm` and `AbsenceModalForm` preserve all entered form state (dates, fraction, type, reason, comments, document flags) and display actionable error alerts, allowing users to correct and retry without data loss.
+- [x] **AC 6.5 (Double-Click Submission Locks & Layout Stability):** Enforced in-flight submission locks (`isSubmitting` / `isLoading` guards) disabling buttons and modal backdrops during mutations. Preserved stable skeleton placeholders during data fetching to prevent layout shifts.
+- [x] **AC 6.6 (Service-Level Invariant Enforcement):** Integrated Zod schema parsing (`RejectAbsenceSchema`, `ApproveAbsenceSchema`, `CancelAbsenceSchema`) into `AbsenceService` to guarantee that invalid or malicious mutations reject cleanly without corrupting business state.
+- [x] **AC 6.7 (Audit Regression Test Suite):** Added [`tests/integration/absence-workflow-audit.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-audit.test.ts) (6 tests) covering submission, approval, rejection, edit, cancellation, balance restoration, and failed mutation isolation. Full test suite is 201 passing tests across 27 files.
 
 ---
 
 ## 7. Summary of Relevant File Links
 
 - **Application Absence Service:** [`src/modules/absences/absence.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.service.ts)
+- **Centralized Revalidation Helper:** [`src/modules/absences/absence-revalidation.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence-revalidation.ts)
 - **Validation Schemas:** [`src/modules/absences/absence.schema.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.schema.ts)
+- **Server Actions:** [`src/modules/absences/absence.actions.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.actions.ts)
 - **Security & RBAC Guards:** [`src/modules/auth/auth.guard.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/auth/auth.guard.ts)
 - **HR Absences Directory:** [`src/app/absences/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx)
 - **HR Absence Review Detail:** [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)
 - **HR Employee Detail Page (Absences Tab):** [`src/app/employees/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)
+- **HR Dashboard Action Required:** [`src/components/dashboard/DashboardActionRequired.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardActionRequired.tsx)
 - **HR Workflow Decision Dialogs:** [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx)
 - **Absence Modal Form (Create & Edit):** [`src/components/absences/AbsenceModalForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceModalForm.tsx)
+- **Employee Portal Dashboard:** [`src/app/portal/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/page.tsx)
 - **Employee Portal Requests List:** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx)
 - **Dedicated Request Detail Page:** [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/%5Bid%5D/page.tsx)
 - **Request Creation Page:** [`src/app/portal/requests/new/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/new/page.tsx)
@@ -351,5 +372,7 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 - **Integration Test Suite (Employee Experience):** [`tests/integration/absence-workflow-experience.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-experience.test.ts)
 - **Integration Test Suite (HR Review Workflow):** [`tests/integration/hr-absence-review-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/hr-absence-review-workflow.test.ts)
 - **Integration Test Suite (Additional Absence Actions):** [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts)
+- **Integration Test Suite (System Audit & Consistency):** [`tests/integration/absence-workflow-audit.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-audit.test.ts)
+
 
 

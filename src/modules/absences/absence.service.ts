@@ -2,6 +2,9 @@ import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
   CreateAbsenceSchema,
+  ApproveAbsenceSchema,
+  RejectAbsenceSchema,
+  CancelAbsenceSchema,
   CreateAbsenceInput,
   AbsenceQuery,
   ApproveAbsenceInput,
@@ -227,9 +230,10 @@ export class AbsenceService {
    */
   public static async approveAbsence(
     absenceId: bigint,
-    input: ApproveAbsenceInput,
+    rawInput: ApproveAbsenceInput = {},
     session: AuthSession
   ) {
+    const input = ApproveAbsenceSchema.parse(rawInput);
     return await prisma.$transaction(async (tx: any) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },
@@ -294,9 +298,10 @@ export class AbsenceService {
    */
   public static async rejectAbsence(
     absenceId: bigint,
-    input: RejectAbsenceInput,
+    rawInput: RejectAbsenceInput,
     session: AuthSession
   ) {
+    const input = RejectAbsenceSchema.parse(rawInput);
     return await prisma.$transaction(async (tx: any) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },
@@ -342,9 +347,10 @@ export class AbsenceService {
    */
   public static async cancelAbsence(
     absenceId: bigint,
-    input: CancelAbsenceInput,
+    rawInput: CancelAbsenceInput = {},
     session: AuthSession
   ) {
+    const input = CancelAbsenceSchema.parse(rawInput);
     return await prisma.$transaction(async (tx: any) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },

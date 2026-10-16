@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
 
 export async function GET(
   _request: NextRequest,
@@ -34,14 +35,8 @@ export async function PUT(
     }
     const updated = await AbsenceService.updateAbsenceRequest(BigInt(id), body, session);
 
-    // Revalidate affected views
-    revalidatePath('/absences');
-    revalidatePath(`/absences/${id}`);
-    revalidatePath('/portal/requests');
-    revalidatePath(`/portal/requests/${id}`);
-    revalidatePath('/portal');
-    revalidatePath('/leave-balances');
-    revalidatePath('/');
+    // Centrally revalidate all affected views
+    revalidateAbsencePaths(updated.id, updated.employeeId);
 
     return NextResponse.json(serializeForClient(updated));
   } catch (error: any) {

@@ -4,6 +4,7 @@ import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { RejectAbsenceSchema } from '@/src/modules/absences/absence.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
 
 export async function POST(
   request: NextRequest,
@@ -22,13 +23,7 @@ export async function POST(
     const rejected = await AbsenceService.rejectAbsence(BigInt(id), validated, session);
 
     // Revalidate affected views for HR and employees
-    revalidatePath('/absences');
-    revalidatePath(`/absences/${id}`);
-    revalidatePath('/portal/requests');
-    revalidatePath(`/portal/requests/${id}`);
-    revalidatePath('/portal');
-    revalidatePath('/leave-balances');
-    revalidatePath('/');
+    revalidateAbsencePaths(rejected.id, rejected.employeeId);
 
     return NextResponse.json(serializeForClient(rejected));
   } catch (error: any) {

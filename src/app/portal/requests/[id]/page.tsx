@@ -50,7 +50,7 @@ function RequestDetailContent() {
   const [cancelOpen, setCancelOpen] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState("");
   const [isCancelling, setIsCancelling] = React.useState(false);
-  const [cancelSuccessMsg, setCancelSuccessMsg] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -82,7 +82,7 @@ function RequestDetailContent() {
     try {
       await PortalApiClient.cancelMyRequest(absence.id, cancelReason);
       setCancelOpen(false);
-      setCancelSuccessMsg("Votre demande d'absence a été annulée avec succès.");
+      setSuccessMessage("Votre demande d'absence a été annulée avec succès.");
       // Reload updated request data
       await loadData();
     } catch (err: unknown) {
@@ -167,13 +167,13 @@ function RequestDetailContent() {
           </div>
         </div>
 
-        {cancelSuccessMsg && (
+        {successMessage && (
           <Alert
             variant="success"
-            title="Annulation confirmée"
-            onDismiss={() => setCancelSuccessMsg(null)}
+            title="Opération réussie"
+            onDismiss={() => setSuccessMessage(null)}
           >
-            {cancelSuccessMsg}
+            {successMessage}
           </Alert>
         )}
 
@@ -520,7 +520,7 @@ function RequestDetailContent() {
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           onSuccess={() => {
-            setCancelSuccessMsg("Votre demande d'absence a été modifiée avec succès.");
+            setSuccessMessage("Votre demande d'absence a été modifiée avec succès.");
             loadData();
           }}
           mode="edit"
