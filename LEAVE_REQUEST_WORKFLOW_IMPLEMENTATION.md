@@ -348,31 +348,67 @@ The following capabilities are **UNSUPPORTED** by the existing backend and must 
 - [x] **AC 6.6 (Service-Level Invariant Enforcement):** Integrated Zod schema parsing (`RejectAbsenceSchema`, `ApproveAbsenceSchema`, `CancelAbsenceSchema`) into `AbsenceService` to guarantee that invalid or malicious mutations reject cleanly without corrupting business state.
 - [x] **AC 6.7 (Audit Regression Test Suite):** Added [`tests/integration/absence-workflow-audit.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-audit.test.ts) (6 tests) covering submission, approval, rejection, edit, cancellation, balance restoration, and failed mutation isolation. Full test suite is 201 passing tests across 27 files.
 
+### Milestone 7: Final Comprehensive Audit & Flow-by-Flow Verification
+- [x] **Flow 1: Employee Submits a Valid Request — PASSED:** Verified via `PortalLeaveRequestForm.tsx` calling `POST /api/absences`. Returns 201 with `status: PENDING`, excluded holiday/rest days deducted, and working days authoritative. Covered by `tests/integration/absence-workflow-experience.test.ts` and `absence-workflow-audit.test.ts`.
+- [x] **Flow 2: Invalid Input Handled Clearly — PASSED:** Validated via client and backend schemas (`CreateAbsenceSchema`). Clear field-level errors displayed for date inversions, non-same-day half-days, seniority shortfalls (<6 months), quota exceedance, and period overlaps. User input is preserved in state on failure. Covered by `tests/integration/api-validation.test.ts`.
+- [x] **Flow 3: Optional Document Upload — NOT APPLICABLE / BACKEND LIMITED:** Prisma schema strictly contains only `supportingDocumentProvided: Boolean`. There is no file storage table, multipart route, or document URL column. The UI validates file format (PDF/PNG/JPG <= 5MB) and registers the declaration boolean. Physical file replacement/storage is not supported by the existing backend.
+- [x] **Flow 4: Submitted Request Appears With Actual Backend Status — PASSED:** Newly submitted requests render with live backend status `PENDING` without optimistic client-only assumptions. Reflected across `/portal`, `/portal/requests`, `/absences`, and `/calendar`.
+- [x] **Flow 5: Authorized HR Can Review and Decide — PASSED:** Validated via `ApproveAbsenceDialog` and `RejectAbsenceDialog` on `/absences/[id]`. Enforces non-self approval rule (`AuthGuard.requireCanReviewAbsence`), blocking self-arbitrage with 403. Covered by `tests/integration/hr-absence-review-workflow.test.ts`.
+- [x] **Flow 6: Approval and Rejection Reflected in All Views — PASSED:** Approval transitions status to `APPROVED`, writes audit trail, and decrements leave balance. Rejection requires minimum 3-char reason, transitions to `REJECTED`, and stores `rejectionReason`. Revalidation helper updates all views synchronously.
+- [x] **Flow 7: Additional Actions (Editing & Cancelling) — PASSED:** Editing is strictly allowed on `PENDING` requests (400 if approved/rejected/cancelled). Cancelling is permitted for employees on `PENDING` or future `APPROVED` leaves, while started approved leaves require HR intervention (403 for employees). Cancelling an approved leave restores deducted balance. Covered by `tests/integration/additional-absence-actions.test.ts`.
+- [x] **Flow 8: Permission Restrictions and Backend Failures Handled Safely — PASSED:** Concurrency conflicts (balance depletion), unauthorized reviews, and stale state transitions reject cleanly with descriptive error banners. In-flight loading states prevent double submission.
+- [x] **Flow 9: Cross-Screen Navigation & Refresh Consistency — PASSED:** Centralized `revalidateAbsencePaths` ensures that navigating between employee portal, HR list, details, and dashboard never displays contradictory request states.
+
 ---
 
-## 7. Summary of Relevant File Links
+## 7. Modified Files & Purpose Summary
 
-- **Application Absence Service:** [`src/modules/absences/absence.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.service.ts)
-- **Centralized Revalidation Helper:** [`src/modules/absences/absence-revalidation.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence-revalidation.ts)
-- **Validation Schemas:** [`src/modules/absences/absence.schema.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.schema.ts)
-- **Server Actions:** [`src/modules/absences/absence.actions.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.actions.ts)
-- **Security & RBAC Guards:** [`src/modules/auth/auth.guard.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/auth/auth.guard.ts)
-- **HR Absences Directory:** [`src/app/absences/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx)
-- **HR Absence Review Detail:** [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/%5Bid%5D/page.tsx)
-- **HR Employee Detail Page (Absences Tab):** [`src/app/employees/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/employees/%5Bid%5D/page.tsx)
-- **HR Dashboard Action Required:** [`src/components/dashboard/DashboardActionRequired.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/dashboard/DashboardActionRequired.tsx)
-- **HR Workflow Decision Dialogs:** [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx)
-- **Absence Modal Form (Create & Edit):** [`src/components/absences/AbsenceModalForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceModalForm.tsx)
-- **Employee Portal Dashboard:** [`src/app/portal/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/page.tsx)
-- **Employee Portal Requests List:** [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx)
-- **Dedicated Request Detail Page:** [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/%5Bid%5D/page.tsx)
-- **Request Creation Page:** [`src/app/portal/requests/new/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/new/page.tsx)
-- **Portal Request Details Modal:** [`src/components/portal/PortalRequestDetailsModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalRequestDetailsModal.tsx)
-- **Portal Leave Request Form:** [`src/components/portal/PortalLeaveRequestForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalLeaveRequestForm.tsx)
-- **Integration Test Suite (Employee Experience):** [`tests/integration/absence-workflow-experience.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-experience.test.ts)
-- **Integration Test Suite (HR Review Workflow):** [`tests/integration/hr-absence-review-workflow.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/hr-absence-review-workflow.test.ts)
-- **Integration Test Suite (Additional Absence Actions):** [`tests/integration/additional-absence-actions.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/additional-absence-actions.test.ts)
-- **Integration Test Suite (System Audit & Consistency):** [`tests/integration/absence-workflow-audit.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-audit.test.ts)
+| File Path | Component / Layer | Purpose |
+| :--- | :--- | :--- |
+| [`src/modules/absences/absence-revalidation.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence-revalidation.ts) | Backend Utility | Centralized Next.js path revalidator (`revalidateAbsencePaths`) refreshing all 9 affected route targets on every mutation. |
+| [`src/modules/absences/absence.service.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.service.ts) | Application Service | Integrated Zod schema parsing into service methods (`rejectAbsence`, `approveAbsence`, `cancelAbsence`) for defense-in-depth validation. |
+| [`src/modules/absences/absence.actions.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/modules/absences/absence.actions.ts) | Server Actions | Integrated centralized revalidation across all 5 absence server actions. |
+| [`src/app/api/absences/route.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/api/absences/route.ts) | Route Handler | Added centralized route revalidation on request creation. |
+| [`src/app/api/absences/[id]/route.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/api/absences/[id]/route.ts) | Route Handler | Added centralized route revalidation on request editing. |
+| [`src/app/api/absences/[id]/approve/route.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/api/absences/[id]/approve/route.ts) | Route Handler | Added centralized route revalidation on approval. |
+| [`src/app/api/absences/[id]/reject/route.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/api/absences/[id]/reject/route.ts) | Route Handler | Added centralized route revalidation on rejection. |
+| [`src/app/api/absences/[id]/cancel/route.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/api/absences/[id]/cancel/route.ts) | Route Handler | Added centralized route revalidation on cancellation. |
+| [`src/components/portal/PortalLeaveRequestForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalLeaveRequestForm.tsx) | UI Form Component | Added ARIA error bindings, `aria-describedby`, `aria-invalid`, `aria-live` calculation preview, and balance warning status roles. |
+| [`src/components/absences/AbsenceModalForm.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceModalForm.tsx) | UI Modal Form | Added ARIA field error bindings, `aria-describedby`, `aria-invalid`, and live region announcements. |
+| [`src/components/absences/AbsenceWorkflowDialogs.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/absences/AbsenceWorkflowDialogs.tsx) | UI Dialogs | Refined button wording ("Conserver la demande" vs "Confirmer l'annulation"), added ARIA required on rejection reason, and locked double-submits. |
+| [`src/components/portal/PortalRequestDetailsModal.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/components/portal/PortalRequestDetailsModal.tsx) | UI Portal Modal | Separated `onEditSuccess` from `onCancelSuccess` to prevent incorrect cancellation banners on edit. Added accessible cancel reason label. |
+| [`src/app/portal/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/page.tsx) | Page View | Handled distinct edit vs cancel confirmation toast banners. |
+| [`src/app/portal/requests/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/page.tsx) | Page View | Handled distinct edit vs cancel confirmation toast banners, added filter ARIA labels, and modal close button label. |
+| [`src/app/portal/requests/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/portal/requests/[id]/page.tsx) | Page View | Standardized success notification banner, clarified button wording ("Conserver ma demande" vs "Confirmer l'annulation"). |
+| [`src/app/absences/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/page.tsx) | Page View | Added accessible screen-reader labels on icon-only table action buttons, `aria-pressed` on pending KPI card, and date filter input labels. |
+| [`src/app/absences/[id]/page.tsx`](file:///c:/Users/DailWorkStation/Desktop/absnace/src/app/absences/[id]/page.tsx) | Page View | Added `role="alert"` on self-arbitrage warning banner and `aria-disabled` with descriptive labels on blocked review buttons. |
+| [`tests/integration/absence-workflow-audit.test.ts`](file:///c:/Users/DailWorkStation/Desktop/absnace/tests/integration/absence-workflow-audit.test.ts) | Automated Test | New integration test suite (6 tests) covering end-to-end lifecycle, cross-view consistency, balance restoration, and failed mutation isolation. |
+
+---
+
+## 8. Tests and Commands Executed
+
+1. **TypeScript Type-Check:**
+   - Command: `npx tsc --noEmit`
+   - Result: **Exit Code 0** (No compilation or type errors).
+2. **Core Workflow Integration Tests:**
+   - Command: `npx vitest run tests/integration/absence-workflow-audit.test.ts tests/integration/absence-workflow-experience.test.ts tests/integration/hr-absence-review-workflow.test.ts tests/integration/additional-absence-actions.test.ts tests/integration/approval-workflow.test.ts`
+   - Result: **5 test files passed, 39 tests passed, 0 failed** (Duration: 3.93s).
+3. **Full Repository Test Suite:**
+   - Command: `npx vitest run`
+   - Result: **27 test files passed, 201 tests passed, 0 failed** (Duration: 10.25s).
+4. **Targeted Component Lint Check:**
+   - Command: `npx eslint src/`
+   - Result: All modified absence workflow components pass cleanly with 0 lint errors.
+
+---
+
+## 9. Known Limitations & Remaining Manual Verification
+
+1. **File Storage Backend Limitation:** The backend database schema contains only `supportingDocumentProvided: Boolean`. Physical file storage (S3/R2/local bucket) and multipart upload routes do not exist. File uploads are simulated on the client to toggle the boolean flag.
+2. **Single-Stage Approval Model:** There is no multi-step approval (e.g. Supervisor THEN HR). A single approval by either reviewer immediately transitions the request to `APPROVED`.
+3. **Assistive Technology Screen-Reader Validation:** While WCAG 2.1 AA improvements (ARIA error linkage, accessible names, live regions, `role="alert"`) were implemented and verified in DOM structure, end-to-end screen-reader audits with NVDA / JAWS / VoiceOver should be performed on a live staging environment.
+
 
 
 

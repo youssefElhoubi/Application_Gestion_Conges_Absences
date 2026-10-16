@@ -199,7 +199,7 @@ export function RejectAbsenceDialog({
       <div className="space-y-4 py-2">
         {error && (
           <Alert variant="destructive" title="Erreur">
-            {error}
+            <span id="reject-reason-error">{error}</span>
           </Alert>
         )}
 
@@ -233,6 +233,9 @@ export function RejectAbsenceDialog({
               setReason(e.target.value);
               if (error) setError(null);
             }}
+            aria-required="true"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "reject-reason-error" : undefined}
             placeholder="Ex: Charge de travail incompatible avec la période, effectif insuffisant..."
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             disabled={isLoading}
@@ -349,6 +352,7 @@ export function CancelAbsenceDialog({
             rows={2}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            aria-label="Motif d'annulation optionnel"
             placeholder="Ex: Demande retirée par le collaborateur, modification des plannings..."
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             disabled={isLoading}
@@ -358,7 +362,7 @@ export function CancelAbsenceDialog({
 
       <DialogFooter>
         <Button variant="outline" onClick={onClose} disabled={isLoading}>
-          Fermer
+          Conserver la demande
         </Button>
         <Button
           variant="destructive"

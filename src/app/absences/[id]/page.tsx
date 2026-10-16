@@ -227,7 +227,10 @@ function AbsenceDetailsContent() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           {isSelfRequester && isPending && (
-            <div className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+            <div
+              role="alert"
+              className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1.5"
+            >
               <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
               <span>Auto-arbitrage interdit : vous ne pouvez pas valider ou rejeter votre propre demande.</span>
             </div>
@@ -241,6 +244,7 @@ function AbsenceDetailsContent() {
                   size="sm"
                   onClick={() => setEditModalOpen(true)}
                   leftIcon={<Edit2 className="h-3.5 w-3.5" />}
+                  aria-label="Modifier la demande d'absence"
                 >
                   Modifier
                 </Button>
@@ -249,7 +253,13 @@ function AbsenceDetailsContent() {
                   size="sm"
                   onClick={() => setRejectDialogOpen(true)}
                   disabled={isSelfRequester}
+                  aria-disabled={isSelfRequester}
                   title={isSelfRequester ? "L'auto-approbation est interdite" : "Rejeter la demande"}
+                  aria-label={
+                    isSelfRequester
+                      ? "Rejeter la demande (action bloquée : vous ne pouvez pas arbitrer votre propre demande)"
+                      : "Rejeter la demande"
+                  }
                   leftIcon={<XCircle className="h-3.5 w-3.5" />}
                 >
                   Rejeter
@@ -258,7 +268,13 @@ function AbsenceDetailsContent() {
                   size="sm"
                   onClick={() => setApproveDialogOpen(true)}
                   disabled={isSelfRequester}
+                  aria-disabled={isSelfRequester}
                   title={isSelfRequester ? "L'auto-approbation est interdite" : "Valider la demande"}
+                  aria-label={
+                    isSelfRequester
+                      ? "Valider la demande (action bloquée : vous ne pouvez pas arbitrer votre propre demande)"
+                      : "Valider la demande"
+                  }
                   leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-50"
                 >
@@ -273,6 +289,7 @@ function AbsenceDetailsContent() {
                 size="sm"
                 onClick={() => setCancelDialogOpen(true)}
                 leftIcon={<AlertTriangle className="h-3.5 w-3.5" />}
+                aria-label="Annuler la demande d'absence"
                 className="text-muted-foreground hover:text-destructive hover:border-destructive"
               >
                 Annuler la demande

@@ -447,7 +447,7 @@ function RequestDetailContent() {
                           disabled={isCancelling}
                           className="w-1/2 text-xs h-8"
                         >
-                          Garder
+                          Conserver ma demande
                         </Button>
                         <Button
                           type="submit"
@@ -457,7 +457,7 @@ function RequestDetailContent() {
                           disabled={isCancelling}
                           className="w-1/2 text-xs h-8"
                         >
-                          Confirmer
+                          Confirmer l&apos;annulation
                         </Button>
                       </div>
                     </form>

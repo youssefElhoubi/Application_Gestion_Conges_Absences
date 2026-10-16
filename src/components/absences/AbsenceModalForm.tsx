@@ -324,6 +324,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             value={employeeId}
             onChange={(e) => setEmployeeId(e.target.value)}
             disabled={isEdit || employees.length === 0}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.employeeId)}
+            aria-describedby={fieldErrors.employeeId ? "absence-employee-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {employees.map((emp) => (
@@ -334,7 +337,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
           </select>
         )}
         {fieldErrors.employeeId && (
-          <p className="text-xs text-rose-500 mt-1">{fieldErrors.employeeId}</p>
+          <p id="absence-employee-error" role="alert" className="text-xs text-rose-500 mt-1">
+            {fieldErrors.employeeId}
+          </p>
         )}
       </div>
 
@@ -348,6 +353,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             id="absence-type"
             value={typeId}
             onChange={(e) => handleTypeChange(Number(e.target.value))}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.typeId)}
+            aria-describedby={fieldErrors.typeId ? "absence-type-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {types.map((t) => (
@@ -357,7 +365,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             ))}
           </select>
           {fieldErrors.typeId && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.typeId}</p>
+            <p id="absence-type-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.typeId}
+            </p>
           )}
         </div>
 
@@ -370,6 +380,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             value={reasonId ?? ""}
             onChange={(e) => setReasonId(e.target.value ? Number(e.target.value) : null)}
             disabled={availableReasons.length === 0}
+            aria-required={availableReasons.length > 0}
+            aria-invalid={Boolean(fieldErrors.reasonId)}
+            aria-describedby={fieldErrors.reasonId ? "absence-reason-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
             <option value="">
@@ -384,7 +397,9 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             ))}
           </select>
           {fieldErrors.reasonId && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.reasonId}</p>
+            <p id="absence-reason-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.reasonId}
+            </p>
           )}
         </div>
       </div>
@@ -452,6 +467,8 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             id="absence-fraction"
             value={fraction}
             onChange={(e) => handleFractionChange(e.target.value as AbsenceFraction)}
+            aria-invalid={Boolean(fieldErrors.fraction)}
+            aria-describedby={fieldErrors.fraction ? "absence-fraction-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="FULL_DAY">Journée entière</option>
@@ -459,13 +476,19 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             <option value="HALF_DAY_AFTERNOON">Demi-journée (Après-midi)</option>
           </select>
           {fieldErrors.fraction && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.fraction}</p>
+            <p id="absence-fraction-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.fraction}
+            </p>
           )}
         </div>
       </div>
 
       {/* Live Calculation Preview Card (authoritative backend response) */}
-      <div className="rounded-lg border border-border bg-gradient-to-br from-card to-muted/20 p-3.5 space-y-2.5 shadow-xs">
+      <div
+        aria-live="polite"
+        aria-busy={isCalculating}
+        className="rounded-lg border border-border bg-gradient-to-br from-card to-muted/20 p-3.5 space-y-2.5 shadow-xs"
+      >
         <div className="flex items-center justify-between border-b border-border/50 pb-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
             <Sparkles className="h-4 w-4 text-primary animate-pulse" />
@@ -516,7 +539,10 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
         )}
 
         {balanceWarning && (
-          <div className="flex items-start gap-2 p-2 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300">
+          <div
+            role="status"
+            className="flex items-start gap-2 p-2 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300"
+          >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
             <span>{balanceWarning}</span>
           </div>
@@ -547,6 +573,7 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
             rows={2}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
+            aria-label="Observations ou justification administrative"
             placeholder="Informations complémentaires, précisions sur la période..."
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />

@@ -5,24 +5,32 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { LeaveBalanceService } from '@/src/application/services/leave-balance.service';
 import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
-import { SessionData } from '@/src/modules/auth/auth.guard';
+import { AuthSession } from '@/src/modules/auth/auth.guard';
 
 describe('Workflow Consistency & Cross-View Audit Integration Tests', () => {
-  const hrSession: SessionData = {
+  const hrSession: AuthSession = {
     userId: 'usr-hr-audit',
+    email: 'hr@example.com',
     employeeId: 'EMP-HR-AUDIT',
+    siteId: 1,
     role: 'HR_MANAGER',
+    managedEmployeeIds: [],
   };
 
-  const employeeSession: SessionData = {
+  const employeeSession: AuthSession = {
     userId: 'usr-emp-audit',
+    email: 'emp@example.com',
     employeeId: 'EMP-AUDIT-001',
+    siteId: 1,
     role: 'EMPLOYEE',
+    managedEmployeeIds: [],
   };
 
-  const supervisorSession: SessionData = {
+  const supervisorSession: AuthSession = {
     userId: 'usr-sup-audit',
+    email: 'sup@example.com',
     employeeId: 'EMP-SUP-AUDIT',
+    siteId: 1,
     role: 'SUPERVISOR',
     managedEmployeeIds: ['EMP-AUDIT-001'],
   };

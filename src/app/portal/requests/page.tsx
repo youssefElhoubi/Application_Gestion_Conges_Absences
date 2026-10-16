@@ -193,6 +193,7 @@ function MyRequestsContent() {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
+            aria-label="Filtrer par statut de demande"
             className="w-[140px] text-xs h-9"
           >
             <option value="ALL">Tous les statuts</option>
@@ -209,6 +210,7 @@ function MyRequestsContent() {
               setTypeFilter(e.target.value);
               setCurrentPage(1);
             }}
+            aria-label="Filtrer par type de congé"
             className="w-[150px] text-xs h-9"
           >
             <option value="ALL">Tous les types</option>
@@ -226,6 +228,7 @@ function MyRequestsContent() {
               setYearFilter(e.target.value);
               setCurrentPage(1);
             }}
+            aria-label="Filtrer par année"
             className="w-[110px] text-xs h-9"
           >
             <option value="ALL">Toutes années</option>
@@ -243,6 +246,7 @@ function MyRequestsContent() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
+            aria-label="Filtrer les demandes par motif"
             className="px-3 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
           />
 
@@ -388,6 +392,7 @@ function MyRequestsContent() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center text-xs text-muted-foreground hover:text-primary p-1.5 rounded-md hover:bg-muted transition-colors"
                       title="Ouvrir la fiche complète"
+                      aria-label={`Consulter la fiche complète de la demande #${req.id}`}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
@@ -445,6 +450,7 @@ function MyRequestsContent() {
               <button
                 type="button"
                 onClick={() => setNewRequestOpen(false)}
+                aria-label="Fermer la fenêtre de saisie de congé"
                 className="text-muted-foreground hover:text-foreground p-1 text-sm rounded-md"
               >
                 ✕

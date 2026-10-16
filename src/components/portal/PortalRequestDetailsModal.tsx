@@ -131,7 +131,7 @@ export function PortalRequestDetailsModal({
 
       <div className="space-y-4 py-2">
         {error && (
-          <div className="p-3 rounded-lg border border-rose-300 bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 text-xs">
+          <div role="alert" className="p-3 rounded-lg border border-rose-300 bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 text-xs">
             {error}
           </div>
         )}
@@ -289,13 +289,19 @@ export function PortalRequestDetailsModal({
             <p className="font-semibold text-amber-900 dark:text-amber-200">
               Êtes-vous sûr de vouloir annuler cette demande de congé ?
             </p>
-            <input
-              type="text"
-              placeholder="Motif d'annulation optionnel (ex: changement d'agenda...)"
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none"
-            />
+            <div>
+              <label htmlFor="portal-modal-cancel-reason" className="sr-only">
+                Motif d&apos;annulation optionnel
+              </label>
+              <input
+                id="portal-modal-cancel-reason"
+                type="text"
+                placeholder="Motif d'annulation optionnel (ex: changement d'agenda...)"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
             <div className="flex items-center gap-2 justify-end pt-1">
               <Button
                 size="sm"
@@ -304,7 +310,7 @@ export function PortalRequestDetailsModal({
                 disabled={isCancelling}
                 className="h-7 text-xs"
               >
-                Garder ma demande
+                Conserver ma demande
               </Button>
               <Button
                 size="sm"

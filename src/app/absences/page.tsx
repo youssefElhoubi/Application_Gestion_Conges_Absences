@@ -398,6 +398,7 @@ function AbsencesDirectoryContent() {
                 }}
                 className="h-8 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800"
                 title="Valider la demande"
+                aria-label={`Valider la demande #${row.id} de ${row.employee.fullName}`}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
               </Button>
@@ -411,6 +412,7 @@ function AbsencesDirectoryContent() {
                 }}
                 className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800"
                 title="Rejeter la demande"
+                aria-label={`Rejeter la demande #${row.id} de ${row.employee.fullName}`}
               >
                 <XCircle className="h-3.5 w-3.5" />
               </Button>
@@ -425,6 +427,7 @@ function AbsencesDirectoryContent() {
                 }}
                 className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
                 title="Modifier la demande"
+                aria-label={`Modifier la demande #${row.id} de ${row.employee.fullName}`}
               >
                 <Edit2 className="h-3.5 w-3.5" />
               </Button>
@@ -442,6 +445,7 @@ function AbsencesDirectoryContent() {
               }}
               className="h-8 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/40"
               title="Annuler le congé"
+              aria-label={`Annuler le congé #${row.id} de ${row.employee.fullName}`}
             >
               Annuler
             </Button>
@@ -515,6 +519,7 @@ function AbsencesDirectoryContent() {
           title="Cliquer pour afficher uniquement les demandes en attente d'arbitrage RH"
           role="button"
           tabIndex={0}
+          aria-pressed={selectedStatus === "PENDING"}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               setSelectedStatus((prev) => (prev === "PENDING" ? "ALL" : "PENDING"));
@@ -628,6 +633,7 @@ function AbsencesDirectoryContent() {
                 setStartDateFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              aria-label="Date de début du filtre"
               className="bg-transparent text-xs focus:outline-none"
             />
             <span className="text-muted-foreground">Au:</span>
@@ -638,6 +644,7 @@ function AbsencesDirectoryContent() {
                 setEndDateFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              aria-label="Date de fin du filtre"
               className="bg-transparent text-xs focus:outline-none"
             />
           </div>

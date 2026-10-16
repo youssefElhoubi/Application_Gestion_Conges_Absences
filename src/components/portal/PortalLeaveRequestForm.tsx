@@ -480,6 +480,9 @@ export function PortalLeaveRequestForm({
             value={typeId}
             onChange={(e) => handleTypeChange(Number(e.target.value))}
             disabled={isSubmitting || loadingTypes || types.length === 0}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.typeId)}
+            aria-describedby={fieldErrors.typeId ? "portal-type-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
             {types.map((t) => (
@@ -489,7 +492,9 @@ export function PortalLeaveRequestForm({
             ))}
           </select>
           {fieldErrors.typeId && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.typeId}</p>
+            <p id="portal-type-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.typeId}
+            </p>
           )}
         </div>
 
@@ -502,6 +507,9 @@ export function PortalLeaveRequestForm({
             value={reasonId ?? ""}
             onChange={(e) => setReasonId(e.target.value ? Number(e.target.value) : null)}
             disabled={isSubmitting || availableReasons.length === 0}
+            aria-required={availableReasons.length > 0}
+            aria-invalid={Boolean(fieldErrors.reasonId)}
+            aria-describedby={fieldErrors.reasonId ? "portal-reason-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
             <option value="">
@@ -516,7 +524,9 @@ export function PortalLeaveRequestForm({
             ))}
           </select>
           {fieldErrors.reasonId && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.reasonId}</p>
+            <p id="portal-reason-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.reasonId}
+            </p>
           )}
         </div>
       </div>
@@ -586,6 +596,8 @@ export function PortalLeaveRequestForm({
             value={fraction}
             onChange={(e) => handleFractionChange(e.target.value as AbsenceFraction)}
             disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.fraction)}
+            aria-describedby={fieldErrors.fraction ? "portal-fraction-error" : undefined}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
             <option value="FULL_DAY">Journée entière</option>
@@ -593,13 +605,19 @@ export function PortalLeaveRequestForm({
             <option value="HALF_DAY_AFTERNOON">Demi-journée (Après-midi)</option>
           </select>
           {fieldErrors.fraction && (
-            <p className="text-xs text-rose-500 mt-1">{fieldErrors.fraction}</p>
+            <p id="portal-fraction-error" role="alert" className="text-xs text-rose-500 mt-1">
+              {fieldErrors.fraction}
+            </p>
           )}
         </div>
       </div>
 
       {/* Live Backend Calculation Preview Card */}
-      <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-muted/20 p-4 space-y-3 shadow-xs">
+      <div
+        aria-live="polite"
+        aria-busy={isCalculating}
+        className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-muted/20 p-4 space-y-3 shadow-xs"
+      >
         <div className="flex items-center justify-between border-b border-border/60 pb-2">
           <div className="flex items-center gap-2 text-xs font-bold text-foreground">
             <Sparkles className="h-4 w-4 text-primary animate-pulse" />
@@ -650,7 +668,10 @@ export function PortalLeaveRequestForm({
         )}
 
         {balanceWarning && (
-          <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300">
+          <div
+            role="status"
+            className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300"
+          >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
             <span>{balanceWarning}</span>
           </div>
@@ -710,7 +731,7 @@ export function PortalLeaveRequestForm({
         </label>
 
         {fieldErrors.justification && (
-          <p className="text-xs text-rose-500 font-medium flex items-center gap-1.5">
+          <p role="alert" className="text-xs text-rose-500 font-medium flex items-center gap-1.5">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
             {fieldErrors.justification}
           </p>
@@ -727,6 +748,7 @@ export function PortalLeaveRequestForm({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             disabled={isSubmitting}
+            aria-label="Observations ou message à l'attention du responsable"
             placeholder="Précisions éventuelles sur la période ou organisation de la passation de relais..."
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           />
