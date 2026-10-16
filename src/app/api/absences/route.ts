@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { CreateAbsenceSchema, AbsenceQuerySchema } from '@/src/modules/absences/absence.schema';
@@ -23,6 +24,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = CreateAbsenceSchema.parse(body);
     const created = await AbsenceService.createAbsenceRequest(validated, session);
+    revalidatePath('/absences');
+    revalidatePath('/portal/requests');
+    revalidatePath('/');
     return NextResponse.json(serializeForClient(created), { status: 201 });
   } catch (error: any) {
     const status = error.statusCode ?? 400;

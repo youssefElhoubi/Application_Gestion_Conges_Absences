@@ -30,6 +30,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+function getLocalTodayISO(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export interface AbsenceModalFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -81,14 +89,14 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
     if (isEdit && initialData?.startDate) {
       return new Date(initialData.startDate).toISOString().split("T")[0];
     }
-    return new Date().toISOString().split("T")[0];
+    return getLocalTodayISO();
   });
 
   const [endDate, setEndDate] = React.useState<string>(() => {
     if (isEdit && initialData?.endDate) {
       return new Date(initialData.endDate).toISOString().split("T")[0];
     }
-    return new Date().toISOString().split("T")[0];
+    return getLocalTodayISO();
   });
 
   const [fraction, setFraction] = React.useState<AbsenceFraction>(() => {
@@ -216,6 +224,8 @@ const AbsenceFormInner: React.FC<FormInnerProps> = ({
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setGeneralError(null);
     setFieldErrors({});
 

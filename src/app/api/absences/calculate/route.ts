@@ -4,9 +4,12 @@ import { WorkingDaysService } from '@/src/application/services/working-days.serv
 import { LeaveBalanceService } from '@/src/application/services/leave-balance.service';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 import { Fraction } from '@/src/generated/prisma';
+import { SessionResolver } from '@/src/modules/auth/session.resolver';
+import { AuthGuard } from '@/src/modules/auth/auth.guard';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await SessionResolver.require();
     const body = await request.json();
     const { employeeId, startDate, endDate, fraction = 'FULL_DAY' } = body;
 
@@ -16,6 +19,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    AuthGuard.requireAccessEmployee(session, employeeId);
 
     const employee = await prisma.employee.findUnique({
       where: { employeeId },
@@ -58,8 +63,9 @@ export async function POST(request: NextRequest) {
         currentBalance: dynamicBalance,
       })
     );
-  } catch (error: unknown) {
+  } catch (error: any) {
+    const status = error.statusCode ?? 400;
     const msg = error instanceof Error ? error.message : 'Calculation preview failed.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status });
   }
 }

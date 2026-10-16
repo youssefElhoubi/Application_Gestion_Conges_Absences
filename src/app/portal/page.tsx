@@ -285,9 +285,11 @@ function PortalHomeContent() {
 
             <PortalLeaveRequestForm
               employee={data.employee}
-              onSuccess={() => {
+              onSuccess={(created) => {
                 setNewRequestOpen(false);
-                setSuccessMessage("Votre demande d'absence a été transmise avec succès.");
+                setSuccessMessage(
+                  `Votre demande d'absence #${created.id} a été enregistrée avec succès (statut : ${created.status}).`
+                );
                 triggerRefresh();
               }}
               onCancel={() => setNewRequestOpen(false)}
