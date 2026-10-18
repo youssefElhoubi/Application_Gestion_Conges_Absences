@@ -1,23 +1,17 @@
 import { ActiveFilter } from '@/src/components/shared/FilterBar';
 import { AbsenceStatus, AbsenceTypeItem } from '@/src/lib/api/absence-client';
 import { SiteItem, EmployeeListItem } from '@/src/lib/api/employee-client';
-import { getStatusLabel } from '@/src/lib/calendar/calendar-events';
+import {
+  CalendarFilterState,
+  CalendarUrlState,
+  CalendarViewMode,
+} from './calendar-types';
+import { DEFAULT_CALENDAR_FILTERS } from './calendar-constants';
+import { getStatusLabel } from './calendar-formatters';
 
-export interface CalendarFilterState {
-  search: string;
-  employeeId: string; // 'all' or specific employeeId
-  siteId: string; // 'all' or specific siteId
-  typeId: string; // 'all' or specific typeId
-  status: AbsenceStatus | 'ALL';
-}
-
-export const DEFAULT_CALENDAR_FILTERS: CalendarFilterState = {
-  search: '',
-  employeeId: 'all',
-  siteId: 'all',
-  typeId: 'all',
-  status: 'ALL',
-};
+// Re-export for complete backward compatibility across all consumers and test suites
+export type { CalendarFilterState, CalendarUrlState, CalendarViewMode };
+export { DEFAULT_CALENDAR_FILTERS };
 
 /**
  * Parses filter state from URL search params with safe normalization of invalid inputs.
@@ -103,15 +97,6 @@ export function deriveActiveFilters(
   }
 
   return active;
-}
-
-export type CalendarViewMode = 'grid' | 'week' | 'agenda';
-
-export interface CalendarUrlState extends CalendarFilterState {
-  year: number;
-  month: number;
-  date?: string;
-  view: CalendarViewMode;
 }
 
 /**

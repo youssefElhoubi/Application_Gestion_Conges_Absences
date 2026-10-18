@@ -1,98 +1,22 @@
-import { AbsenceListItem, AbsenceStatus, AbsenceFraction } from '@/src/lib/api/absence-client';
+import { AbsenceListItem } from '@/src/lib/api/absence-client';
 import { PublicHolidayItem } from '@/src/lib/api/holiday-client';
+import {
+  EventSpanningPosition,
+  CalendarAbsenceEvent,
+  CalendarHolidayEvent,
+  DayEventsMap,
+} from './calendar-types';
+import { getStatusLabel, getFractionLabel } from './calendar-formatters';
+import { extractDateKey } from './calendar-date-utils';
 
-export type EventSpanningPosition =
-  | 'single' // Single day absence
-  | 'start' // First day of multi-day absence
-  | 'middle' // Continuing middle day
-  | 'end' // Last day of multi-day absence
-  | 'week_continuation'; // Monday continuation of an absence started in a previous week
-
-export interface CalendarAbsenceEvent {
-  id: string;
-  absenceId: string | number;
-  employeeId: string;
-  employeeName: string;
-  employeeSiteName?: string | null;
-  typeId: number;
-  typeName: string;
-  typeCode: string;
-  typeColor: string;
-  isDeductible: boolean;
-  reasonName?: string | null;
-  startDateKey: string; // YYYY-MM-DD
-  endDateKey: string; // YYYY-MM-DD
-  fraction: AbsenceFraction;
-  status: AbsenceStatus;
-  statusLabelFr: string;
-  fractionLabelFr: string | null;
-  isHalfDay: boolean;
-  isMultiDay: boolean;
-  calculatedWorkingDays: number | string;
-  enteredDays: number | string;
-  retainedDays: number | string;
-  spanningPosition: EventSpanningPosition;
-}
-
-export interface CalendarHolidayEvent {
-  id: string;
-  holidayId: string | number;
-  dateKey: string; // YYYY-MM-DD
-  label: string;
-  isReligious: boolean;
-  comment?: string | null;
-}
-
-export interface DayEventsMap {
-  holidays: CalendarHolidayEvent[];
-  absences: CalendarAbsenceEvent[];
-}
-
-/**
- * Normalizes an ISO string or Date into YYYY-MM-DD key without timezone shift.
- */
-export function extractDateKey(dateInput: string | Date): string {
-  if (typeof dateInput === 'string') {
-    return dateInput.split('T')[0];
-  }
-  const y = dateInput.getFullYear();
-  const m = String(dateInput.getMonth() + 1).padStart(2, '0');
-  const d = String(dateInput.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-/**
- * Returns user-facing status label in French enterprise vocabulary.
- */
-export function getStatusLabel(status: AbsenceStatus): string {
-  switch (status) {
-    case 'APPROVED':
-      return 'Validé';
-    case 'PENDING':
-      return 'En attente';
-    case 'REJECTED':
-      return 'Refusé';
-    case 'CANCELLED':
-      return 'Annulé';
-    default:
-      return status;
-  }
-}
-
-/**
- * Returns human-readable label for absence fractions.
- */
-export function getFractionLabel(fraction: AbsenceFraction): string | null {
-  switch (fraction) {
-    case 'HALF_DAY_MORNING':
-      return 'Matin';
-    case 'HALF_DAY_AFTERNOON':
-      return 'Après-midi';
-    case 'FULL_DAY':
-    default:
-      return null;
-  }
-}
+// Re-export for complete backward compatibility across all consumers and test suites
+export type {
+  EventSpanningPosition,
+  CalendarAbsenceEvent,
+  CalendarHolidayEvent,
+  DayEventsMap,
+};
+export { extractDateKey, getStatusLabel, getFractionLabel };
 
 /**
  * Determines whether an absence covers a specific calendar day (inclusive start and end).

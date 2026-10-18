@@ -4,103 +4,34 @@
  * Follows Moroccan / ISO 8601 week convention (Monday to Sunday).
  */
 
-export interface CalendarGridCell {
-  dateKey: string; // ISO Date-only format: YYYY-MM-DD
-  dayOfMonth: number;
-  month: number; // 1 to 12
-  year: number;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ... 6 = Saturday (JS convention)
-  weekColumnIndex: number; // 0 = Monday, 1 = Tuesday, ... 6 = Sunday (ISO / Moroccan standard)
-  isCurrentMonth: boolean;
-  isPrevMonth: boolean;
-  isNextMonth: boolean;
-  isToday: boolean;
-  isWeekend: boolean; // Sunday or Saturday (weekly rest)
-  dayNameFr: string;
-  formattedDateFr: string;
-}
+import {
+  CalendarGridCell,
+  MonthGridResult,
+  WeekInfoResult,
+} from './calendar-types';
+import {
+  MONTH_NAMES_FR,
+  WEEKDAYS_FR,
+  WEEKDAYS_SHORT_FR,
+} from './calendar-constants';
+import {
+  toDateKey,
+  parseDateKey,
+  getAdjacentMonth,
+  getAdjacentWeek,
+} from './calendar-date-utils';
 
-export interface MonthGridResult {
-  year: number;
-  month: number;
-  monthNameFr: string;
-  daysInMonth: number;
-  cells: CalendarGridCell[];
-  totalWeeks: number;
-}
-
-export const MONTH_NAMES_FR = [
-  'Janvier',
-  'Février',
-  'Mars',
-  'Avril',
-  'Mai',
-  'Juin',
-  'Juillet',
-  'Août',
-  'Septembre',
-  'Octobre',
-  'Novembre',
-  'Décembre',
-] as const;
-
-export const WEEKDAYS_FR = [
-  'Lundi',
-  'Mardi',
-  'Mercredi',
-  'Jeudi',
-  'Vendredi',
-  'Samedi',
-  'Dimanche',
-] as const;
-
-export const WEEKDAYS_SHORT_FR = [
-  'Lun',
-  'Mar',
-  'Mer',
-  'Jeu',
-  'Ven',
-  'Sam',
-  'Dim',
-] as const;
-
-/**
- * Creates a normalized date-only string (YYYY-MM-DD) without timezone distortion.
- */
-export function toDateKey(year: number, month: number, day: number): string {
-  const y = String(year).padStart(4, '0');
-  const m = String(month).padStart(2, '0');
-  const d = String(day).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-/**
- * Parses a YYYY-MM-DD string into year, month, and day integers.
- */
-export function parseDateKey(dateKey: string): { year: number; month: number; day: number } {
-  const parts = dateKey.split('T')[0].split('-');
-  return {
-    year: parseInt(parts[0], 10),
-    month: parseInt(parts[1], 10),
-    day: parseInt(parts[2], 10),
-  };
-}
-
-/**
- * Computes adjacent month and year for forward and backward navigation.
- * Properly wraps across year boundaries (Jan -> Dec prev year, Dec -> Jan next year).
- */
-export function getAdjacentMonth(
-  year: number,
-  month: number,
-  direction: 'prev' | 'next'
-): { year: number; month: number } {
-  if (direction === 'prev') {
-    return month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
-  } else {
-    return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
-  }
-}
+// Re-export types, constants, and utilities for backward compatibility
+export type { CalendarGridCell, MonthGridResult, WeekInfoResult };
+export {
+  MONTH_NAMES_FR,
+  WEEKDAYS_FR,
+  WEEKDAYS_SHORT_FR,
+  toDateKey,
+  parseDateKey,
+  getAdjacentMonth,
+  getAdjacentWeek,
+};
 
 /**
  * Builds the complete monthly grid cells including leading days from previous month
@@ -221,15 +152,6 @@ export function buildMonthGrid(
   };
 }
 
-export interface WeekInfoResult {
-  mondayDateKey: string;
-  sundayDateKey: string;
-  days: CalendarGridCell[];
-  formattedWeekLabelFr: string;
-  year: number;
-  month: number;
-}
-
 /**
  * Given any date string (YYYY-MM-DD) or reference Date, returns the 7 days of that week (Monday to Sunday)
  * along with French labels and boundary date keys without timezone distortion.
@@ -303,14 +225,4 @@ export function getWeekDays(
     year: mondayObj.getFullYear(),
     month: mondayObj.getMonth() + 1,
   };
-}
-
-/**
- * Computes adjacent week's Monday date key (+7 or -7 days).
- */
-export function getAdjacentWeek(mondayDateKey: string, direction: 'prev' | 'next'): string {
-  const parts = parseDateKey(mondayDateKey);
-  const offsetDays = direction === 'next' ? 7 : -7;
-  const targetDate = new Date(parts.year, parts.month - 1, parts.day + offsetDays);
-  return toDateKey(targetDate.getFullYear(), targetDate.getMonth() + 1, targetDate.getDate());
 }
