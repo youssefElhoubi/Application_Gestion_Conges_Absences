@@ -64,10 +64,13 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error: unknown) {
     if (error instanceof ForbiddenError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: error.message },
         { status: 403, headers: { 'Cache-Control': 'no-store' } }
       );
+      response.cookies.set('access_token', '', { ...AuthConfig.getAccessTokenCookieOptions(), maxAge: 0, expires: new Date(0) });
+      response.cookies.set('refresh_token', '', { ...AuthConfig.getRefreshTokenCookieOptions(), maxAge: 0, expires: new Date(0) });
+      return response;
     }
 
     if (error instanceof UnauthorizedError) {

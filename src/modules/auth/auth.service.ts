@@ -5,6 +5,7 @@ import { TokenService } from './token.service';
 import { RateLimiterService } from './rate-limiter.service';
 import { LoginInput, SafeUserProfile } from './auth.schema';
 import { UnauthorizedError, ForbiddenError, TooManyRequestsError } from './auth.guard';
+import { AuthConfig } from '@/src/infrastructure/config/auth.config';
 
 // Precomputed valid Argon2id hash for constant-time comparison against non-existent accounts
 // Mitigates username enumeration via response-time variance
@@ -15,6 +16,18 @@ export interface AuthSuccessResult {
   user: SafeUserProfile;
   accessToken: string;
   rawRefreshToken: string;
+}
+
+export interface SafeSessionInfo {
+  id: string;
+  userId: string;
+  familyId: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  isRevoked: boolean;
+  createdAt: Date;
+  lastActiveAt: Date;
+  expiresAt: Date;
 }
 
 export class AuthService {
@@ -132,8 +145,16 @@ export class AuthService {
   }
 
   /**
-   * Performs Refresh Token Rotation (RTR).
-   * Implements token family reuse detection: revokes entire lineage upon reuse.
+   * Performs Refresh Token Rotation (RTR) atomically inside a PostgreSQL transaction.
+   * Concurrency Protection:
+   * Uses an atomic update claim (isRevoked: false -> isRevoked: true) within the transaction
+   * to guarantee that competing concurrent requests cannot create multiple descendants.
+   *
+   * Reuse Detection:
+   * If an already revoked token is submitted, the entire family lineage is immediately revoked.
+   *
+   * Expiration:
+   * Enforces both absolute expiration (expiresAt) and idle inactivity expiration (IDLE_TIMEOUT_SECONDS).
    */
   public static async refresh(
     rawRefreshToken: string,
@@ -144,7 +165,9 @@ export class AuthService {
     }
 
     const tokenHash = TokenService.hashToken(rawRefreshToken);
+    const now = new Date();
 
+    // 1. Inspect session record
     const session = await prisma.session.findUnique({
       where: { tokenHash },
       include: {
@@ -164,7 +187,7 @@ export class AuthService {
       throw new UnauthorizedError('Session invalide ou expirée.');
     }
 
-    // Reuse Detection: If an already revoked token is submitted, revoke the entire family lineage
+    // 2. Reuse Detection: If token was already revoked, immediately persist family revocation
     if (session.isRevoked) {
       await prisma.session.updateMany({
         where: { familyId: session.familyId },
@@ -175,77 +198,122 @@ export class AuthService {
       );
     }
 
-    // Expiration Verification
-    if (session.expiresAt <= new Date()) {
+    // 3. Absolute Expiration Verification: Persist revocation
+    if (session.expiresAt <= now) {
       await prisma.session.update({
         where: { id: session.id },
         data: { isRevoked: true },
       });
-      throw new UnauthorizedError('Session expirée. Veuillez vous reconnecter.');
+      throw new UnauthorizedError(
+        'Session expirée (délai absolu dépassé). Veuillez vous reconnecter.'
+      );
     }
 
-    // Account Status Verification
-    if (!session.user.isActive) {
+    // 4. Idle Inactivity Expiration Verification: Persist revocation
+    const idleTimeoutMs = AuthConfig.IDLE_TIMEOUT_SECONDS * 1000;
+    if (
+      idleTimeoutMs > 0 &&
+      now.getTime() - session.updatedAt.getTime() > idleTimeoutMs
+    ) {
       await prisma.session.update({
         where: { id: session.id },
+        data: { isRevoked: true },
+      });
+      throw new UnauthorizedError(
+        'Session expirée pour inactivité. Veuillez vous reconnecter.'
+      );
+    }
+
+    // 5. Account Status Verification: Disabling account revokes all user sessions
+    if (!session.user.isActive) {
+      await prisma.session.updateMany({
+        where: { userId: session.userId },
         data: { isRevoked: true },
       });
       throw new ForbiddenError('Ce compte est désactivé.');
     }
 
-    // Invalidate the current session token (single-use rotation)
-    await prisma.session.update({
-      where: { id: session.id },
-      data: { isRevoked: true },
-    });
+    // 6. Concurrency-Safe Atomic Claim & Rotation Transaction
+    try {
+      return await prisma.$transaction(async (tx) => {
+        // Atomically mark current token revoked only if it is currently active.
+        const claimResult = await tx.session.updateMany({
+          where: {
+            id: session.id,
+            isRevoked: false,
+          },
+          data: {
+            isRevoked: true,
+          },
+        });
 
-    // Create next session in the same lineage family
-    const newRawRefreshToken = TokenService.generateOpaqueRefreshToken();
-    const newTokenHash = TokenService.hashToken(newRawRefreshToken);
-    const expiresAt = new Date(
-      Date.now() + TokenService.REFRESH_TOKEN_MAX_AGE_SECONDS * 1000
-    );
+        if (claimResult.count === 0) {
+          throw new UnauthorizedError(
+            'Concurrence de rafraîchissement détectée ou jeton déjà consommé.'
+          );
+        }
 
-    const newSession = await prisma.session.create({
-      data: {
-        userId: session.userId,
-        tokenHash: newTokenHash,
-        familyId: session.familyId,
-        userAgent: meta.userAgent ? meta.userAgent.slice(0, 255) : session.userAgent,
-        ipAddress: meta.ip.slice(0, 45),
-        expiresAt,
-      },
-    });
+        // 7. Create next session in the same lineage family
+        const newRawRefreshToken = TokenService.generateOpaqueRefreshToken();
+        const newTokenHash = TokenService.hashToken(newRawRefreshToken);
+        const expiresAt = new Date(
+          now.getTime() + TokenService.REFRESH_TOKEN_MAX_AGE_SECONDS * 1000
+        );
 
-    // Issue new Access Token
-    const accessToken = await TokenService.signAccessToken(
-      {
-        id: session.user.id,
-        email: session.user.email,
-        role: session.user.role,
-        employeeId: session.user.employeeId,
-      },
-      newSession.id
-    );
+        const newSession = await tx.session.create({
+          data: {
+            userId: session.userId,
+            tokenHash: newTokenHash,
+            familyId: session.familyId,
+            userAgent: meta.userAgent ? meta.userAgent.slice(0, 255) : session.userAgent,
+            ipAddress: meta.ip.slice(0, 45),
+            expiresAt,
+          },
+        });
 
-    const safeUser: SafeUserProfile = {
-      id: session.user.id,
-      email: session.user.email,
-      role: session.user.role,
-      employeeId: session.user.employeeId,
-    };
+        // 8. Issue new signed JWT Access Token
+        const accessToken = await TokenService.signAccessToken(
+          {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+            employeeId: session.user.employeeId,
+          },
+          newSession.id
+        );
 
-    return {
-      user: safeUser,
-      accessToken,
-      rawRefreshToken: newRawRefreshToken,
-    };
+        const safeUser: SafeUserProfile = {
+          id: session.user.id,
+          email: session.user.email,
+          role: session.user.role,
+          employeeId: session.user.employeeId,
+        };
+
+        return {
+          user: safeUser,
+          accessToken,
+          rawRefreshToken: newRawRefreshToken,
+        };
+      });
+    } catch (err) {
+      if (
+        err instanceof UnauthorizedError &&
+        err.message.includes('Concurrence')
+      ) {
+        // Concurrency collision: ensure family revocation is committed
+        await prisma.session
+          .updateMany({
+            where: { familyId: session.familyId },
+            data: { isRevoked: true },
+          })
+          .catch(() => null);
+      }
+      throw err;
+    }
   }
 
   /**
    * Revokes the current session and invalidates refresh credentials server-side.
-   * Note: Issued JWT access tokens remain cryptographically valid until their
-   * short-lived expiration (15 minutes).
    */
   public static async logout(
     rawRefreshToken?: string | null,
@@ -274,7 +342,82 @@ export class AuthService {
   }
 
   /**
-   * Retrieves current authenticated user profile directly from database
+   * Retrieves active/past sessions for a user in a safe format (never exposes token hashes).
+   */
+  public static async listUserSessions(userId: string): Promise<SafeSessionInfo[]> {
+    const sessions = await prisma.session.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        userId: true,
+        familyId: true,
+        userAgent: true,
+        ipAddress: true,
+        isRevoked: true,
+        createdAt: true,
+        updatedAt: true,
+        expiresAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      userId: s.userId,
+      familyId: s.familyId,
+      userAgent: s.userAgent,
+      ipAddress: s.ipAddress,
+      isRevoked: s.isRevoked,
+      createdAt: s.createdAt,
+      lastActiveAt: s.updatedAt,
+      expiresAt: s.expiresAt,
+    }));
+  }
+
+  /**
+   * Revokes a specific session by its ID.
+   */
+  public static async revokeSessionById(
+    sessionId: string,
+    userId?: string
+  ): Promise<boolean> {
+    const whereClause: { id: string; userId?: string } = { id: sessionId };
+    if (userId) {
+      whereClause.userId = userId;
+    }
+
+    const result = await prisma.session.updateMany({
+      where: whereClause,
+      data: { isRevoked: true },
+    });
+
+    return result.count > 0;
+  }
+
+  /**
+   * Revokes all active sessions for a user (e.g. account disabled or universal logout).
+   */
+  public static async revokeAllUserSessions(userId: string): Promise<number> {
+    const result = await prisma.session.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true },
+    });
+    return result.count;
+  }
+
+  /**
+   * Revokes an entire token family lineage (e.g. on compromise/reuse detection).
+   */
+  public static async revokeFamily(familyId: string): Promise<number> {
+    const result = await prisma.session.updateMany({
+      where: { familyId, isRevoked: false },
+      data: { isRevoked: true },
+    });
+    return result.count;
+  }
+
+  /**
+   * Retrieves current authenticated user profile directly from database.
    */
   public static async getCurrentUser(userId: string): Promise<SafeUserProfile | null> {
     const user = await prisma.user.findUnique({

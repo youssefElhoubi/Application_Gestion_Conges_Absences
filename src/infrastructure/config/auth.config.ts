@@ -6,7 +6,10 @@ export class AuthConfig {
   public static readonly ISSUER = 'absnace-platform';
   public static readonly AUDIENCE = 'absnace-client';
   public static readonly ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 15 minutes
-  public static readonly REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
+  public static readonly REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days (absolute expiration)
+  public static readonly IDLE_TIMEOUT_SECONDS = Number(
+    process.env.AUTH_SESSION_IDLE_TIMEOUT_SECONDS || 24 * 60 * 60
+  ); // 24 hours idle timeout
 
   /**
    * Resolves the JWT signing key.

@@ -10,6 +10,10 @@ import { POST as postRefreshRoute } from '@/src/app/api/auth/refresh/route';
 import { POST as postLogoutRoute } from '@/src/app/api/auth/logout/route';
 import { GET as getAuthMeRoute } from '@/src/app/api/auth/me/route';
 import { GET as getMeRoute } from '@/src/app/api/me/route';
+import {
+  GET as getSessionsRoute,
+  POST as postSessionsRoute,
+} from '@/src/app/api/auth/sessions/route';
 
 describe('Integration: Authentication Endpoints & Security Invariants', () => {
   const testEmail = 'auth.integration@entreprise.ma';
@@ -224,7 +228,6 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
     });
 
     it('rejects expired JWT token with 401', async () => {
-      // Issue expired token using raw jose SignJWT
       const secretKey = new TextEncoder().encode(
         process.env.JWT_ACCESS_SECRET || 'dev-insecure-jwt-secret-min-32-chars-long-2026-key!'
       );
@@ -288,7 +291,7 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
     });
   });
 
-  describe('3. POST /api/auth/refresh (RTR & Reuse Detection)', () => {
+  describe('3. POST /api/auth/refresh (RTR, Concurrency & Expiration)', () => {
     it('rotates refresh token, issues new access token, and invalidates previous token', async () => {
       const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
       const tokenHash = TokenService.hashToken(rawRefreshToken);
@@ -331,6 +334,46 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
       expect(newSession).not.toBeNull();
       expect(newSession?.familyId).toBe(familyId);
       expect(newSession?.isRevoked).toBe(false);
+    });
+
+    it('handles concurrent refresh requests atomically without creating duplicate descendants', async () => {
+      const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
+      const tokenHash = TokenService.hashToken(rawRefreshToken);
+      const familyId = 'family-concurrent-test';
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash,
+          familyId,
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      // Launch 2 concurrent refresh requests with the EXACT same refresh token
+      const makeReq = () =>
+        new NextRequest('http://localhost:3000/api/auth/refresh', {
+          method: 'POST',
+          headers: {
+            cookie: `refresh_token=${rawRefreshToken}`,
+          },
+        });
+
+      const [res1, res2] = await Promise.all([
+        postRefreshRoute(makeReq()),
+        postRefreshRoute(makeReq()),
+      ]);
+
+      const statuses = [res1.status, res2.status].sort();
+      // Exactly ONE request must succeed (200), and the competing request must be rejected (401)
+      expect(statuses).toEqual([200, 401]);
+
+      // Verify that in the database, exactly ONE active session exists in this family
+      const activeSessions = await prisma.session.findMany({
+        where: { familyId, isRevoked: false },
+      });
+      // In the case where the loser triggers reuse or concurrency detection, at most 1 active session exists
+      expect(activeSessions.length).toBeLessThanOrEqual(1);
     });
 
     it('detects refresh token reuse and revokes entire family lineage', async () => {
@@ -380,9 +423,128 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
       const activeSessionAfter = await prisma.session.findUnique({ where: { tokenHash: activeHash } });
       expect(activeSessionAfter?.isRevoked).toBe(true);
     });
+
+    it('rejects expired refresh token (absolute expiration) and marks it revoked', async () => {
+      const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
+      const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash,
+          familyId: 'family-expired-abs',
+          isRevoked: false,
+          expiresAt: new Date(Date.now() - 3600000), // Expired 1 hour ago
+        },
+      });
+
+      const req = new NextRequest('http://localhost:3000/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          cookie: `refresh_token=${rawRefreshToken}`,
+        },
+      });
+
+      const res = await postRefreshRoute(req);
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error).toContain('expirée');
+
+      // Verified revoked in database
+      const sessionInDb = await prisma.session.findUnique({ where: { tokenHash } });
+      expect(sessionInDb?.isRevoked).toBe(true);
+    });
+
+    it('rejects refresh when account has been deactivated (403 Forbidden)', async () => {
+      const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
+      const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash,
+          familyId: 'family-deactivated-user',
+          isRevoked: false,
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      // Deactivate user
+      await prisma.user.update({
+        where: { id: testUserId },
+        data: { isActive: false },
+      });
+
+      const req = new NextRequest('http://localhost:3000/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          cookie: `refresh_token=${rawRefreshToken}`,
+        },
+      });
+
+      const res = await postRefreshRoute(req);
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.error).toContain('désactivé');
+
+      // Session must be revoked
+      const sessionInDb = await prisma.session.findUnique({ where: { tokenHash } });
+      expect(sessionInDb?.isRevoked).toBe(true);
+    });
+
+    it('preserves independent sessions across devices without cross-lineage interference', async () => {
+      // Device A Session
+      const tokenA = TokenService.generateOpaqueRefreshToken();
+      const hashA = TokenService.hashToken(tokenA);
+      const familyA = 'family-device-phone';
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash: hashA,
+          familyId: familyA,
+          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      // Device B Session
+      const tokenB = TokenService.generateOpaqueRefreshToken();
+      const hashB = TokenService.hashToken(tokenB);
+      const familyB = 'family-device-laptop';
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash: hashB,
+          familyId: familyB,
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      // Device A refreshes successfully
+      const reqA = new NextRequest('http://localhost:3000/api/auth/refresh', {
+        method: 'POST',
+        headers: { cookie: `refresh_token=${tokenA}` },
+      });
+      const resA = await postRefreshRoute(reqA);
+      expect(resA.status).toBe(200);
+
+      // Device B can still refresh successfully without interference!
+      const reqB = new NextRequest('http://localhost:3000/api/auth/refresh', {
+        method: 'POST',
+        headers: { cookie: `refresh_token=${tokenB}` },
+      });
+      const resB = await postRefreshRoute(reqB);
+      expect(resB.status).toBe(200);
+
+      const bodyB = await resB.json();
+      expect(bodyB.user.id).toBe(testUserId);
+    });
   });
 
-  describe('4. POST /api/auth/logout', () => {
+  describe('4. POST /api/auth/logout and Post-Logout Refresh Defense', () => {
     it('revokes server-side session and clears authentication cookies', async () => {
       const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
       const tokenHash = TokenService.hashToken(rawRefreshToken);
@@ -416,6 +578,165 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
 
       const refreshCookie = res.cookies.get('refresh_token');
       expect(refreshCookie?.maxAge).toBe(0);
+    });
+
+    it('rejects refresh attempts after logout (post-logout refresh defense)', async () => {
+      const rawRefreshToken = TokenService.generateOpaqueRefreshToken();
+      const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash,
+          familyId: 'family-post-logout-test',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      // 1. Logout
+      const logoutReq = new NextRequest('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        headers: { cookie: `refresh_token=${rawRefreshToken}` },
+      });
+      await postLogoutRoute(logoutReq);
+
+      // 2. Attempt Refresh with the logged-out token
+      const refreshReq = new NextRequest('http://localhost:3000/api/auth/refresh', {
+        method: 'POST',
+        headers: { cookie: `refresh_token=${rawRefreshToken}` },
+      });
+      const refreshRes = await postRefreshRoute(refreshReq);
+
+      expect(refreshRes.status).toBe(401);
+    });
+  });
+
+  describe('5. Session Inspection & Revocation (/api/auth/sessions)', () => {
+    it('lists user sessions in safe format without exposing token hashes', async () => {
+      const token1 = TokenService.generateOpaqueRefreshToken();
+      const token2 = TokenService.generateOpaqueRefreshToken();
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash: TokenService.hashToken(token1),
+          familyId: 'fam-safe-1',
+          userAgent: 'Chrome on macOS',
+          ipAddress: '10.0.0.1',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash: TokenService.hashToken(token2),
+          familyId: 'fam-safe-2',
+          userAgent: 'Firefox on Linux',
+          ipAddress: '10.0.0.2',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      const accessToken = await TokenService.signAccessToken(
+        { id: testUserId, email: testEmail, role: 'EMPLOYEE', employeeId: null },
+        'sess-mock-inspect'
+      );
+
+      const req = new NextRequest('http://localhost:3000/api/auth/sessions', {
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+
+      const res = await getSessionsRoute(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+
+      expect(Array.isArray(body.sessions)).toBe(true);
+      expect(body.sessions.length).toBe(2);
+
+      // Invariant: tokenHash or secrets are NEVER in safe session output
+      for (const s of body.sessions) {
+        expect(s.id).toBeDefined();
+        expect(s.userId).toBe(testUserId);
+        expect(s.userAgent).toBeDefined();
+        expect(s.ipAddress).toBeDefined();
+        expect(s.tokenHash).toBeUndefined();
+        expect(s.rawToken).toBeUndefined();
+      }
+    });
+
+    it('allows revoking a specific session via POST /api/auth/sessions/revoke', async () => {
+      const token = TokenService.generateOpaqueRefreshToken();
+      const tokenHash = TokenService.hashToken(token);
+
+      const session = await prisma.session.create({
+        data: {
+          userId: testUserId,
+          tokenHash,
+          familyId: 'fam-to-revoke',
+          expiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+
+      const accessToken = await TokenService.signAccessToken(
+        { id: testUserId, email: testEmail, role: 'EMPLOYEE', employeeId: null },
+        'sess-mock-revoker'
+      );
+
+      const req = new NextRequest('http://localhost:3000/api/auth/sessions/revoke', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId: session.id }),
+      });
+
+      const res = await postSessionsRoute(req);
+      expect(res.status).toBe(200);
+
+      const sessionAfter = await prisma.session.findUnique({ where: { id: session.id } });
+      expect(sessionAfter?.isRevoked).toBe(true);
+    });
+
+    it('allows universal revocation of all sessions via POST /api/auth/sessions/revoke with all: true', async () => {
+      for (let i = 0; i < 3; i++) {
+        await prisma.session.create({
+          data: {
+            userId: testUserId,
+            tokenHash: TokenService.hashToken(TokenService.generateOpaqueRefreshToken()),
+            familyId: `fam-multi-${i}`,
+            expiresAt: new Date(Date.now() + 3600000),
+          },
+        });
+      }
+
+      const activeBefore = await prisma.session.count({
+        where: { userId: testUserId, isRevoked: false },
+      });
+      expect(activeBefore).toBe(3);
+
+      const accessToken = await TokenService.signAccessToken(
+        { id: testUserId, email: testEmail, role: 'EMPLOYEE', employeeId: null },
+        'sess-mock-all'
+      );
+
+      const req = new NextRequest('http://localhost:3000/api/auth/sessions/revoke', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ all: true }),
+      });
+
+      const res = await postSessionsRoute(req);
+      expect(res.status).toBe(200);
+
+      const activeAfter = await prisma.session.count({
+        where: { userId: testUserId, isRevoked: false },
+      });
+      expect(activeAfter).toBe(0);
     });
   });
 });
