@@ -40,7 +40,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => 
   };
 
   return (
-    <div className={cn("min-h-screen flex bg-background text-foreground antialiased", className)}>
+    <div className={cn("min-h-screen bg-background text-foreground antialiased", className)}>
       {/* Mobile Drawer Navigation (Small/Medium screens) */}
 
       {/* Mobile Drawer Navigation */}

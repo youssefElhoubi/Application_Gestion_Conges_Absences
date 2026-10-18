@@ -699,10 +699,6 @@ export type EmployeeUncheckedCreateNestedManyWithoutManagerInput = {
   connect?: Prisma.EmployeeWhereUniqueInput | Prisma.EmployeeWhereUniqueInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type EmployeeUpdateOneWithoutSubordinatesNestedInput = {
   create?: Prisma.XOR<Prisma.EmployeeCreateWithoutSubordinatesInput, Prisma.EmployeeUncheckedCreateWithoutSubordinatesInput>
   connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutSubordinatesInput

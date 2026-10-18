@@ -463,14 +463,6 @@ export type SiteUpdateweeklyRestDaysInput = {
   push?: number | number[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type SiteCreateNestedOneWithoutEmployeesInput = {
   create?: Prisma.XOR<Prisma.SiteCreateWithoutEmployeesInput, Prisma.SiteUncheckedCreateWithoutEmployeesInput>
   connectOrCreate?: Prisma.SiteCreateOrConnectWithoutEmployeesInput

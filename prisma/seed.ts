@@ -1,5 +1,6 @@
 import { prisma } from '../src/infrastructure/db/prisma';
 import { seedCoreTypesAndRules } from '../tests/fixtures/factories';
+import { PasswordService } from '../src/modules/auth/password.service';
 
 export async function seedDatabase() {
   console.log('Seeding core types and rules...');
@@ -68,13 +69,18 @@ export async function seedDatabase() {
   });
 
   // Admin user
+  const adminPasswordHash = await PasswordService.hash(
+    process.env.SEED_ADMIN_PASSWORD || 'AdminPassword123!'
+  );
   await prisma.user.upsert({
     where: { id: 'usr-admin-default' },
-    update: {},
+    update: {
+      passwordHash: adminPasswordHash,
+    },
     create: {
       id: 'usr-admin-default',
       email: 'admin@entreprise.ma',
-      passwordHash: 'argon2_mock_hash',
+      passwordHash: adminPasswordHash,
       role: 'ADMIN',
       isActive: true,
       employeeId: adminEmp.employeeId,
@@ -244,13 +250,18 @@ export async function seedDatabase() {
   }
 
   // Employee user for portal testing
+  const employeePasswordHash = await PasswordService.hash(
+    process.env.SEED_EMPLOYEE_PASSWORD || 'EmployeePassword123!'
+  );
   await prisma.user.upsert({
     where: { id: 'usr-emp-alami' },
-    update: {},
+    update: {
+      passwordHash: employeePasswordHash,
+    },
     create: {
       id: 'usr-emp-alami',
       email: 'fz.alami@entreprise.ma',
-      passwordHash: 'argon2_mock_hash',
+      passwordHash: employeePasswordHash,
       role: 'EMPLOYEE',
       isActive: true,
       employeeId: 'EMP-0101',

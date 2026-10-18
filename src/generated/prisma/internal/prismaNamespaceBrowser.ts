@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Session: 'Session',
+  RateLimitLedger: 'RateLimitLedger',
   Site: 'Site',
   Employee: 'Employee',
   AbsenceType: 'AbsenceType',
@@ -86,11 +88,43 @@ export const UserScalarFieldEnum = {
   role: 'role',
   isActive: 'isActive',
   employeeId: 'employeeId',
+  lastLoginAt: 'lastLoginAt',
+  passwordChangedAt: 'passwordChangedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const SessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  familyId: 'familyId',
+  userAgent: 'userAgent',
+  ipAddress: 'ipAddress',
+  isRevoked: 'isRevoked',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
+export const RateLimitLedgerScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  points: 'points',
+  lastAttempt: 'lastAttempt',
+  resetAt: 'resetAt',
+  blockedUntil: 'blockedUntil',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RateLimitLedgerScalarFieldEnum = (typeof RateLimitLedgerScalarFieldEnum)[keyof typeof RateLimitLedgerScalarFieldEnum]
 
 
 export const SiteScalarFieldEnum = {
