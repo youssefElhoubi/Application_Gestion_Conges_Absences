@@ -1,3 +1,5 @@
+export { useLeaveBalanceDetail } from './useLeaveBalanceDetail';
+export type { UseLeaveBalanceDetailResult } from './useLeaveBalanceDetail';
 export { LeaveBalanceDetailSkeleton } from './LeaveBalanceDetailSkeleton';
 export { EmployeeHeaderBanner } from './EmployeeHeaderBanner';
 export type { EmployeeHeaderBannerProps } from './EmployeeHeaderBanner';

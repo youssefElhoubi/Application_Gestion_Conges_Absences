@@ -9,30 +9,10 @@ import { PageContainer } from "@/src/components/layout/PageContainer";
 import { PageHeader } from "@/src/components/shared/PageHeader";
 import { Badge } from "@/src/components/ui/badge";
 import { ErrorState } from "@/src/components/feedback/ErrorState";
+import { LEGAL_STATUTORY_LABELS } from "@/src/lib/leave-balances/leave-balance.constants";
+import { safeDecodeParam } from "@/src/lib/leave-balances/balance-metrics";
 import {
-  CounterApiClient,
-  EmployeeCounterItem,
-} from "@/src/lib/api/counter-client";
-import {
-  EmployeeApiClient,
-  EmployeeDetail,
-} from "@/src/lib/api/employee-client";
-import {
-  AbsenceApiClient,
-  AbsenceListItem,
-} from "@/src/lib/api/absence-client";
-import {
-  HolidayApiClient,
-  HolidayWorkCreditItem,
-} from "@/src/lib/api/holiday-client";
-import { toSafeNumber } from "@/src/lib/utils";
-import type { AbsenceFilterTab } from "@/src/lib/leave-balances/leave-balance.types";
-import {
-  DEFAULT_DETAIL_ABSENCES_PAGE_SIZE,
-  DEFAULT_DETAIL_CREDITS_PAGE_SIZE,
-  LEGAL_STATUTORY_LABELS,
-} from "@/src/lib/leave-balances/leave-balance.constants";
-import {
+  useLeaveBalanceDetail,
   LeaveBalanceDetailSkeleton,
   EmployeeHeaderBanner,
   StatutoryAlerts,
@@ -50,150 +30,32 @@ function LeaveBalanceDetailContent() {
   const router = useRouter();
 
   // Safely extract employee identifier from URL parameter
-  const rawId = params?.id;
-  const employeeId = React.useMemo(() => {
-    if (!rawId) return "";
-    return Array.isArray(rawId)
-      ? decodeURIComponent(rawId[0])
-      : decodeURIComponent(rawId);
-  }, [rawId]);
-
-  // 1. Core State: Employee identity & Authoritative dynamic counters
-  const [employee, setEmployee] = React.useState<EmployeeDetail | null>(null);
-  const [counter, setCounter] = React.useState<EmployeeCounterItem | null>(null);
-  const [isLoadingCore, setIsLoadingCore] = React.useState(true);
-  const [coreError, setCoreError] = React.useState<string | null>(null);
-
-  // 2. Absence History State: Independent loading and error isolation
-  const [absences, setAbsences] = React.useState<AbsenceListItem[]>([]);
-  const [isLoadingAbsences, setIsLoadingAbsences] = React.useState(true);
-  const [absencesError, setAbsencesError] = React.useState<string | null>(null);
-  const [absenceFilterTab, setAbsenceFilterTab] =
-    React.useState<AbsenceFilterTab>("all");
-
-  // 3. Recovery Credits State: Independent loading and error isolation
-  const [credits, setCredits] = React.useState<HolidayWorkCreditItem[]>([]);
-  const [isLoadingCredits, setIsLoadingCredits] = React.useState(true);
-  const [creditsError, setCreditsError] = React.useState<string | null>(null);
-
-  // --- Independent Data Fetchers ---
-
-  // Fetch Core Data (Employee profile + Counter balances)
-  const fetchCore = React.useCallback(() => {
-    if (!employeeId) {
-      Promise.resolve().then(() => {
-        setCoreError("Identifiant collaborateur manquant.");
-        setIsLoadingCore(false);
-      });
-      return;
-    }
-
-    Promise.all([
-      EmployeeApiClient.getEmployee(employeeId),
-      CounterApiClient.getEmployeeCounters(employeeId),
-    ])
-      .then(([empData, counterData]) => {
-        setEmployee(empData);
-        setCounter(counterData);
-        setCoreError(null);
-      })
-      .catch((err: unknown) => {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger les compteurs de congés du collaborateur.";
-        setCoreError(msg);
-      })
-      .finally(() => {
-        setIsLoadingCore(false);
-      });
-  }, [employeeId]);
-
-  // Fetch Absence History independently
-  const fetchAbsences = React.useCallback(() => {
-    if (!employeeId) return;
-
-    AbsenceApiClient.listAbsences({
-      employeeId,
-      pageSize: DEFAULT_DETAIL_ABSENCES_PAGE_SIZE,
-    })
-      .then((res) => {
-        setAbsences(res.data || []);
-        setAbsencesError(null);
-      })
-      .catch((err: unknown) => {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger l'historique des absences.";
-        setAbsencesError(msg);
-      })
-      .finally(() => {
-        setIsLoadingAbsences(false);
-      });
-  }, [employeeId]);
-
-  // Fetch Recovery Credits independently
-  const fetchCredits = React.useCallback(() => {
-    if (!employeeId) return;
-
-    HolidayApiClient.listCredits({
-      employeeId,
-      pageSize: DEFAULT_DETAIL_CREDITS_PAGE_SIZE,
-    })
-      .then((res) => {
-        setCredits(res.data || []);
-        setCreditsError(null);
-      })
-      .catch((err: unknown) => {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger les crédits de récupération.";
-        setCreditsError(msg);
-      })
-      .finally(() => {
-        setIsLoadingCredits(false);
-      });
-  }, [employeeId]);
-
-  // Initial concurrent trigger
-  React.useEffect(() => {
-    fetchCore();
-    fetchAbsences();
-    fetchCredits();
-  }, [fetchCore, fetchAbsences, fetchCredits]);
-
-  // Pending requests summary for informational notice badge
-  const pendingAbsences = React.useMemo(
-    () => absences.filter((a) => a.status === "PENDING"),
-    [absences]
+  const employeeId = React.useMemo(
+    () => safeDecodeParam(params?.id),
+    [params?.id]
   );
 
-  const pendingDays = React.useMemo(
-    () =>
-      pendingAbsences.reduce((sum, a) => {
-        const val = toSafeNumber(a.retainedDays ?? a.calculatedWorkingDays ?? 0);
-        return sum + val;
-      }, 0),
-    [pendingAbsences]
-  );
-
-  // Filtered absences according to selected tab
-  const filteredAbsences = React.useMemo(() => {
-    if (absenceFilterTab === "approved") {
-      return absences.filter((a) => a.status === "APPROVED");
-    }
-    if (absenceFilterTab === "pending") {
-      return absences.filter((a) => a.status === "PENDING");
-    }
-    if (absenceFilterTab === "other") {
-      return absences.filter(
-        (a) => a.status === "REJECTED" || a.status === "CANCELLED"
-      );
-    }
-    return absences;
-  }, [absences, absenceFilterTab]);
+  const {
+    employee,
+    counter,
+    isLoadingCore,
+    coreError,
+    retryCore,
+    absences,
+    filteredAbsences,
+    absenceFilterTab,
+    setAbsenceFilterTab,
+    isLoadingAbsences,
+    absencesError,
+    retryAbsences,
+    credits,
+    isLoadingCredits,
+    creditsError,
+    retryCredits,
+    pendingAbsences,
+    pendingDays,
+    progressMetrics,
+  } = useLeaveBalanceDetail(employeeId);
 
   // 1. Core Loading View
   if (isLoadingCore) {
@@ -210,11 +72,7 @@ function LeaveBalanceDetailContent() {
             coreError ||
             `Aucune donnée de solde disponible pour le matricule « ${employeeId} ».`
           }
-          onRetry={() => {
-            setIsLoadingCore(true);
-            setCoreError(null);
-            fetchCore();
-          }}
+          onRetry={retryCore}
           secondaryActionLabel="Retour aux soldes de congés"
           onSecondaryAction={() => router.push("/leave-balances")}
         />
@@ -258,7 +116,10 @@ function LeaveBalanceDetailContent() {
       <LeaveBalanceKpiGrid counter={counter} />
 
       {/* 5. Balance Composition Bar */}
-      <BalanceCompositionBar counter={counter} />
+      <BalanceCompositionBar
+        counter={counter}
+        metrics={progressMetrics ?? undefined}
+      />
 
       {/* 6. Pending Absences Notice */}
       <PendingAbsencesNotice
@@ -286,11 +147,7 @@ function LeaveBalanceDetailContent() {
             onTabChange={setAbsenceFilterTab}
             isLoading={isLoadingAbsences}
             error={absencesError}
-            onRetry={() => {
-              setIsLoadingAbsences(true);
-              setAbsencesError(null);
-              fetchAbsences();
-            }}
+            onRetry={retryAbsences}
             totalApprovedDeductions={counter.totalApprovedDeductions}
           />
 
@@ -299,11 +156,7 @@ function LeaveBalanceDetailContent() {
             credits={credits}
             isLoading={isLoadingCredits}
             error={creditsError}
-            onRetry={() => {
-              setIsLoadingCredits(true);
-              setCreditsError(null);
-              fetchCredits();
-            }}
+            onRetry={retryCredits}
             activeRecoveryCreditDays={counter.activeRecoveryCreditDays}
           />
         </div>

@@ -3,30 +3,29 @@
 import * as React from "react";
 import { Layers } from "lucide-react";
 import { formatDate, formatLeaveDays } from "@/src/lib/utils";
-import type { EmployeeCounterItem } from "@/src/lib/leave-balances/leave-balance.types";
+import type {
+  EmployeeCounterItem,
+  BalanceProgressMetrics,
+} from "@/src/lib/leave-balances/leave-balance.types";
+import { computeBalanceProgressMetrics } from "@/src/lib/leave-balances/balance-metrics";
 
 export interface BalanceCompositionBarProps {
   counter: EmployeeCounterItem;
+  metrics?: BalanceProgressMetrics;
 }
 
-export function BalanceCompositionBar({ counter }: BalanceCompositionBarProps) {
-  const isEligible = counter.isEligibleForAnnualLeave;
-  const isNegative = counter.netAvailableBalance < 0;
-
-  // Authoritative balance composition totals under Moroccan Labor Code (Loi 65-99)
-  const totalAcquiredRights =
-    counter.statutoryAccruedDays + counter.activeRecoveryCreditDays;
-  const consumedPercent =
-    totalAcquiredRights > 0
-      ? Math.min(
-          100,
-          Math.round(
-            (counter.totalApprovedDeductions / totalAcquiredRights) * 100
-          )
-        )
-      : 0;
-  const availablePercent =
-    totalAcquiredRights > 0 ? Math.max(0, 100 - consumedPercent) : 0;
+export function BalanceCompositionBar({
+  counter,
+  metrics,
+}: BalanceCompositionBarProps) {
+  const m = metrics ?? computeBalanceProgressMetrics(counter);
+  const {
+    isEligible,
+    isNegative,
+    totalAcquiredRights,
+    consumedPercent,
+    availablePercent,
+  } = m;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-xs space-y-4">
