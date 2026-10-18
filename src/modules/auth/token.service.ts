@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import crypto from 'node:crypto';
 import { Role } from '@/src/generated/prisma';
+import { AuthConfig } from '@/src/infrastructure/config/auth.config';
 
 export interface AccessTokenClaims extends JWTPayload {
   sub: string;            // User ID
@@ -11,21 +12,17 @@ export interface AccessTokenClaims extends JWTPayload {
 }
 
 export class TokenService {
-  private static readonly ISSUER = 'absnace-platform';
-  private static readonly AUDIENCE = 'absnace-client';
+  public static readonly ISSUER = AuthConfig.ISSUER;
+  public static readonly AUDIENCE = AuthConfig.AUDIENCE;
   public static readonly ACCESS_TOKEN_EXPIRATION = '15m'; // 15 minutes
-  public static readonly ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 900 seconds
-  public static readonly REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days (604,800 seconds)
+  public static readonly ACCESS_TOKEN_MAX_AGE_SECONDS = AuthConfig.ACCESS_TOKEN_MAX_AGE_SECONDS;
+  public static readonly REFRESH_TOKEN_MAX_AGE_SECONDS = AuthConfig.REFRESH_TOKEN_MAX_AGE_SECONDS;
 
   /**
-   * Resolves secret key as Uint8Array for Web Cryptography API (compatible with Edge & Node)
+   * Resolves secret key as Uint8Array for Web Cryptography API
    */
   private static getSecretKey(): Uint8Array {
-    const secret = process.env.JWT_ACCESS_SECRET || 'dev-insecure-jwt-secret-min-32-chars-long-2026-key!';
-    if (process.env.NODE_ENV === 'production' && !process.env.JWT_ACCESS_SECRET) {
-      throw new Error('JWT_ACCESS_SECRET must be set in production environment.');
-    }
-    return new TextEncoder().encode(secret);
+    return AuthConfig.getJwtSecret();
   }
 
   /**
@@ -56,6 +53,7 @@ export class TokenService {
 
   /**
    * Verifies and decodes a JWT Access Token.
+   * Enforces algorithm, expiration, issuer, audience, and non-empty claims.
    * Returns null if signature is invalid, token is expired, or claims are malformed.
    */
   public static async verifyAccessToken(token: string): Promise<AccessTokenClaims | null> {
@@ -68,6 +66,7 @@ export class TokenService {
       const { payload } = await jwtVerify(token, secretKey, {
         issuer: this.ISSUER,
         audience: this.AUDIENCE,
+        algorithms: ['HS256'],
       });
 
       if (!payload.sub || !payload.email || !payload.role) {

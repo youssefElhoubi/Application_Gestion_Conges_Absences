@@ -197,6 +197,15 @@ export class RateLimiterService {
   }
 
   /**
+   * Alias for resetOnSuccess
+   */
+  public static async resetLedger(clientIp: string, normalizedEmail?: string): Promise<void> {
+    if (normalizedEmail) {
+      await this.resetOnSuccess(clientIp, normalizedEmail);
+    }
+  }
+
+  /**
    * Cleans up expired entries across the distributed store.
    */
   public static async pruneExpiredRecords(): Promise<number> {

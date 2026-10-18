@@ -27,6 +27,20 @@ export class ForbiddenError extends Error {
   }
 }
 
+export class TooManyRequestsError extends Error {
+  readonly statusCode = 429;
+  readonly code = 'RATE_LIMITED';
+  readonly retryAfterSeconds: number;
+  constructor(
+    message = 'Trop de tentatives infructueuses. Veuillez réessayer plus tard.',
+    retryAfterSeconds = 60
+  ) {
+    super(message);
+    this.retryAfterSeconds = retryAfterSeconds;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
 /**
  * Centralized Authorization Guards
  */

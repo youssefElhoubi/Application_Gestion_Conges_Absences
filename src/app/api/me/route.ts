@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 
-export async function GET() {
+export async function GET(request?: NextRequest) {
   try {
-    const session = await SessionResolver.require();
+    const session = await SessionResolver.require(request);
 
     let employee = null;
     let balances = null;
