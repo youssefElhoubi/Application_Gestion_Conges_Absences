@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
+import { useAuth } from "@/src/contexts/AuthContext";
 import { cn } from "@/src/lib/utils";
 
 export interface AppLayoutProps {
@@ -12,6 +14,9 @@ export interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
@@ -27,6 +32,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => 
     }
   }, []);
 
+  // Redirect to login if unauthenticated on protected pages
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated && pathname !== '/login') {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [isLoading, isAuthenticated, pathname, router]);
+
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed((prev) => {
       const next = !prev;
@@ -39,10 +51,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => 
     });
   };
 
-  return (
-    <div className={cn("min-h-screen bg-background text-foreground antialiased", className)}>
-      {/* Mobile Drawer Navigation (Small/Medium screens) */}
+  // Dedicated layout for authentication pages (Login)
+  if (pathname === '/login') {
+    return <main className="min-h-screen bg-background">{children}</main>;
+  }
 
+  return (
+    <div className={cn("min-h-screen bg-background text-foreground", className)}>
       {/* Mobile Drawer Navigation */}
       <MobileNav
         isOpen={mobileNavOpen}

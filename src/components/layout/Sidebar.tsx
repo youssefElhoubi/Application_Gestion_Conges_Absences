@@ -30,6 +30,7 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: string | number;
   badgeVariant?: "primary" | "warning" | "default";
+  roles?: ("ADMIN" | "HR_MANAGER" | "SUPERVISOR" | "EMPLOYEE")[];
 }
 
 export interface NavGroup {
@@ -41,35 +42,35 @@ export const navigationGroups: NavGroup[] = [
   {
     label: "ESPACE COLLABORATEUR",
     items: [
-      { title: "Mon Espace Congés", href: "/portal", icon: CalendarCheck },
-      { title: "Mes Demandes", href: "/portal/requests", icon: CalendarDays },
-      { title: "Déposer un congé", href: "/portal/requests/new", icon: PlusCircle },
-      { title: "Mon Profil & Droits", href: "/portal/profile", icon: UserCheck },
+      { title: "Mon Espace Congés", href: "/portal", icon: CalendarCheck, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
+      { title: "Mes Demandes", href: "/portal/requests", icon: CalendarDays, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
+      { title: "Déposer un congé", href: "/portal/requests/new", icon: PlusCircle, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
+      { title: "Mon Profil & Droits", href: "/portal/profile", icon: UserCheck, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
     ],
   },
   {
     label: "GESTION RH & ADMIN",
     items: [
-      { title: "Tableau de bord RH", href: "/", icon: LayoutDashboard },
-      { title: "Collaborateurs", href: "/employees", icon: Users },
-      { title: "Toutes les absences", href: "/absences", icon: Layers, badge: "3", badgeVariant: "warning" },
-      { title: "Calendrier mensuel", href: "/calendar", icon: CalendarRange },
+      { title: "Tableau de bord RH", href: "/", icon: LayoutDashboard, roles: ["HR_MANAGER", "ADMIN"] },
+      { title: "Collaborateurs", href: "/employees", icon: Users, roles: ["HR_MANAGER", "ADMIN", "SUPERVISOR"] },
+      { title: "Toutes les absences", href: "/absences", icon: Layers, badge: "3", badgeVariant: "warning", roles: ["HR_MANAGER", "ADMIN", "SUPERVISOR"] },
+      { title: "Calendrier mensuel", href: "/calendar", icon: CalendarRange, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
     ],
   },
   {
     label: "SOLDES & CRÉDITS",
     items: [
-      { title: "Soldes de congés", href: "/leave-balances", icon: Briefcase },
-      { title: "Crédits récupération", href: "/recovery-credits", icon: Clock },
-      { title: "Jours fériés légaux", href: "/holidays", icon: Sparkles },
+      { title: "Soldes de congés", href: "/leave-balances", icon: Briefcase, roles: ["HR_MANAGER", "ADMIN"] },
+      { title: "Crédits récupération", href: "/recovery-credits", icon: Clock, roles: ["HR_MANAGER", "ADMIN", "SUPERVISOR"] },
+      { title: "Jours fériés légaux", href: "/holidays", icon: Sparkles, roles: ["EMPLOYEE", "SUPERVISOR", "HR_MANAGER", "ADMIN"] },
     ],
   },
   {
     label: "CONFIGURATION",
     items: [
-      { title: "Sites de travail", href: "/sites", icon: Building2 },
-      { title: "Règles & Paramètres", href: "/rules", icon: Sliders },
-      { title: "Administration", href: "/admin", icon: ShieldCheck },
+      { title: "Sites de travail", href: "/sites", icon: Building2, roles: ["ADMIN", "HR_MANAGER"] },
+      { title: "Règles & Paramètres", href: "/rules", icon: Sliders, roles: ["ADMIN", "HR_MANAGER"] },
+      { title: "Administration", href: "/admin", icon: ShieldCheck, roles: ["ADMIN"] },
     ],
   },
 ];
@@ -86,6 +87,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   className,
 }) => {
   const pathname = usePathname();
+  const [userRole, setUserRole] = React.useState<"ADMIN" | "HR_MANAGER" | "SUPERVISOR" | "EMPLOYEE">("EMPLOYEE");
+
+  React.useEffect(() => {
+    // Attempt client-side session resolution or read from API
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user?.role) {
+          setUserRole(data.user.role);
+        }
+      })
+      .catch(() => null);
+  }, []);
+
+  const visibleGroups = React.useMemo(() => {
+    return navigationGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) => !item.roles || item.roles.includes(userRole)
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [userRole]);
 
   return (
     <aside
@@ -123,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Nav Items Scrollable List */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-6 scrollbar-thin">
-        {navigationGroups.map((group, groupIdx) => (
+        {visibleGroups.map((group, groupIdx) => (
           <div key={group.label || groupIdx} className="space-y-1">
             {!collapsed && (
               <h2 className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-2">

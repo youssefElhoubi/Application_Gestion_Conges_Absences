@@ -1,4 +1,4 @@
-import { hash, verify, Algorithm } from '@node-rs/argon2';
+import { hash, verify, type Algorithm } from '@node-rs/argon2';
 
 /**
  * Enterprise Password Service using Argon2id
@@ -10,7 +10,7 @@ import { hash, verify, Algorithm } from '@node-rs/argon2';
  */
 export class PasswordService {
   private static readonly ARGON2_CONFIG = {
-    algorithm: Algorithm.Argon2id,
+    algorithm: 2 as unknown as Algorithm, // Argon2id (Algorithm.Argon2id = 2)
     memoryCost: 19456, // 19 MiB
     timeCost: 2,       // 2 iterations
     parallelism: 1,    // 1 lane

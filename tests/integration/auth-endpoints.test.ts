@@ -75,12 +75,12 @@ describe('Integration: Authentication Endpoints & Security Invariants', () => {
       const accessTokenCookie = res.cookies.get('access_token');
       expect(accessTokenCookie).toBeDefined();
       expect(accessTokenCookie?.httpOnly).toBe(true);
-      expect(accessTokenCookie?.sameSite?.toLowerCase()).toBe('lax');
+      expect(String(accessTokenCookie?.sameSite).toLowerCase()).toBe('lax');
 
       const refreshTokenCookie = res.cookies.get('refresh_token');
       expect(refreshTokenCookie).toBeDefined();
       expect(refreshTokenCookie?.httpOnly).toBe(true);
-      expect(refreshTokenCookie?.sameSite?.toLowerCase()).toBe('strict');
+      expect(String(refreshTokenCookie?.sameSite).toLowerCase()).toBe('strict');
 
       // Verify database session creation
       const tokenHash = TokenService.hashToken(refreshTokenCookie!.value);

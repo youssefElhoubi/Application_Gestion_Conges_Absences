@@ -18,6 +18,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 export interface HeaderProps {
   onOpenMobileNav: () => void;
@@ -26,6 +27,7 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) => {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
@@ -204,15 +206,27 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
             aria-label="Menu utilisateur"
             aria-expanded={userMenuOpen}
           >
-            <div className="h-8 w-8 rounded-full bg-primary/15 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs">
-              RH
+            <div className="h-8 w-8 rounded-full bg-primary/15 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs uppercase">
+              {user?.fullName
+                ? user.fullName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                : user?.email?.[0]?.toUpperCase() || "U"}
             </div>
             <div className="hidden sm:flex flex-col min-w-0 pr-1">
               <span className="text-xs font-semibold text-foreground truncate leading-tight">
-                Karim Bennani
+                {user?.fullName || user?.email || "Utilisateur"}
               </span>
               <span className="text-[10px] text-muted-foreground truncate leading-tight">
-                Responsable RH
+                {user?.role === "ADMIN"
+                  ? "Administrateur Système"
+                  : user?.role === "HR_MANAGER"
+                  ? "Responsable RH"
+                  : user?.role === "SUPERVISOR"
+                  ? "Superviseur / Manager"
+                  : "Collaborateur"}
               </span>
             </div>
           </button>
@@ -220,10 +234,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
           {userMenuOpen && (
             <div className="absolute right-0 mt-2 w-56 rounded-lg border border-border bg-card p-1.5 shadow-lg z-50 animate-fadeIn text-xs">
               <div className="px-3 py-2 border-b border-border mb-1">
-                <p className="font-semibold text-foreground">Karim Bennani</p>
-                <p className="text-[11px] text-muted-foreground">k.bennani@entreprise.ma</p>
+                <p className="font-semibold text-foreground truncate">
+                  {user?.fullName || "Utilisateur"}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {user?.email}
+                </p>
                 <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-primary/10 text-primary">
-                  ADMIN_RH • MAT-0042
+                  {user?.role} • {user?.employeeId || "COMPTE"}
                 </span>
               </div>
 
@@ -264,7 +282,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
 
               <button
                 type="button"
-                onClick={() => setUserMenuOpen(false)}
+                onClick={() => {
+                  setUserMenuOpen(false);
+                  logout();
+                }}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-destructive/10 text-destructive w-full text-left transition-colors font-medium"
               >
                 <LogOut className="h-4 w-4" />
