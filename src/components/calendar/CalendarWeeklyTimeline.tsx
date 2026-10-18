@@ -264,29 +264,31 @@ export function CalendarWeeklyTimeline({
                   </div>
 
                   {/* Right Columns: 7 Day Timeline Slots & Spanning Absence Bars */}
-                  <div className="col-span-8 sm:col-span-9 relative grid grid-cols-7 divide-x divide-border/40 min-h-[56px] items-center p-1">
-                    {/* Background Column Slots */}
-                    {days.map((day) => {
-                      const holiday = holidaysByDate.get(day.dateKey);
-                      const isSunday = day.dayOfWeek === 0;
-                      const isSaturday = day.dayOfWeek === 6;
+                  <div className="col-span-8 sm:col-span-9 relative min-h-[56px] flex flex-col justify-center">
+                    {/* Background Column Slots (fills full row height dynamically) */}
+                    <div className="absolute inset-0 grid grid-cols-7 divide-x divide-border/40 pointer-events-none">
+                      {days.map((day) => {
+                        const holiday = holidaysByDate.get(day.dateKey);
+                        const isSunday = day.dayOfWeek === 0;
+                        const isSaturday = day.dayOfWeek === 6;
 
-                      return (
-                        <div
-                          key={day.dateKey}
-                          className={cn(
-                            "h-full w-full pointer-events-none",
-                            day.isToday && "bg-primary/[0.02]",
-                            holiday && "bg-amber-500/[0.04]",
-                            (isSunday || isSaturday) && "bg-muted/10"
-                          )}
-                        />
-                      );
-                    })}
+                        return (
+                          <div
+                            key={day.dateKey}
+                            className={cn(
+                              "h-full w-full pointer-events-none",
+                              day.isToday && "bg-primary/[0.02]",
+                              holiday && "bg-amber-500/[0.04]",
+                              (isSunday || isSaturday) && "bg-muted/10"
+                            )}
+                          />
+                        );
+                      })}
+                    </div>
 
-                    {/* Spanning Absence Bars Overlay */}
+                    {/* Spanning Absence Bars: In-flow grid allowing natural vertical expansion for multi-absence rows */}
                     {hasAbsence ? (
-                      <div className="absolute inset-x-1 inset-y-1.5 grid grid-cols-7 gap-1 pointer-events-none">
+                      <div className="relative z-10 grid grid-cols-7 gap-1.5 p-1.5 w-full pointer-events-none">
                         {empAbsences.map((absence) => {
                           const absStart = extractDateKey(absence.startDate);
                           const absEnd = extractDateKey(absence.endDate);
@@ -384,7 +386,9 @@ export function CalendarWeeklyTimeline({
                           );
                         })}
                       </div>
-                    ) : null}
+                    ) : (
+                      <div className="min-h-[52px]" />
+                    )}
                   </div>
                 </div>
               );

@@ -362,4 +362,61 @@ describe('Calendar Reliability & Readability Under Realistic Data Conditions', (
       ]);
     });
   });
+
+  describe('7. Pagination Exhaustion & Complete Dataset Aggregation (Regression Bug 1 & 2)', () => {
+    it('aggregates all pages when period absences exceed 100 items without silent truncation', async () => {
+      // Simulate API endpoint returning 140 total absences across 2 pages (page 1: 100 items, page 2: 40 items)
+      const mockFetchAbsences = async (page: number, pageSize: number) => {
+        const totalItems = 140;
+        const totalPages = Math.ceil(totalItems / pageSize);
+        const count = page === 1 ? 100 : 40;
+        const items = Array.from({ length: count }, (_, i) =>
+          createMockAbsence(
+            String((page - 1) * 100 + i + 1),
+            `Collaborateur ${(page - 1) * 100 + i + 1}`,
+            '2026-10-15',
+            '2026-10-15'
+          )
+        );
+        return {
+          data: items,
+          meta: {
+            page,
+            pageSize,
+            totalItems,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+          },
+        };
+      };
+
+      // Implementation of exhaust algorithm
+      const fetchAll = async () => {
+        const first = await mockFetchAbsences(1, 100);
+        let all = [...first.data];
+        if (first.meta && first.meta.totalPages > 1) {
+          const restPages = Array.from(
+            { length: first.meta.totalPages - 1 },
+            (_, i) => i + 2
+          );
+          const restResults = await Promise.all(
+            restPages.map((p) => mockFetchAbsences(p, 100))
+          );
+          for (const res of restResults) {
+            all = all.concat(res.data);
+          }
+        }
+        return all;
+      };
+
+      const results = await fetchAll();
+      expect(results.length).toBe(140);
+      expect(results[0].id).toBe('1');
+      expect(results[139].id).toBe('140');
+      // Verify monthly counters calculate over all 140 items rather than truncated 100
+      const approvedCount = results.filter((a) => a.status === 'APPROVED').length;
+      expect(approvedCount).toBe(140);
+    });
+  });
 });

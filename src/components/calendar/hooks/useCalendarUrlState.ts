@@ -66,10 +66,13 @@ export function useCalendarUrlState(): UseCalendarUrlStateResult {
     return `${y}-${m}-${d}`;
   }, [now]);
 
-  // Default selected date: deep-linked urlState.date if provided, else today if viewing current month, else 1st of active month
+  // Default selected date: deep-linked urlState.date if provided and matches active month/year, else today if viewing current month, else 1st of active month
   const defaultSelectedDate = React.useMemo(() => {
     if (urlState.date) {
-      return urlState.date;
+      const p = parseDateKey(urlState.date);
+      if (p.year === year && p.month === month) {
+        return urlState.date;
+      }
     }
     if (year === currentYear && month === currentMonth) {
       return todayDateKey;
@@ -116,13 +119,11 @@ export function useCalendarUrlState(): UseCalendarUrlStateResult {
   // Synchronize month/year/date navigation into URL search params preserving active filters and view
   const updatePeriod = React.useCallback(
     (newYear: number, newMonth: number, newDate?: string) => {
-      const updates: { year: number; month: number; date?: string } = {
+      const updates: { year: number; month: number; date?: string | null } = {
         year: newYear,
         month: newMonth,
+        date: newDate ?? null,
       };
-      if (newDate) {
-        updates.date = newDate;
-      }
       const queryString = buildFilterQueryString(searchParams, updates);
       router.push(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
     },

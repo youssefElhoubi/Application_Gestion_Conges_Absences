@@ -194,4 +194,45 @@ describe('Weekly / Team Absence Timeline Engine (Unit Tests)', () => {
       expect(absentEmployeeIds.has('EMP-002')).toBe(false);
     });
   });
+
+  describe('4. Multi-Absence Row Dynamic Expansion (Regression Bug 5)', () => {
+    it('handles multiple non-overlapping absences for the same employee in the same week', () => {
+      // Employee has 2 distinct absence requests in the same week:
+      // Request 1: Monday morning (Oct 12)
+      // Request 2: Friday full day (Oct 16)
+      const empAbsences = [
+        createMockAbsence('1', 'EMP-001', 'Ali Amrani', '2026-10-12', '2026-10-12', 'HALF_DAY_MORNING'),
+        createMockAbsence('2', 'EMP-001', 'Ali Amrani', '2026-10-16', '2026-10-16', 'FULL_DAY'),
+      ];
+
+      const weekStart = '2026-10-12';
+      const weekEnd = '2026-10-18';
+      const days = getWeekDays('2026-10-15').days;
+
+      const mapped = empAbsences.map((absence) => {
+        const absStart = extractDateKey(absence.startDate);
+        const absEnd = extractDateKey(absence.endDate);
+        const clampedStart = absStart < weekStart ? weekStart : absStart;
+        const clampedEnd = absEnd > weekEnd ? weekEnd : absEnd;
+        const startIdx = days.findIndex((d) => d.dateKey === clampedStart);
+        const endIdx = days.findIndex((d) => d.dateKey === clampedEnd);
+        return {
+          id: absence.id,
+          startIdx,
+          endIdx,
+          colSpan: endIdx - startIdx + 1,
+          gridColumnStart: startIdx + 1,
+          gridColumnEnd: startIdx + 1 + (endIdx - startIdx + 1),
+        };
+      });
+
+      expect(mapped.length).toBe(2);
+      // Monday is column 1
+      expect(mapped[0].gridColumnStart).toBe(1);
+      expect(mapped[0].colSpan).toBe(1);
+      // Friday is column 5
+      expect(mapped[1].gridColumnStart).toBe(5);
+      expect(mapped[1].colSpan).toBe(1);
+    });
+  });
 });

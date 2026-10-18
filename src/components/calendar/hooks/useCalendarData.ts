@@ -36,6 +36,54 @@ export interface UseCalendarDataResult {
   visibleHolidaysCount: number;
 }
 
+// Helper to fetch all pages of active employees avoiding the 100-item truncation bug
+async function fetchAllActiveEmployees(): Promise<EmployeeListItem[]> {
+  const firstRes = await EmployeeApiClient.listEmployees({ pageSize: 100, active: "true" });
+  let list = firstRes.data || [];
+  if (firstRes.meta && firstRes.meta.totalPages > 1) {
+    const pageNumbers = Array.from(
+      { length: firstRes.meta.totalPages - 1 },
+      (_, i) => i + 2
+    );
+    const restResults = await Promise.all(
+      pageNumbers.map((p) =>
+        EmployeeApiClient.listEmployees({ page: p, pageSize: 100, active: "true" })
+      )
+    );
+    for (const r of restResults) {
+      if (r.data) {
+        list = list.concat(r.data);
+      }
+    }
+  }
+  return list;
+}
+
+// Helper to fetch all pages of period absences avoiding the 100-item truncation bug
+async function fetchAllPeriodAbsences(
+  params: Parameters<typeof AbsenceApiClient.listAbsences>[0]
+): Promise<AbsenceListItem[]> {
+  const firstRes = await AbsenceApiClient.listAbsences({ ...params, page: 1, pageSize: 100 });
+  let list = firstRes.data || [];
+  if (firstRes.meta && firstRes.meta.totalPages > 1) {
+    const pageNumbers = Array.from(
+      { length: firstRes.meta.totalPages - 1 },
+      (_, i) => i + 2
+    );
+    const restResults = await Promise.all(
+      pageNumbers.map((p) =>
+        AbsenceApiClient.listAbsences({ ...params, page: p, pageSize: 100 })
+      )
+    );
+    for (const r of restResults) {
+      if (r.data) {
+        list = list.concat(r.data);
+      }
+    }
+  }
+  return list;
+}
+
 export function useCalendarData(
   grid: MonthGridResult,
   year: number,
@@ -63,9 +111,7 @@ export function useCalendarData(
     Promise.all([
       AbsenceApiClient.getAbsenceTypes().catch(() => []),
       EmployeeApiClient.listSites().catch(() => []),
-      EmployeeApiClient.listEmployees({ pageSize: 100, active: "true" })
-        .then((res) => res.data || [])
-        .catch(() => []),
+      fetchAllActiveEmployees().catch(() => []),
     ]).then(([typesList, sitesList, empList]) => {
       if (isMounted) {
         setTypes(typesList);
@@ -79,7 +125,16 @@ export function useCalendarData(
     };
   }, []);
 
+  const firstCellDateKey = grid.cells[0]?.dateKey;
+  const lastCellDateKey = grid.cells[grid.cells.length - 1]?.dateKey;
+  const searchFilter = filters.search || "";
+  const employeeIdFilter = filters.employeeId;
+  const siteIdFilter = filters.siteId;
+  const typeIdFilter = filters.typeId;
+  const statusFilter = filters.status;
+
   // 2. Fetch verified absence and public holiday data with decoupled error handling
+  // Narrow dependencies to primitive query properties to prevent spurious re-fetching on view mode or date changes
   React.useEffect(() => {
     let isMounted = true;
     queueMicrotask(() => {
@@ -90,9 +145,6 @@ export function useCalendarData(
       }
     });
 
-    const firstCellDateKey = grid.cells[0]?.dateKey;
-    const lastCellDateKey = grid.cells[grid.cells.length - 1]?.dateKey;
-
     if (!firstCellDateKey || !lastCellDateKey) return;
 
     // Determine all years spanned by visible cells (e.g., Dec 2025 to Jan 2026)
@@ -100,15 +152,14 @@ export function useCalendarData(
     const endYear = parseInt(lastCellDateKey.split("-")[0], 10);
     const holidayYears = Array.from(new Set([year, startYear, endYear]));
 
-    const absencePromise = AbsenceApiClient.listAbsences({
+    const absencePromise = fetchAllPeriodAbsences({
       startDate: firstCellDateKey,
       endDate: lastCellDateKey,
-      pageSize: 100,
-      search: filters.search || undefined,
-      employeeId: filters.employeeId !== "all" ? filters.employeeId : undefined,
-      siteId: filters.siteId !== "all" ? Number(filters.siteId) : undefined,
-      typeId: filters.typeId !== "all" ? Number(filters.typeId) : undefined,
-      status: filters.status,
+      search: searchFilter || undefined,
+      employeeId: employeeIdFilter !== "all" ? employeeIdFilter : undefined,
+      siteId: siteIdFilter !== "all" ? Number(siteIdFilter) : undefined,
+      typeId: typeIdFilter !== "all" ? Number(typeIdFilter) : undefined,
+      status: statusFilter,
     });
 
     const holidayPromise = Promise.all(
@@ -122,7 +173,7 @@ export function useCalendarData(
         if (!isMounted) return;
 
         if (absenceResult.status === "fulfilled") {
-          setAbsences(absenceResult.value.data || []);
+          setAbsences(absenceResult.value || []);
           setAbsenceError(null);
         } else {
           const msg =
@@ -154,7 +205,17 @@ export function useCalendarData(
     return () => {
       isMounted = false;
     };
-  }, [grid, refreshKey, year, filters]);
+  }, [
+    firstCellDateKey,
+    lastCellDateKey,
+    year,
+    searchFilter,
+    employeeIdFilter,
+    siteIdFilter,
+    typeIdFilter,
+    statusFilter,
+    refreshKey,
+  ]);
 
   // 3. Build Events Lookup Dictionary
   const eventsLookup = React.useMemo(() => {

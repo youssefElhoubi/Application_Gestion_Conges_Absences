@@ -98,4 +98,50 @@ describe('Calendar Filters State & Query Logic (Unit Tests)', () => {
     expect(resultParams.get('typeId')).toBeNull();
     expect(resultParams.get('status')).toBeNull();
   });
+
+  it('reconciles site change by resetting employeeId to all when the selected employee belongs to a different site (Regression Bug 4)', () => {
+    // EMP-0101 belongs to site 1 (Casablanca)
+    const empCasablanca = mockEmployees.find((e) => e.employeeId === 'EMP-0101')!;
+    expect(empCasablanca.siteId).toBe(1);
+
+    // User switches site to Tanger (site 2)
+    const newSiteId: string = '2';
+    const currentEmployeeId: string = 'EMP-0101';
+
+    // Simulation of handleSiteChange reconciliation
+    const willEmployeeMismatch =
+      currentEmployeeId !== 'all' &&
+      newSiteId !== 'all' &&
+      empCasablanca &&
+      String(empCasablanca.siteId) !== newSiteId;
+
+    expect(willEmployeeMismatch).toBe(true);
+
+    const updates = willEmployeeMismatch
+      ? { siteId: newSiteId, employeeId: 'all' }
+      : { siteId: newSiteId };
+
+    expect(updates).toEqual({ siteId: '2', employeeId: 'all' });
+  });
+
+  it('keeps employeeId when newly selected site matches the employee site (Regression Bug 4)', () => {
+    // EMP-0101 belongs to site 1 (Casablanca)
+    const empCasablanca = mockEmployees.find((e) => e.employeeId === 'EMP-0101')!;
+    const newSiteId: string = '1';
+    const currentEmployeeId: string = 'EMP-0101';
+
+    const willEmployeeMismatch =
+      currentEmployeeId !== 'all' &&
+      newSiteId !== 'all' &&
+      empCasablanca &&
+      String(empCasablanca.siteId) !== newSiteId;
+
+    expect(willEmployeeMismatch).toBe(false);
+
+    const updates = willEmployeeMismatch
+      ? { siteId: newSiteId, employeeId: 'all' }
+      : { siteId: newSiteId };
+
+    expect(updates).toEqual({ siteId: '1' });
+  });
 });

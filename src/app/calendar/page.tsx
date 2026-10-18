@@ -147,7 +147,7 @@ function CalendarPageContent() {
         onEmployeeChange={(val) => url.applyFilterUpdates({ employeeId: val })}
         employees={filter.filteredEmployeesForSelect}
         selectedSiteId={url.filters.siteId}
-        onSiteChange={(val) => url.applyFilterUpdates({ siteId: val })}
+        onSiteChange={filter.handleSiteChange}
         sites={data.sites}
         selectedTypeId={url.filters.typeId}
         onTypeChange={(val) => url.applyFilterUpdates({ typeId: val })}

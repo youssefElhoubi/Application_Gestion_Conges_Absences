@@ -108,29 +108,33 @@ export function parseCalendarUrlState(
 ): CalendarUrlState {
   const filters = parseFilterState(searchParams);
 
-  // Parse date parameter if valid YYYY-MM-DD
   const rawDate = searchParams.get('date')?.trim() || '';
   const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && !isNaN(new Date(rawDate).getTime());
-  const date = isValidDate ? rawDate : undefined;
+  let date = isValidDate ? rawDate : undefined;
 
   const dateYear = date ? parseInt(date.substring(0, 4), 10) : undefined;
   const dateMonth = date ? parseInt(date.substring(5, 7), 10) : undefined;
 
   const rawYear = Number(searchParams.get('year'));
-  const year =
-    !isNaN(rawYear) && rawYear >= 1970 && rawYear <= 2100
-      ? rawYear
-      : dateYear !== undefined
-      ? dateYear
-      : referenceDate.getFullYear();
+  const hasExplicitYear = !isNaN(rawYear) && rawYear >= 1970 && rawYear <= 2100;
+  const year = hasExplicitYear
+    ? rawYear
+    : dateYear !== undefined
+    ? dateYear
+    : referenceDate.getFullYear();
 
   const rawMonth = Number(searchParams.get('month'));
-  const month =
-    !isNaN(rawMonth) && rawMonth >= 1 && rawMonth <= 12
-      ? rawMonth
-      : dateMonth !== undefined
-      ? dateMonth
-      : referenceDate.getMonth() + 1;
+  const hasExplicitMonth = !isNaN(rawMonth) && rawMonth >= 1 && rawMonth <= 12;
+  const month = hasExplicitMonth
+    ? rawMonth
+    : dateMonth !== undefined
+    ? dateMonth
+    : referenceDate.getMonth() + 1;
+
+  // Reconcile contradictory date: If explicit year or month in URL does not match date, clear stale date
+  if (date && ((hasExplicitYear && dateYear !== year) || (hasExplicitMonth && dateMonth !== month))) {
+    date = undefined;
+  }
 
   const rawView = searchParams.get('view')?.toLowerCase()?.trim();
   const view: CalendarViewMode =
@@ -150,7 +154,7 @@ export function parseCalendarUrlState(
  */
 export function buildFilterQueryString(
   currentSearchParams: URLSearchParams,
-  updates: Partial<CalendarFilterState & { view?: CalendarViewMode; date?: string; year?: number; month?: number }>
+  updates: Partial<CalendarFilterState & { view?: CalendarViewMode; date?: string | null; year?: number; month?: number }>
 ): string {
   const params = new URLSearchParams(currentSearchParams.toString());
 

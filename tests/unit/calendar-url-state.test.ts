@@ -116,6 +116,24 @@ describe('Absence Calendar URL State & Deep-link Engine (Unit Tests)', () => {
       expect(state.year).toBe(2026);
       expect(state.month).toBe(10);
     });
+
+    it('clears contradictory date parameter when explicit month/year in URL conflicts with date (Regression Bug 3)', () => {
+      // User jumped to November 2026, but URL still had date from October 15
+      const sp = new URLSearchParams('year=2026&month=11&date=2026-10-15');
+      const state = parseCalendarUrlState(sp, referenceDate);
+      expect(state.year).toBe(2026);
+      expect(state.month).toBe(11);
+      // Stale date MUST be cleared to prevent desynchronizing weekly and daily views
+      expect(state.date).toBeUndefined();
+    });
+
+    it('retains date parameter when explicit month/year in URL matches date (Regression Bug 3)', () => {
+      const sp = new URLSearchParams('year=2026&month=11&date=2026-11-20');
+      const state = parseCalendarUrlState(sp, referenceDate);
+      expect(state.year).toBe(2026);
+      expect(state.month).toBe(11);
+      expect(state.date).toBe('2026-11-20');
+    });
   });
 
   describe('3. buildFilterQueryString (URL Composition & State Preservation)', () => {
@@ -177,6 +195,20 @@ describe('Absence Calendar URL State & Deep-link Engine (Unit Tests)', () => {
       expect(res.has('view')).toBe(false);
       expect(res.get('year')).toBe('2026');
       expect(res.get('month')).toBe('10');
+    });
+
+    it('deletes date parameter when null is passed to buildFilterQueryString during period jump (Regression Bug 3)', () => {
+      const current = new URLSearchParams('year=2026&month=10&date=2026-10-15&view=week');
+      const qs = buildFilterQueryString(current, {
+        year: 2026,
+        month: 11,
+        date: null,
+      });
+      const res = new URLSearchParams(qs);
+      expect(res.get('year')).toBe('2026');
+      expect(res.get('month')).toBe('11');
+      expect(res.has('date')).toBe(false);
+      expect(res.get('view')).toBe('week');
     });
   });
 });

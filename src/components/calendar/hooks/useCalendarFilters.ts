@@ -15,6 +15,7 @@ export interface UseCalendarFiltersResult {
   timelineEmployees: EmployeeListItem[];
   handleRemoveFilter: (filterId: string) => void;
   handleResetFilters: () => void;
+  handleSiteChange: (newSiteId: string) => void;
 }
 
 export function useCalendarFilters(
@@ -24,6 +25,41 @@ export function useCalendarFilters(
   sites: SiteItem[],
   employees: EmployeeListItem[]
 ): UseCalendarFiltersResult {
+  // Reconcile contradictory siteId and employeeId if employee does not belong to selected site
+  React.useEffect(() => {
+    if (
+      employees.length > 0 &&
+      filters.employeeId &&
+      filters.employeeId !== "all" &&
+      filters.siteId &&
+      filters.siteId !== "all"
+    ) {
+      const currentEmp = employees.find((e) => e.employeeId === filters.employeeId);
+      if (currentEmp && String(currentEmp.siteId) !== filters.siteId) {
+        applyFilterUpdates({ employeeId: "all" });
+      }
+    }
+  }, [employees, filters.employeeId, filters.siteId, applyFilterUpdates]);
+
+  // Site filter change with automatic employeeId reconciliation
+  const handleSiteChange = React.useCallback(
+    (newSiteId: string) => {
+      if (
+        filters.employeeId &&
+        filters.employeeId !== "all" &&
+        newSiteId !== "all"
+      ) {
+        const currentEmp = employees.find((e) => e.employeeId === filters.employeeId);
+        if (currentEmp && String(currentEmp.siteId) !== newSiteId) {
+          applyFilterUpdates({ siteId: newSiteId, employeeId: "all" });
+          return;
+        }
+      }
+      applyFilterUpdates({ siteId: newSiteId });
+    },
+    [filters.employeeId, employees, applyFilterUpdates]
+  );
+
   // Individual filter removal handler
   const handleRemoveFilter = React.useCallback(
     (filterId: string) => {
@@ -100,5 +136,6 @@ export function useCalendarFilters(
     timelineEmployees,
     handleRemoveFilter,
     handleResetFilters,
+    handleSiteChange,
   };
 }
