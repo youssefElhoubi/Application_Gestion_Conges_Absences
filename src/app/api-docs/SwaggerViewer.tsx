@@ -35,9 +35,11 @@ export default function SwaggerViewer({ specUrl = '/api/openapi.json' }: Swagger
           defaultModelsExpandDepth: 1,
           defaultModelExpandDepth: 2,
           tryItOutEnabled: true,
+          withCredentials: true,
           requestInterceptor: (req) => {
-            // Apply fallback development header if authorization was not filled
-            const r = req as unknown as { headers?: Record<string, string> };
+            const r = req as unknown as { credentials?: string; headers?: Record<string, string> };
+            // Include credentials so that HttpOnly session cookies are transmitted on Try-It-Out requests
+            r.credentials = 'include';
             if (!r.headers) {
               r.headers = {};
             }

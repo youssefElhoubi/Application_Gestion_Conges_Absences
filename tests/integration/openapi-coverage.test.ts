@@ -22,8 +22,9 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
     expect((securitySchemes.BearerAuth as OpenAPIV3.HttpSecurityScheme).scheme).toBe('bearer');
   });
 
-  it('Scenario 3: Covers all 9 feature tags', () => {
+  it('Scenario 3: Covers all 10 feature tags including Authentication & Sessions', () => {
     const tags = openApiDocument.tags?.map((t) => t.name);
+    expect(tags).toContain('Authentication & Sessions');
     expect(tags).toContain('Absences');
     expect(tags).toContain('Employees');
     expect(tags).toContain('Counters');
@@ -35,7 +36,7 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
     expect(tags).toContain('Current User');
   });
 
-  it('Scenario 4: Verifies 100% of all 21 backend route paths and 34 operations exist in paths', () => {
+  it('Scenario 4: Verifies 100% of all 26 backend route paths and 40 operations exist in paths', () => {
     const paths = openApiDocument.paths ?? {};
 
     // 1. Absences
@@ -90,6 +91,14 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
     // 9. Current User
     expect(paths['/api/me']?.get).toBeDefined();
 
+    // 10. Authentication & Sessions
+    expect(paths['/api/auth/login']?.post).toBeDefined();
+    expect(paths['/api/auth/refresh']?.post).toBeDefined();
+    expect(paths['/api/auth/logout']?.post).toBeDefined();
+    expect(paths['/api/auth/me']?.get).toBeDefined();
+    expect(paths['/api/auth/sessions']?.get).toBeDefined();
+    expect(paths['/api/auth/sessions']?.post).toBeDefined();
+
     // Count operations
     let totalOperations = 0;
     for (const [, pathItem] of Object.entries(paths)) {
@@ -99,13 +108,17 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
         if ((pathItem as Record<string, unknown>)[m]) totalOperations++;
       }
     }
-    expect(totalOperations).toBe(34);
+    expect(totalOperations).toBe(40);
   });
 
-  it('Scenario 5: Public endpoint /api/absences/types has empty security array', () => {
+  it('Scenario 5: Public endpoints (/api/absences/types and /api/auth/login) have empty security array', () => {
     const typesOp = openApiDocument.paths?.['/api/absences/types']?.get;
     expect(typesOp).toBeDefined();
     expect(typesOp?.security).toEqual([]);
+
+    const loginOp = openApiDocument.paths?.['/api/auth/login']?.post;
+    expect(loginOp).toBeDefined();
+    expect(loginOp?.security).toEqual([]);
   });
 
   it('Scenario 6: Route handlers return valid JSON with proper headers', async () => {
