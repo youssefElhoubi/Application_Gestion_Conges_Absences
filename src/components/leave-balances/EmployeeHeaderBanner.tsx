@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Briefcase,
   Building2,
@@ -12,7 +12,6 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
 import { StatusBadge } from "@/src/components/shared/StatusBadge";
 import { formatDate } from "@/src/lib/utils";
 import type { EmployeeDetail } from "@/src/lib/leave-balances/leave-balance.types";
@@ -22,7 +21,6 @@ export interface EmployeeHeaderBannerProps {
 }
 
 export function EmployeeHeaderBanner({ employee }: EmployeeHeaderBannerProps) {
-  const router = useRouter();
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-xs">
@@ -85,7 +83,7 @@ export function EmployeeHeaderBanner({ employee }: EmployeeHeaderBannerProps) {
               )}
               <span className="flex items-center gap-1">
                 <Building2 className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
-                <span>{employee.site?.name || "Casablanca"}</span>
+                <span>{employee.site?.name || "Non assigné"}</span>
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
@@ -102,35 +100,23 @@ export function EmployeeHeaderBanner({ employee }: EmployeeHeaderBannerProps) {
 
         {/* Action: Link to full employee profile & calendar */}
         <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto md:self-center flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              router.push(
-                `/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`
-              )
-            }
-            className="text-xs group w-full sm:w-auto min-h-[40px] sm:min-h-[36px]"
+          <Link
+            href={`/calendar?employeeId=${encodeURIComponent(employee.employeeId)}`}
+            className="inline-flex items-center justify-center font-medium transition-all select-none border border-border bg-card text-foreground hover:bg-muted shadow-xs h-8 px-3 text-xs rounded-md gap-1.5 group w-full sm:w-auto min-h-[40px] sm:min-h-[36px]"
             aria-label={`Voir le planning des absences de ${employee.fullName}`}
           >
-            <Calendar className="h-3.5 w-3.5 mr-1.5 text-primary group-hover:scale-110 transition-transform" />
+            <Calendar className="h-3.5 w-3.5 mr-0.5 text-primary group-hover:scale-110 transition-transform" />
             <span>Planning des congés</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              router.push(
-                `/employees/${encodeURIComponent(employee.employeeId)}`
-              )
-            }
-            className="text-xs group w-full sm:w-auto min-h-[40px] sm:min-h-[36px]"
+          </Link>
+          <Link
+            href={`/employees/${encodeURIComponent(employee.employeeId)}`}
+            className="inline-flex items-center justify-center font-medium transition-all select-none border border-border bg-card text-foreground hover:bg-muted shadow-xs h-8 px-3 text-xs rounded-md gap-1.5 group w-full sm:w-auto min-h-[40px] sm:min-h-[36px]"
             aria-label={`Voir le profil collaborateur de ${employee.fullName}`}
           >
-            <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <User className="h-3.5 w-3.5 mr-0.5 text-muted-foreground group-hover:text-primary transition-colors" />
             <span>Voir le profil collaborateur</span>
-            <ExternalLink className="h-3 w-3 ml-1.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-          </Button>
+            <ExternalLink className="h-3 w-3 ml-1 opacity-60 group-hover:opacity-100 transition-opacity" />
+          </Link>
         </div>
       </div>
     </div>

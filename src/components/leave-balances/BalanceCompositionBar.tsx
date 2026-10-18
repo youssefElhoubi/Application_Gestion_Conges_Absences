@@ -25,6 +25,7 @@ export function BalanceCompositionBar({
     totalAcquiredRights,
     consumedPercent,
     availablePercent,
+    lockedPercent,
   } = m;
 
   return (
@@ -52,27 +53,38 @@ export function BalanceCompositionBar({
           aria-valuenow={availablePercent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuetext={`Solde restant disponible : ${availablePercent}%, Congés consommés : ${consumedPercent}%`}
+          aria-valuetext={
+            !isEligible
+              ? `Solde disponible : 0% (droits verrouillés Art. 231 : ${lockedPercent}%), Congés consommés : ${consumedPercent}%`
+              : `Solde restant disponible : ${availablePercent}%, Congés consommés : ${consumedPercent}%`
+          }
           className="h-3 w-full rounded-full bg-muted/60 overflow-hidden flex"
         >
           {totalAcquiredRights > 0 ? (
             <>
-              <div
-                className="h-full bg-slate-500 transition-all"
-                style={{ width: `${consumedPercent}%` }}
-                title={`Consommé : ${formatLeaveDays(counter.totalApprovedDeductions, { mode: "full" })} (${consumedPercent}%)`}
-              />
-              <div
-                className={`h-full transition-all ${
-                  !isEligible
-                    ? "bg-amber-500"
-                    : isNegative
-                    ? "bg-rose-500"
-                    : "bg-emerald-500"
-                }`}
-                style={{ width: `${availablePercent}%` }}
-                title={`Solde restant : ${formatLeaveDays(counter.netAvailableBalance, { mode: "full" })} (${availablePercent}%)`}
-              />
+              {consumedPercent > 0 && (
+                <div
+                  className="h-full bg-slate-500 transition-all"
+                  style={{ width: `${consumedPercent}%` }}
+                  title={`Consommé : ${formatLeaveDays(counter.totalApprovedDeductions, { mode: "full" })} (${consumedPercent}%)`}
+                />
+              )}
+              {!isEligible && lockedPercent > 0 && (
+                <div
+                  className="h-full bg-amber-500 transition-all"
+                  style={{ width: `${lockedPercent}%` }}
+                  title={`En cours d'acquisition (Art. 231 - non disponible) : ${formatLeaveDays(counter.statutoryAccruedDays, { mode: "full" })} (${lockedPercent}%)`}
+                />
+              )}
+              {isEligible && availablePercent > 0 && (
+                <div
+                  className={`h-full transition-all ${
+                    isNegative ? "bg-rose-500" : "bg-emerald-500"
+                  }`}
+                  style={{ width: `${availablePercent}%` }}
+                  title={`Solde net disponible : ${formatLeaveDays(counter.netAvailableBalance, { mode: "full" })} (${availablePercent}%)`}
+                />
+              )}
             </>
           ) : (
             <div className="h-full w-full bg-muted" />
@@ -90,11 +102,23 @@ export function BalanceCompositionBar({
               </span>
               <span className="text-[11px] text-muted-foreground">({consumedPercent}%)</span>
             </div>
+
+            {!isEligible && (
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0" />
+                <span className="text-muted-foreground">Droits en cours (Art. 231) :</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  {formatLeaveDays(counter.statutoryAccruedDays, { mode: "full" })}
+                </span>
+                <span className="text-[11px] text-muted-foreground">({lockedPercent}%)</span>
+              </div>
+            )}
+
             <div className="flex items-center gap-1.5">
               <span
                 className={`h-2.5 w-2.5 rounded-full shrink-0 ${
                   !isEligible
-                    ? "bg-amber-500"
+                    ? "bg-zinc-400"
                     : isNegative
                     ? "bg-rose-500"
                     : "bg-emerald-500"

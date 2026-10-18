@@ -159,6 +159,40 @@ describe("Unit: Leave Balance Metrics & Business Logic Utilities", () => {
       expect(metrics.totalAcquiredRights).toBe(0);
       expect(metrics.consumedPercent).toBe(0);
       expect(metrics.availablePercent).toBe(0);
+      expect(metrics.lockedPercent).toBe(0);
+    });
+
+    it("locks available balance to 0% and assigns lockedPercent when employee is ineligible under Art. 231 (< 6 months)", () => {
+      const ineligibleCounter: EmployeeCounterItem = {
+        ...baseCounter,
+        isEligibleForAnnualLeave: false,
+        serviceMonths: 4,
+        serviceYears: 0,
+        statutoryAccruedDays: 6,
+        activeRecoveryCreditDays: 0,
+        totalApprovedDeductions: 0,
+        netAvailableBalance: 0,
+      };
+
+      const metrics = computeBalanceProgressMetrics(ineligibleCounter);
+      expect(metrics.totalAcquiredRights).toBe(6);
+      expect(metrics.consumedPercent).toBe(0);
+      expect(metrics.availablePercent).toBe(0); // Available must be 0%
+      expect(metrics.lockedPercent).toBe(100); // 100% of accrued rights are locked
+      expect(metrics.isEligible).toBe(false);
+      expect(metrics.isNegative).toBe(false);
+    });
+
+    it("correctly identifies negative balance flag when netAvailableBalance is negative", () => {
+      const negativeCounter: EmployeeCounterItem = {
+        ...baseCounter,
+        netAvailableBalance: -2,
+        totalApprovedDeductions: 22,
+      };
+
+      const metrics = computeBalanceProgressMetrics(negativeCounter);
+      expect(metrics.isNegative).toBe(true);
+      expect(metrics.availablePercent).toBe(0);
     });
   });
 });

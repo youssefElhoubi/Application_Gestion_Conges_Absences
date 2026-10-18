@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { AlertCircle, ExternalLink, RotateCcw, Sparkles } from "lucide-react";
 import {
   Card,
@@ -34,7 +33,6 @@ export function RecoveryCreditsSection({
   onRetry,
   activeRecoveryCreditDays,
 }: RecoveryCreditsSectionProps) {
-  const router = useRouter();
 
   return (
     <Card className="shadow-xs">
@@ -62,21 +60,15 @@ export function RecoveryCreditsSection({
                 {formatLeaveDays(activeRecoveryCreditDays, { mode: "full" })}
               </span>
             </div>
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={() =>
-                router.push(
-                  `/recovery-credits?search=${encodeURIComponent(
-                    employeeId
-                  )}&employeeId=${encodeURIComponent(employeeId)}`
-                )
-              }
-              className="text-xs group"
+            <Link
+              href={`/recovery-credits?search=${encodeURIComponent(
+                employeeId
+              )}&employeeId=${encodeURIComponent(employeeId)}`}
+              className="inline-flex items-center justify-center font-medium transition-all select-none border border-border bg-card text-foreground hover:bg-muted shadow-xs h-7 px-2.5 text-xs rounded-sm gap-1 group"
             >
               <span>Grand livre</span>
-              <ExternalLink className="h-3 w-3 ml-1.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-            </Button>
+              <ExternalLink className="h-3 w-3 ml-0.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+            </Link>
           </div>
         </div>
       </CardHeader>
@@ -254,17 +246,23 @@ export function RecoveryCreditsSection({
                         key={String(c.id)}
                         className="hover:bg-muted/30 transition-colors"
                       >
-                        {/* Holiday Label with Link to Public Holiday Details */}
+                        {/* Holiday Label with Safe Link to Public Holiday Details */}
                         <td className="py-3 px-3 font-medium text-foreground">
-                          <Link
-                            href={`/holidays/${c.publicHolidayId}`}
-                            className="inline-flex items-center gap-1.5 hover:text-primary hover:underline group"
-                          >
-                            <span className="font-semibold">
+                          {c.publicHolidayId ? (
+                            <Link
+                              href={`/holidays/${encodeURIComponent(String(c.publicHolidayId))}`}
+                              className="inline-flex items-center gap-1.5 hover:text-primary hover:underline group"
+                            >
+                              <span className="font-semibold">
+                                {c.publicHoliday?.label || "Jour férié officiel"}
+                              </span>
+                              <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                          ) : (
+                            <span className="font-semibold text-foreground">
                               {c.publicHoliday?.label || "Jour férié officiel"}
                             </span>
-                            <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
-                          </Link>
+                          )}
                         </td>
 
                         {/* Holiday Date */}

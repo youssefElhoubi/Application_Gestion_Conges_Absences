@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   CalendarDays,
@@ -22,7 +21,10 @@ import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { StatusBadge } from "@/src/components/shared/StatusBadge";
 import { formatDate, formatLeaveDays, toSafeNumber } from "@/src/lib/utils";
-import { LEGAL_STATUTORY_LABELS } from "@/src/lib/leave-balances/leave-balance.constants";
+import {
+  LEGAL_STATUTORY_LABELS,
+  ABSENCE_FILTER_TABS,
+} from "@/src/lib/leave-balances/leave-balance.constants";
 import type {
   AbsenceListItem,
   AbsenceFilterTab,
@@ -51,7 +53,36 @@ export function AbsenceHistorySection({
   onRetry,
   totalApprovedDeductions,
 }: AbsenceHistorySectionProps) {
-  const router = useRouter();
+  const tabCounts = React.useMemo(() => {
+    return {
+      all: absences.length,
+      approved: absences.filter((a) => a.status === "APPROVED").length,
+      pending: absences.filter((a) => a.status === "PENDING").length,
+      other: absences.filter(
+        (a) => a.status === "REJECTED" || a.status === "CANCELLED"
+      ).length,
+    };
+  }, [absences]);
+
+  const handleTabKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextIndex = (index + 1) % ABSENCE_FILTER_TABS.length;
+      const nextTab = ABSENCE_FILTER_TABS[nextIndex];
+      onTabChange(nextTab.id);
+      document.getElementById(`tab-${nextTab.id}-absences`)?.focus();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prevIndex =
+        (index - 1 + ABSENCE_FILTER_TABS.length) % ABSENCE_FILTER_TABS.length;
+      const prevTab = ABSENCE_FILTER_TABS[prevIndex];
+      onTabChange(prevTab.id);
+      document.getElementById(`tab-${prevTab.id}-absences`)?.focus();
+    }
+  };
 
   return (
     <Card className="shadow-xs">
@@ -70,22 +101,16 @@ export function AbsenceHistorySection({
           </div>
 
           {/* View All Absences Action (Filtered by Employee) */}
-          <Button
-            variant="outline"
-            size="xs"
-            onClick={() =>
-              router.push(
-                `/absences?search=${encodeURIComponent(
-                  employeeId
-                )}&employeeId=${encodeURIComponent(employeeId)}`
-              )
-            }
-            className="self-start sm:self-center text-xs group"
+          <Link
+            href={`/absences?search=${encodeURIComponent(
+              employeeId
+            )}&employeeId=${encodeURIComponent(employeeId)}`}
+            className="inline-flex items-center justify-center font-medium transition-all select-none border border-border bg-card text-foreground hover:bg-muted shadow-xs h-7 px-2.5 text-xs rounded-sm gap-1 group self-start sm:self-center"
           >
-            <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <CalendarDays className="h-3.5 w-3.5 mr-0.5 text-muted-foreground group-hover:text-primary transition-colors" />
             <span>Voir toutes les absences</span>
-            <ExternalLink className="h-3 w-3 ml-1.5 opacity-60 group-hover:opacity-100 transition-opacity" />
-          </Button>
+            <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+          </Link>
         </div>
 
         {/* Tabs for filtering display */}
@@ -95,70 +120,29 @@ export function AbsenceHistorySection({
             role="tablist"
             aria-label="Filtrer l'historique des absences par statut"
           >
-            <button
-              role="tab"
-              id="tab-all-absences"
-              aria-selected={activeTab === "all"}
-              aria-controls="absence-history-panel"
-              onClick={() => onTabChange("all")}
-              className={`min-h-[36px] px-3 py-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                activeTab === "all"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Toutes ({absences.length})
-            </button>
-            <button
-              role="tab"
-              id="tab-approved-absences"
-              aria-selected={activeTab === "approved"}
-              aria-controls="absence-history-panel"
-              onClick={() => onTabChange("approved")}
-              className={`min-h-[36px] px-3 py-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                activeTab === "approved"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Approuvées / Décomptées (
-              {absences.filter((a) => a.status === "APPROVED").length})
-            </button>
-            <button
-              role="tab"
-              id="tab-pending-absences"
-              aria-selected={activeTab === "pending"}
-              aria-controls="absence-history-panel"
-              onClick={() => onTabChange("pending")}
-              className={`min-h-[36px] px-3 py-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                activeTab === "pending"
-                  ? "bg-amber-600 text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              En attente (
-              {absences.filter((a) => a.status === "PENDING").length})
-            </button>
-            <button
-              role="tab"
-              id="tab-other-absences"
-              aria-selected={activeTab === "other"}
-              aria-controls="absence-history-panel"
-              onClick={() => onTabChange("other")}
-              className={`min-h-[36px] px-3 py-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                activeTab === "other"
-                  ? "bg-zinc-700 text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Refusées / Annulées (
-              {
-                absences.filter(
-                  (a) => a.status === "REJECTED" || a.status === "CANCELLED"
-                ).length
-              }
-              )
-            </button>
+            {ABSENCE_FILTER_TABS.map((tab, idx) => {
+              const isSelected = activeTab === tab.id;
+              const count = tabCounts[tab.id];
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  id={`tab-${tab.id}-absences`}
+                  aria-selected={isSelected}
+                  aria-controls="absence-history-panel"
+                  tabIndex={isSelected ? 0 : -1}
+                  onClick={() => onTabChange(tab.id)}
+                  onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                  className={`min-h-[36px] px-3 py-1.5 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    isSelected
+                      ? tab.activeClass
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {tab.label} ({count})
+                </button>
+              );
+            })}
           </div>
         )}
       </CardHeader>
@@ -216,7 +200,12 @@ export function AbsenceHistorySection({
 
         {/* Section Content: Mobile Cards (< 768px) and Accessible Tabular View (≥ 768px) */}
         {!isLoading && !error && filteredAbsences.length > 0 && (
-          <div id="absence-history-panel" role="tabpanel" aria-labelledby="tab-all-absences">
+          <div
+            id="absence-history-panel"
+            role="tabpanel"
+            aria-labelledby={`tab-${activeTab}-absences`}
+            tabIndex={0}
+          >
             {/* Mobile Card List (< 768px) */}
             <div className="space-y-3 block md:hidden" role="list" aria-label="Liste des absences">
               {filteredAbsences.map((abs) => {

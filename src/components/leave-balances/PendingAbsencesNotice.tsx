@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { BadgeAlert } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
 import { formatLeaveDays } from "@/src/lib/utils";
 
 export interface PendingAbsencesNoticeProps {
@@ -19,8 +18,6 @@ export function PendingAbsencesNotice({
   pendingDays,
   netAvailableBalance,
 }: PendingAbsencesNoticeProps) {
-  const router = useRouter();
-
   if (pendingDays <= 0) {
     return null;
   }
@@ -44,22 +41,14 @@ export function PendingAbsencesNotice({
           </p>
         </div>
       </div>
-      <Button
-        variant="outline"
-        size="xs"
-        onClick={() =>
-          router.push(
-            `/absences?search=${encodeURIComponent(
-              employeeId
-            )}&employeeId=${encodeURIComponent(
-              employeeId
-            )}&status=PENDING`
-          )
-        }
-        className="shrink-0 bg-card border-amber-500/30 text-amber-900 dark:text-amber-300 hover:bg-amber-500/20"
+      <Link
+        href={`/absences?search=${encodeURIComponent(
+          employeeId
+        )}&employeeId=${encodeURIComponent(employeeId)}&status=PENDING`}
+        className="inline-flex items-center justify-center font-medium transition-all select-none shrink-0 border border-amber-500/30 bg-card text-amber-900 dark:text-amber-300 hover:bg-amber-500/20 shadow-xs h-7 px-2.5 text-xs rounded-sm"
       >
         Examiner les demandes
-      </Button>
+      </Link>
     </div>
   );
 }

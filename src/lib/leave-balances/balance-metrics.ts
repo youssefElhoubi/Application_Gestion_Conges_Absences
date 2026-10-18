@@ -85,9 +85,10 @@ export function computeBalanceProgressMetrics(
         )
       : 0;
 
-  const availablePercent =
+  const remainingPercent =
     totalAcquiredRights > 0 ? Math.max(0, 100 - consumedPercent) : 0;
-  const lockedPercent = !isEligible ? availablePercent : 0;
+  const availablePercent = isEligible ? remainingPercent : 0;
+  const lockedPercent = !isEligible ? remainingPercent : 0;
 
   return {
     totalAcquiredRights,
