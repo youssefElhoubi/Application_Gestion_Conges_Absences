@@ -270,7 +270,7 @@ export class HolidayApiClient {
   ): Promise<HolidayWorkCreditItem> {
     const res = await fetch(`/api/holiday-work-credits/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
       body: JSON.stringify(payload),
     });
 
@@ -288,7 +288,7 @@ export class HolidayApiClient {
   public static async deleteCredit(id: string | number): Promise<HolidayWorkCreditItem> {
     const res = await fetch(`/api/holiday-work-credits/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.defaultHeaders,
     });
 
     if (!res.ok) {

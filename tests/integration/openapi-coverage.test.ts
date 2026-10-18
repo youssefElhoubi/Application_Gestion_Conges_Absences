@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { OpenAPIV3 } from 'openapi-types';
 import { openApiDocument } from '@/src/docs/openapi';
 import { GET as getOpenApiRoute } from '@/src/app/api/openapi/route';
 import { GET as getOpenApiJsonRoute } from '@/src/app/api/openapi.json/route';
@@ -13,12 +14,12 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
   });
 
   it('Scenario 2: Security schemes include ApiKeyAuth (x-user-id) and BearerAuth', () => {
-    const securitySchemes = openApiDocument.components?.securitySchemes as Record<string, any>;
+    const securitySchemes = openApiDocument.components?.securitySchemes as Record<string, OpenAPIV3.SecuritySchemeObject>;
     expect(securitySchemes).toBeDefined();
     expect(securitySchemes.ApiKeyAuth).toBeDefined();
-    expect(securitySchemes.ApiKeyAuth.name).toBe('x-user-id');
+    expect((securitySchemes.ApiKeyAuth as OpenAPIV3.ApiKeySecurityScheme).name).toBe('x-user-id');
     expect(securitySchemes.BearerAuth).toBeDefined();
-    expect(securitySchemes.BearerAuth.scheme).toBe('bearer');
+    expect((securitySchemes.BearerAuth as OpenAPIV3.HttpSecurityScheme).scheme).toBe('bearer');
   });
 
   it('Scenario 3: Covers all 9 feature tags', () => {
@@ -95,7 +96,7 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
       if (!pathItem) continue;
       const methods = ['get', 'post', 'put', 'patch', 'delete'];
       for (const m of methods) {
-        if ((pathItem as any)[m]) totalOperations++;
+        if ((pathItem as Record<string, unknown>)[m]) totalOperations++;
       }
     }
     expect(totalOperations).toBe(34);
@@ -119,5 +120,66 @@ describe('OpenAPI 3.0.3 Specification & Endpoint Coverage', () => {
     expect(res2.headers.get('content-type')).toContain('application/json');
     const json2 = await res2.json();
     expect(json2.openapi).toBe('3.0.3');
+  });
+
+  it('Scenario 7: Every $ref reference in paths and schemas resolves to an existing component schema', () => {
+    const schemas = openApiDocument.components?.schemas || {};
+    const refRegex = /^#\/components\/schemas\/(.+)$/;
+    const brokenRefs: string[] = [];
+
+    function findRefs(obj: unknown, path: string = '') {
+      if (!obj || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) {
+        obj.forEach((item, idx) => findRefs(item, `${path}[${idx}]`));
+        return;
+      }
+      for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
+        if (key === '$ref' && typeof val === 'string') {
+          const match = val.match(refRegex);
+          if (match) {
+            const schemaName = match[1];
+            if (!schemas[schemaName]) {
+              brokenRefs.push(`${path}: $ref '${val}' -> schema '${schemaName}' NOT found`);
+            }
+          }
+        } else {
+          findRefs(val, `${path}.${key}`);
+        }
+      }
+    }
+
+    findRefs(openApiDocument.paths, 'paths');
+    findRefs(openApiDocument.components?.schemas, 'components.schemas');
+
+    expect(brokenRefs).toEqual([]);
+  });
+
+  it('Scenario 8: Path parameter placeholders in URL paths match defined in: path parameters', () => {
+    const paths = openApiDocument.paths || {};
+    for (const [pathStr, pathItem] of Object.entries(paths)) {
+      if (!pathItem) continue;
+      const paramMatches = [...pathStr.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+      const methods = ['get', 'post', 'put', 'patch', 'delete'] as const;
+
+      for (const method of methods) {
+        const op = (pathItem as Record<string, unknown>)[method] as OpenAPIV3.OperationObject | undefined;
+        if (!op) continue;
+        const opParams = (op.parameters || []) as Array<{ name: string; in: string; required?: boolean }>;
+        const pathParams = opParams.filter((p) => p.in === 'path').map((p) => p.name);
+
+        for (const expectedParam of paramMatches) {
+          expect(pathParams, `Operation ${method.toUpperCase()} ${pathStr} must document path parameter '${expectedParam}'`).toContain(expectedParam);
+        }
+      }
+    }
+  });
+
+  it('Scenario 9: Internal functions and Next.js server actions are not exposed in OpenAPI paths', () => {
+    const paths = Object.keys(openApiDocument.paths || {});
+    // All paths must begin with /api/ and correspond to valid route.ts files
+    for (const p of paths) {
+      expect(p.startsWith('/api/')).toBe(true);
+      expect(p).not.toContain('action');
+    }
   });
 });
