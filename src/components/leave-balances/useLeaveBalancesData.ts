@@ -81,58 +81,51 @@ export function useLeaveBalancesData(
   }, []);
 
   // 2. Fetch multi-employee counters whenever query parameters or refreshKey change
-  React.useEffect(() => {
-    let isMounted = true;
-    const fetchId = ++activeFetchIdRef.current;
-    setIsLoading(true);
+  const fetchData = React.useCallback(
+    (fetchId: number) => {
+      setIsLoading(true);
 
-    LeaveBalanceService.listCounters({
-      page,
-      pageSize,
-      search,
-      siteId: siteId !== "all" ? siteId : undefined,
-      active: active !== "all" ? active : undefined,
-      sortBy,
-      sortOrder,
-    })
-      .then((response) => {
-        if (!isMounted || fetchId !== activeFetchIdRef.current) return;
-
-        setCounters(response.data);
-        setTotalItems(response.meta.totalItems);
-        setError(null);
-        setIsLoading(false);
-
-        // Correct out-of-bounds pagination if total count changed
-        const maxPages = Math.max(1, Math.ceil(response.meta.totalItems / pageSize));
-        if (page > maxPages) {
-          onPaginationCorrectionRef.current?.(maxPages);
-        }
+      LeaveBalanceService.listCounters({
+        page,
+        pageSize,
+        search,
+        siteId: siteId !== "all" ? siteId : undefined,
+        active: active !== "all" ? active : undefined,
+        sortBy,
+        sortOrder,
       })
-      .catch((err: unknown) => {
-        if (!isMounted || fetchId !== activeFetchIdRef.current) return;
+        .then((response) => {
+          if (fetchId !== activeFetchIdRef.current) return;
 
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger la vue consolidée des soldes.";
-        setError(message);
-        setIsLoading(false);
-      });
+          setCounters(response.data);
+          setTotalItems(response.meta.totalItems);
+          setError(null);
+          setIsLoading(false);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [
-    page,
-    pageSize,
-    search,
-    siteId,
-    active,
-    sortBy,
-    sortOrder,
-    refreshKey,
-  ]);
+          // Correct out-of-bounds pagination if total count changed
+          const maxPages = Math.max(1, Math.ceil(response.meta.totalItems / pageSize));
+          if (page > maxPages) {
+            onPaginationCorrectionRef.current?.(maxPages);
+          }
+        })
+        .catch((err: unknown) => {
+          if (fetchId !== activeFetchIdRef.current) return;
+
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Impossible de charger la vue consolidée des soldes.";
+          setError(message);
+          setIsLoading(false);
+        });
+    },
+    [page, pageSize, search, siteId, active, sortBy, sortOrder]
+  );
+
+  React.useEffect(() => {
+    const fetchId = ++activeFetchIdRef.current;
+    fetchData(fetchId);
+  }, [fetchData, refreshKey]);
 
   // 3. Aggregate stats derived from current loaded view
   const aggregateMetrics = React.useMemo(() => {
