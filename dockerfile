@@ -12,7 +12,7 @@ COPY prisma ./prisma/
 # Prisma 7 requires its config file during CLI operations
 COPY prisma.config.ts ./
 
-RUN npm i
+RUN npm ci
 
 # Only used during client generation; no real database connection is made
 ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mydb?schema=public"
@@ -27,6 +27,10 @@ COPY . .
 
 # Run the Next.js build
 RUN npm run build
+# Seed runner: retains dev dependencies and source files
+FROM builder AS seeder
+
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed"]
 
 # Step 3: Production environment
 FROM base AS runner
