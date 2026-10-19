@@ -64,3 +64,25 @@ export const BALANCE_PROGRESS_COLORS = {
   deficit: 'bg-rose-500',
   empty: 'bg-muted',
 } as const;
+
+/**
+ * Overview page default query parameter configuration
+ */
+export const DEFAULT_LEAVE_BALANCES_SORT_BY = 'fullName';
+export const DEFAULT_LEAVE_BALANCES_SORT_ORDER = 'asc' as const;
+export const DEFAULT_LEAVE_BALANCES_PAGE = 1;
+export const DEFAULT_LEAVE_BALANCES_PAGE_SIZE = 10;
+export const DEFAULT_LEAVE_BALANCES_ACTIVE = 'true' as const;
+export const DEFAULT_LEAVE_BALANCES_SITE_ID = 'all';
+export const LEAVE_BALANCES_PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
+
+/**
+ * Human-readable labels for table sorting columns
+ */
+export const LEAVE_BALANCES_SORT_LABELS: Record<string, string> = {
+  fullName: 'Nom',
+  employeeId: 'Matricule',
+  hireDate: "Date d'embauche",
+  site: 'Site',
+} as const;
+

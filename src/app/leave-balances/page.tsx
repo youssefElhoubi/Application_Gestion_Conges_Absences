@@ -1,39 +1,37 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import {
-  Briefcase,
-  Users,
-  CalendarCheck,
-  Sparkles,
-  Building2,
-  ExternalLink,
-  ShieldCheck,
-  Info,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  ChevronRight,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";
 import { PageHeader } from "@/src/components/shared/PageHeader";
-import { StatCard } from "@/src/components/shared/StatCard";
-import { FilterBar, ActiveFilter } from "@/src/components/shared/FilterBar";
-import { DataTable, DataTableColumn, SortDirection } from "@/src/components/table/DataTable";
-import { Select } from "@/src/components/ui/select";
+import { ActiveFilter } from "@/src/components/shared/FilterBar";
+import { SortDirection } from "@/src/components/table/DataTable";
 import { Badge } from "@/src/components/ui/badge";
-import { Button } from "@/src/components/ui/button";
 import { ErrorState } from "@/src/components/feedback/ErrorState";
 import {
   CounterApiClient,
   EmployeeCounterItem,
 } from "@/src/lib/api/counter-client";
 import { EmployeeApiClient, SiteItem } from "@/src/lib/api/employee-client";
-import { formatDate, formatLeaveDays } from "@/src/lib/utils";
+import {
+  DEFAULT_LEAVE_BALANCES_SORT_BY,
+  DEFAULT_LEAVE_BALANCES_SORT_ORDER,
+  DEFAULT_LEAVE_BALANCES_PAGE,
+  DEFAULT_LEAVE_BALANCES_PAGE_SIZE,
+  DEFAULT_LEAVE_BALANCES_ACTIVE,
+  DEFAULT_LEAVE_BALANCES_SITE_ID,
+  LEAVE_BALANCES_SORT_LABELS,
+} from "@/src/lib/leave-balances/leave-balance.constants";
+import { computeAggregateMetrics } from "@/src/lib/leave-balances/balance-metrics";
+import type { AggregateLeaveMetrics } from "@/src/lib/leave-balances/leave-balance.types";
+import {
+  LeaveBalancesKpiCards,
+  LeaveBalancesFilterBar,
+  LeaveBalancesTable,
+  LeaveBalancesLegalBanner,
+} from "@/src/components/leave-balances";
 
 function LeaveBalancesOverviewContent() {
   const router = useRouter();
@@ -42,12 +40,12 @@ function LeaveBalancesOverviewContent() {
 
   // 1. Authoritative URL-driven state (Preserve established URL search parameter conventions)
   const urlSearch = searchParams.get("search") || "";
-  const urlSiteId = searchParams.get("siteId") || "all";
-  const urlActive = (searchParams.get("active") as "all" | "true" | "false") || "true";
-  const urlPage = Math.max(1, Number(searchParams.get("page")) || 1);
-  const urlPageSize = Math.max(1, Number(searchParams.get("pageSize")) || 10);
-  const urlSortBy = searchParams.get("sortBy") || "fullName";
-  const urlSortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || "asc";
+  const urlSiteId = searchParams.get("siteId") || DEFAULT_LEAVE_BALANCES_SITE_ID;
+  const urlActive = (searchParams.get("active") as "all" | "true" | "false") || DEFAULT_LEAVE_BALANCES_ACTIVE;
+  const urlPage = Math.max(1, Number(searchParams.get("page")) || DEFAULT_LEAVE_BALANCES_PAGE);
+  const urlPageSize = Math.max(1, Number(searchParams.get("pageSize")) || DEFAULT_LEAVE_BALANCES_PAGE_SIZE);
+  const urlSortBy = searchParams.get("sortBy") || DEFAULT_LEAVE_BALANCES_SORT_BY;
+  const urlSortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || DEFAULT_LEAVE_BALANCES_SORT_ORDER;
 
   // Local search query input for smooth typing in SearchInput before debounced URL update
   const [searchInput, setSearchInput] = React.useState(urlSearch);
@@ -77,12 +75,12 @@ function LeaveBalancesOverviewContent() {
           value === null ||
           value === undefined ||
           value === "" ||
-          (key === "siteId" && value === "all") ||
-          (key === "active" && value === "true") ||
-          (key === "page" && Number(value) === 1) ||
-          (key === "pageSize" && Number(value) === 10) ||
-          (key === "sortBy" && value === "fullName" && (updates.sortOrder === "asc" || !current.get("sortOrder"))) ||
-          (key === "sortOrder" && value === "asc" && (!current.get("sortBy") || current.get("sortBy") === "fullName"))
+          (key === "siteId" && value === DEFAULT_LEAVE_BALANCES_SITE_ID) ||
+          (key === "active" && value === DEFAULT_LEAVE_BALANCES_ACTIVE) ||
+          (key === "page" && Number(value) === DEFAULT_LEAVE_BALANCES_PAGE) ||
+          (key === "pageSize" && Number(value) === DEFAULT_LEAVE_BALANCES_PAGE_SIZE) ||
+          (key === "sortBy" && value === DEFAULT_LEAVE_BALANCES_SORT_BY && (updates.sortOrder === DEFAULT_LEAVE_BALANCES_SORT_ORDER || !current.get("sortOrder"))) ||
+          (key === "sortOrder" && value === DEFAULT_LEAVE_BALANCES_SORT_ORDER && (!current.get("sortBy") || current.get("sortBy") === DEFAULT_LEAVE_BALANCES_SORT_BY))
         ) {
           current.delete(key);
         } else {
@@ -147,28 +145,8 @@ function LeaveBalancesOverviewContent() {
   }, [urlSearch, urlSiteId, urlActive, urlPage, urlPageSize, urlSortBy, urlSortOrder, refreshKey, updateUrlParams]);
 
   // Aggregate stats from current view for StatCards
-  const aggregateMetrics = React.useMemo(() => {
-    if (counters.length === 0) {
-      return {
-        totalAccrued: 0,
-        totalTaken: 0,
-        totalRecovery: 0,
-        avgAvailable: 0,
-      };
-    }
-
-    const totalAccrued = counters.reduce((sum, c) => sum + c.statutoryAccruedDays, 0);
-    const totalTaken = counters.reduce((sum, c) => sum + c.totalApprovedDeductions, 0);
-    const totalRecovery = counters.reduce((sum, c) => sum + c.activeRecoveryCreditDays, 0);
-    const totalAvailable = counters.reduce((sum, c) => sum + c.netAvailableBalance, 0);
-    const avgAvailable = Math.round((totalAvailable / counters.length) * 10) / 10;
-
-    return {
-      totalAccrued: Math.round(totalAccrued * 10) / 10,
-      totalTaken: Math.round(totalTaken * 10) / 10,
-      totalRecovery: Math.round(totalRecovery * 10) / 10,
-      avgAvailable,
-    };
+  const aggregateMetrics: AggregateLeaveMetrics = React.useMemo(() => {
+    return computeAggregateMetrics(counters);
   }, [counters]);
 
   // Active filters list for FilterBar chips
@@ -196,17 +174,11 @@ function LeaveBalancesOverviewContent() {
         valueLabel: urlActive === "true" ? "Actifs uniquement" : "Inactifs uniquement",
       });
     }
-    if (urlSortBy !== "fullName" || urlSortOrder !== "asc") {
-      const sortLabels: Record<string, string> = {
-        fullName: "Nom",
-        employeeId: "Matricule",
-        hireDate: "Date d'embauche",
-        site: "Site",
-      };
+    if (urlSortBy !== DEFAULT_LEAVE_BALANCES_SORT_BY || urlSortOrder !== DEFAULT_LEAVE_BALANCES_SORT_ORDER) {
       list.push({
         id: "sort",
         label: "Tri",
-        valueLabel: `${sortLabels[urlSortBy] || urlSortBy} (${urlSortOrder === "asc" ? "Croissant" : "Décroissant"})`,
+        valueLabel: `${LEAVE_BALANCES_SORT_LABELS[urlSortBy] || urlSortBy} (${urlSortOrder === "asc" ? "Croissant" : "Décroissant"})`,
       });
     }
     return list;
@@ -215,11 +187,11 @@ function LeaveBalancesOverviewContent() {
   const handleRemoveFilter = (filterId: string) => {
     if (filterId === "search") {
       setSearchInput("");
-      updateUrlParams({ search: null, page: 1 });
+      updateUrlParams({ search: null, page: DEFAULT_LEAVE_BALANCES_PAGE });
     }
-    if (filterId === "site") updateUrlParams({ siteId: "all", page: 1 });
-    if (filterId === "active") updateUrlParams({ active: "all", page: 1 });
-    if (filterId === "sort") updateUrlParams({ sortBy: "fullName", sortOrder: "asc", page: 1 });
+    if (filterId === "site") updateUrlParams({ siteId: DEFAULT_LEAVE_BALANCES_SITE_ID, page: DEFAULT_LEAVE_BALANCES_PAGE });
+    if (filterId === "active") updateUrlParams({ active: "all", page: DEFAULT_LEAVE_BALANCES_PAGE });
+    if (filterId === "sort") updateUrlParams({ sortBy: DEFAULT_LEAVE_BALANCES_SORT_BY, sortOrder: DEFAULT_LEAVE_BALANCES_SORT_ORDER, page: DEFAULT_LEAVE_BALANCES_PAGE });
   };
 
   const handleResetFilters = () => {
@@ -229,382 +201,10 @@ function LeaveBalancesOverviewContent() {
 
   const handleSortChange = (columnId: string, direction: SortDirection) => {
     if (!direction) {
-      updateUrlParams({ sortBy: "fullName", sortOrder: "asc", page: 1 });
+      updateUrlParams({ sortBy: DEFAULT_LEAVE_BALANCES_SORT_BY, sortOrder: DEFAULT_LEAVE_BALANCES_SORT_ORDER, page: DEFAULT_LEAVE_BALANCES_PAGE });
     } else {
-      updateUrlParams({ sortBy: columnId, sortOrder: direction, page: 1 });
+      updateUrlParams({ sortBy: columnId, sortOrder: direction, page: DEFAULT_LEAVE_BALANCES_PAGE });
     }
-  };
-
-  // Table Columns Definition
-  const columns: DataTableColumn<EmployeeCounterItem>[] = [
-    {
-      id: "employeeId",
-      header: "Matricule",
-      sortable: true,
-      className: "w-28",
-      cell: (row) => (
-        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted text-foreground border border-border">
-          {row.employeeId}
-        </span>
-      ),
-    },
-    {
-      id: "fullName",
-      header: "Collaborateur",
-      sortable: true,
-      cell: (row) => {
-        const initials = row.fullName
-          .split(" ")
-          .slice(0, 2)
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase();
-
-        return (
-          <div className="flex items-center gap-3 min-w-[200px]">
-            <div className="relative">
-              <div className="h-9 w-9 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                {initials}
-              </div>
-              {row.active !== undefined && (
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-card flex items-center justify-center ${
-                    row.active ? "bg-emerald-500 text-white" : "bg-zinc-400 text-white"
-                  }`}
-                  title={row.active ? "Actif" : "Inactif"}
-                >
-                  <span className="sr-only">
-                    {row.active ? "Collaborateur actif" : "Collaborateur inactif"}
-                  </span>
-                  {row.active ? (
-                    <CheckCircle2 className="h-2.5 w-2.5" />
-                  ) : (
-                    <XCircle className="h-2.5 w-2.5" />
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <Link
-                href={`/leave-balances/${encodeURIComponent(row.employeeId)}`}
-                onClick={(e) => e.stopPropagation()}
-                className="font-semibold text-foreground hover:text-primary transition-colors hover:underline flex items-center gap-1 group text-sm truncate"
-              >
-                <span>{row.fullName}</span>
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </Link>
-              {row.jobTitle && (
-                <div className="text-xs text-muted-foreground mt-0.5 truncate">
-                  {row.jobTitle}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      id: "netAvailableBalance",
-      header: "Solde Net Restant",
-      align: "center",
-      cell: (row) => {
-        const balance = row.netAvailableBalance;
-        const isEligible = row.isEligibleForAnnualLeave;
-        const isNegative = balance < 0;
-
-        return (
-          <div className="flex flex-col items-center min-w-[130px]">
-            <div
-              className={`px-3 py-1.5 rounded-xl font-extrabold text-sm border shadow-2xs flex items-center gap-1.5 ${
-                !isEligible
-                  ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30"
-                  : isNegative
-                  ? "bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30"
-                  : "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
-              }`}
-            >
-              <span className="sr-only">Solde net restant disponible : </span>
-              <span>{formatLeaveDays(balance, { mode: "full" })}</span>
-            </div>
-            {!isEligible && (
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-0.5 font-medium">
-                <AlertCircle className="h-2.5 w-2.5" /> Droit bloqué (&lt; 6 mois)
-              </span>
-            )}
-            {isEligible && isNegative && (
-              <span className="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 flex items-center gap-0.5 font-medium">
-                <AlertCircle className="h-2.5 w-2.5" /> Solde débiteur
-              </span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      id: "site",
-      header: "Site",
-      sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
-          <Building2 className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
-          <span>{row.siteName || "Casablanca"}</span>
-        </div>
-      ),
-    },
-    {
-      id: "hireDate",
-      header: "Ancienneté & Éligibilité",
-      sortable: true,
-      cell: (row) => (
-        <div className="space-y-1 min-w-[160px]">
-          <div className="text-xs font-medium text-foreground flex items-center gap-1">
-            <Calendar className="h-3 w-3 text-muted-foreground" />
-            <span>
-              {row.serviceYears} an{row.serviceYears > 1 ? "s" : ""} • {row.serviceMonths} mois
-            </span>
-          </div>
-          {row.hireDate && (
-            <div className="text-[11px] text-muted-foreground">
-              Embauche: {formatDate(row.hireDate)}
-            </div>
-          )}
-          <div>
-            {row.isEligibleForAnnualLeave ? (
-              <Badge
-                variant="outline"
-                className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 font-medium"
-              >
-                Éligible (Loi 65-99)
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 font-medium"
-              >
-                Acquisition (&lt; 6 mois)
-              </Badge>
-            )}
-            {row.calculationBreakdown.isMinorRate && (
-              <Badge
-                variant="outline"
-                className="ml-1 text-[10px] bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20 font-medium"
-              >
-                Mineur (2 j/m)
-              </Badge>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "statutoryAccruedDays",
-      header: "Droits Acquis",
-      align: "center",
-      cell: (row) => (
-        <div className="flex flex-col items-center min-w-[90px]">
-          <span className="font-bold text-foreground text-sm">
-            {formatLeaveDays(row.statutoryAccruedDays, { mode: "short" })}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {row.calculationBreakdown.monthlyRateApplied} j/mois
-            {row.calculationBreakdown.maxYearlyCapEnforced && " (Plafonné)"}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "totalApprovedDeductions",
-      header: "Congés Consommés",
-      align: "center",
-      cell: (row) => (
-        <div className="flex flex-col items-center min-w-[90px]">
-          <span className="font-semibold text-muted-foreground text-sm">
-            {formatLeaveDays(row.totalApprovedDeductions, { mode: "short" })}
-          </span>
-          <span className="text-[10px] text-muted-foreground">Décomptés</span>
-        </div>
-      ),
-    },
-    {
-      id: "activeRecoveryCreditDays",
-      header: "Crédits Récupération",
-      align: "center",
-      cell: (row) => (
-        <div className="flex flex-col items-center min-w-[110px]">
-          <div className="flex items-center gap-1 text-sm font-semibold text-purple-700 dark:text-purple-300">
-            <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-            <span>{formatLeaveDays(row.activeRecoveryCreditDays, { mode: "short" })}</span>
-          </div>
-          <span className="text-[10px] text-muted-foreground">
-            {row.calculationBreakdown.unconsumedHolidayCreditsCount} férié(s) travaillé(s)
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Action",
-      align: "right",
-      cell: (row) => (
-        <Button
-          variant="outline"
-          size="xs"
-          aria-label={`Consulter le détail du solde de ${row.fullName}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`);
-          }}
-          className="text-xs group"
-        >
-          <span>Détail</span>
-          <ExternalLink className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
-        </Button>
-      ),
-    },
-  ];
-
-  // Mobile card renderer for small screens (< 768px)
-  const renderMobileCard = (row: EmployeeCounterItem) => {
-    const initials = row.fullName
-      .split(" ")
-      .slice(0, 2)
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-    const balance = row.netAvailableBalance;
-    const isEligible = row.isEligibleForAnnualLeave;
-    const isNegative = balance < 0;
-
-    return (
-      <div
-        onClick={() => router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`)}
-        className="rounded-xl border border-border bg-card p-4 shadow-2xs space-y-3 cursor-pointer hover:border-primary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`);
-          }
-        }}
-        aria-label={`Détail du solde de ${row.fullName}`}
-      >
-        {/* Top row: Employee Identity & Action */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative shrink-0">
-              <div className="h-10 w-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs border border-primary/20">
-                {initials}
-              </div>
-              {row.active !== undefined && (
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-card flex items-center justify-center ${
-                    row.active ? "bg-emerald-500 text-white" : "bg-zinc-400 text-white"
-                  }`}
-                  title={row.active ? "Actif" : "Inactif"}
-                >
-                  <span className="sr-only">
-                    {row.active ? "Collaborateur actif" : "Collaborateur inactif"}
-                  </span>
-                  {row.active ? (
-                    <CheckCircle2 className="h-2.5 w-2.5" />
-                  ) : (
-                    <XCircle className="h-2.5 w-2.5" />
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="font-semibold text-foreground text-sm truncate flex items-center gap-1.5">
-                <span>{row.fullName}</span>
-                <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-muted text-foreground border border-border shrink-0">
-                  {row.employeeId}
-                </span>
-              </div>
-              {row.jobTitle && (
-                <div className="text-xs text-muted-foreground truncate">{row.jobTitle}</div>
-              )}
-            </div>
-          </div>
-
-          <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0">
-            <span>Détail</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </span>
-        </div>
-
-        {/* Featured Authoritative Balance Badge */}
-        <div
-          className={`p-3 rounded-xl border flex items-center justify-between gap-2 ${
-            !isEligible
-              ? "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200"
-              : isNegative
-              ? "bg-rose-500/15 border-rose-500/30 text-rose-900 dark:text-rose-200"
-              : "bg-emerald-500/15 border-emerald-500/30 text-emerald-900 dark:text-emerald-200"
-          }`}
-        >
-          <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider block opacity-80">
-              Solde Net Disponible
-            </span>
-            <span className="text-base font-extrabold">
-              {formatLeaveDays(balance, { mode: "full" })}
-            </span>
-          </div>
-          <div className="text-right">
-            {!isEligible ? (
-              <Badge variant="outline" className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/40">
-                Bloqué (&lt; 6 mois)
-              </Badge>
-            ) : isNegative ? (
-              <Badge variant="outline" className="text-[10px] bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-500/40">
-                Solde débiteur
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[10px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40">
-                Disponible
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Sub-metrics Grid */}
-        <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-muted/40 text-center text-xs">
-          <div>
-            <span className="text-[10px] text-muted-foreground block truncate">Acquis</span>
-            <span className="font-bold text-foreground">
-              {formatLeaveDays(row.statutoryAccruedDays, { mode: "short" })}
-            </span>
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground block truncate">Consommé</span>
-            <span className="font-semibold text-muted-foreground">
-              {formatLeaveDays(row.totalApprovedDeductions, { mode: "short" })}
-            </span>
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground block truncate">Récup. Fériés</span>
-            <span className="font-bold text-purple-700 dark:text-purple-300">
-              {formatLeaveDays(row.activeRecoveryCreditDays, { mode: "short" })}
-            </span>
-          </div>
-        </div>
-
-        {/* Footer context */}
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
-          <span className="flex items-center gap-1">
-            <Building2 className="h-3 w-3" />
-            <span>{row.siteName || "Casablanca"}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            <span>
-              {row.serviceYears} an{row.serviceYears > 1 ? "s" : ""} • {row.serviceMonths} mois
-            </span>
-          </span>
-        </div>
-      </div>
-    );
   };
 
   if (error) {
@@ -634,134 +234,48 @@ function LeaveBalancesOverviewContent() {
       />
 
       {/* KPI StatCards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Effectif Répertorié"
-          value={totalItems}
-          description="Collaborateurs suivis au registre"
-          icon={<Users className="h-5 w-5" />}
-          isLoading={isLoading}
-          valueColor="default"
-        />
-        <StatCard
-          title="Moyenne Disponible"
-          value={formatLeaveDays(aggregateMetrics.avgAvailable, { mode: "full" })}
-          description="Moyenne nette par collaborateur"
-          icon={<Briefcase className="h-5 w-5" />}
-          isLoading={isLoading}
-          valueColor="primary"
-        />
-        <StatCard
-          title="Droits Acquis (Page)"
-          value={formatLeaveDays(aggregateMetrics.totalAccrued, { mode: "full" })}
-          description="Cumul statutaire sur l'affichage actuel"
-          icon={<CalendarCheck className="h-5 w-5" />}
-          isLoading={isLoading}
-          valueColor="default"
-        />
-        <StatCard
-          title="Crédits Récupération"
-          value={formatLeaveDays(aggregateMetrics.totalRecovery, { mode: "full" })}
-          description="Droits fériés sans date d'expiration"
-          icon={<Sparkles className="h-5 w-5" />}
-          isLoading={isLoading}
-          valueColor="default"
-        />
-      </div>
+      <LeaveBalancesKpiCards
+        totalItems={totalItems}
+        metrics={aggregateMetrics}
+        isLoading={isLoading}
+      />
 
       {/* Search & Filter Bar */}
-      <FilterBar
+      <LeaveBalancesFilterBar
         searchValue={searchInput}
         onSearchChange={(q) => {
           setSearchInput(q);
-          updateUrlParams({ search: q.trim() || null, page: 1 });
+          updateUrlParams({ search: q.trim() || null, page: DEFAULT_LEAVE_BALANCES_PAGE });
         }}
-        searchPlaceholder="Rechercher par collaborateur ou matricule..."
+        sites={sites}
+        selectedSiteId={urlSiteId}
+        onSiteChange={(siteId) => updateUrlParams({ siteId, page: DEFAULT_LEAVE_BALANCES_PAGE })}
+        selectedActive={urlActive}
+        onActiveChange={(active) => updateUrlParams({ active, page: DEFAULT_LEAVE_BALANCES_PAGE })}
         activeFilters={activeFilters}
         onRemoveFilter={handleRemoveFilter}
         onResetFilters={handleResetFilters}
         totalResults={totalItems}
-      >
-        {/* Site Filter */}
-        <div className="w-full sm:w-44">
-          <Select
-            value={urlSiteId}
-            aria-label="Filtrer par site"
-            onChange={(e) => updateUrlParams({ siteId: e.target.value, page: 1 })}
-            options={[
-              { value: "all", label: "Tous les sites" },
-              ...sites.map((s) => ({ value: String(s.id), label: s.name })),
-            ]}
-          />
-        </div>
-
-        {/* Status Filter */}
-        <div className="w-full sm:w-40">
-          <Select
-            value={urlActive}
-            aria-label="Filtrer par statut actif ou inactif"
-            onChange={(e) => updateUrlParams({ active: e.target.value, page: 1 })}
-            options={[
-              { value: "true", label: "Actifs uniquement" },
-              { value: "false", label: "Inactifs uniquement" },
-              { value: "all", label: "Tous les statuts" },
-            ]}
-          />
-        </div>
-      </FilterBar>
+      />
 
       {/* Main Consolidated DataTable with Server-side Sorting, Pagination, and Mobile Cards */}
-      <DataTable
-        columns={columns}
-        data={counters}
-        keyExtractor={(row) => row.employeeId}
+      <LeaveBalancesTable
+        counters={counters}
+        totalItems={totalItems}
         isLoading={isLoading}
-        renderMobileCard={renderMobileCard}
-        ariaLabel="Vue consolidée des soldes de congés des collaborateurs"
-        emptyTitle="Aucun solde trouvé"
-        emptyDescription="Aucun collaborateur ne correspond aux critères de recherche ou aux filtres sélectionnés."
-        emptyIcon={<Briefcase className="h-10 w-10 text-muted-foreground/60" />}
-        emptyActionLabel="Réinitialiser les filtres"
-        onEmptyAction={handleResetFilters}
         page={urlPage}
         pageSize={urlPageSize}
-        totalItems={totalItems}
-        pageSizeOptions={[10, 25, 50]}
         sortBy={urlSortBy}
         sortDirection={urlSortOrder as SortDirection}
         onSortChange={handleSortChange}
         onPageChange={(page) => updateUrlParams({ page })}
-        onPageSizeChange={(newSize) => updateUrlParams({ pageSize: newSize, page: 1 })}
+        onPageSizeChange={(newSize) => updateUrlParams({ pageSize: newSize, page: DEFAULT_LEAVE_BALANCES_PAGE })}
+        onResetFilters={handleResetFilters}
         onRowClick={(row) => router.push(`/leave-balances/${encodeURIComponent(row.employeeId)}`)}
       />
 
       {/* Statutory Rules Informational Banner */}
-      <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-muted/20 p-5 text-xs text-muted-foreground space-y-2 shadow-xs">
-        <div className="flex items-center gap-2 font-bold text-foreground text-sm">
-          <Info className="h-4 w-4 text-primary" />
-          Règles de Calcul Statutaires — Code du Travail Marocain (Loi n° 65-99)
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 leading-relaxed">
-          <div className="space-y-1">
-            <span className="font-semibold text-foreground">Acquisition des congés (Art. 231)</span>
-            <p>
-              1.5 jour ouvrable par mois complet de service effectif (2.0 jours pour les salariés mineurs de moins de 18 ans). L&apos;ouverture des droits à consommation requiert 6 mois d&apos;ancienneté continue.
-            </p>
-          </div>
-          <div className="space-y-1">
-            <span className="font-semibold text-foreground">Majoration d&apos;ancienneté (Art. 232)</span>
-            <p>
-              Majoration de 1.5 jour ouvrable supplémentaire par période entière de 5 années de service, plafonnée à un total statutaire de 30 jours ouvrables par an.
-            </p>
-          </div>
-          <div className="space-y-1">
-            <span className="font-semibold text-foreground">Repos Compensateur Férié</span>
-            <p>
-              Les crédits accordés pour travail lors d&apos;un jour férié officiel n&apos;expirent jamais et sont consommés prioritairement selon la règle chronologique FIFO.
-            </p>
-          </div>
-        </div>
-      </div>
+      <LeaveBalancesLegalBanner />
     </PageContainer>
   );
 }
@@ -787,3 +301,4 @@ export default function LeaveBalancesPage() {
     </React.Suspense>
   );
 }
+

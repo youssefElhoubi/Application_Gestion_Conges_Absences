@@ -71,3 +71,27 @@ export interface AbsenceTabCounts {
   pending: number;
   other: number;
 }
+
+/**
+ * Consolidated aggregate summary metrics for the leave balances overview page
+ */
+export interface AggregateLeaveMetrics {
+  totalAccrued: number;
+  totalTaken: number;
+  totalRecovery: number;
+  avgAvailable: number;
+}
+
+/**
+ * Validated URL search parameter state for leave balances overview
+ */
+export interface LeaveBalancesUrlParams {
+  search: string;
+  siteId: string;
+  active: 'all' | 'true' | 'false';
+  page: number;
+  pageSize: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+

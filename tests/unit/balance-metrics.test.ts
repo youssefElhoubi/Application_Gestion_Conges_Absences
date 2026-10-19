@@ -4,6 +4,7 @@ import {
   filterAbsencesByTab,
   calculatePendingAbsenceMetrics,
   computeBalanceProgressMetrics,
+  computeAggregateMetrics,
 } from "@/src/lib/leave-balances/balance-metrics";
 import type {
   AbsenceListItem,
@@ -41,6 +42,26 @@ function createMockAbsence(overrides: Partial<AbsenceListItem> = {}): AbsenceLis
     ...overrides,
   };
 }
+
+const baseCounter: EmployeeCounterItem = {
+  employeeId: "EMP-01",
+  fullName: "Test User",
+  referenceDate: "2026-10-18",
+  serviceMonths: 24,
+  serviceYears: 2,
+  isEligibleForAnnualLeave: true,
+  statutoryAccruedDays: 18,
+  activeRecoveryCreditDays: 2,
+  totalApprovedDeductions: 5,
+  netAvailableBalance: 15,
+  calculationBreakdown: {
+    monthlyRateApplied: 1.5,
+    isMinorRate: false,
+    seniorityMonths: 24,
+    maxYearlyCapEnforced: false,
+    unconsumedHolidayCreditsCount: 1,
+  },
+};
 
 describe("Unit: Leave Balance Metrics & Business Logic Utilities", () => {
   describe("safeDecodeParam", () => {
@@ -117,26 +138,6 @@ describe("Unit: Leave Balance Metrics & Business Logic Utilities", () => {
   });
 
   describe("computeBalanceProgressMetrics", () => {
-    const baseCounter: EmployeeCounterItem = {
-      employeeId: "EMP-01",
-      fullName: "Test User",
-      referenceDate: "2026-10-18",
-      serviceMonths: 24,
-      serviceYears: 2,
-      isEligibleForAnnualLeave: true,
-      statutoryAccruedDays: 18,
-      activeRecoveryCreditDays: 2,
-      totalApprovedDeductions: 5,
-      netAvailableBalance: 15,
-      calculationBreakdown: {
-        monthlyRateApplied: 1.5,
-        isMinorRate: false,
-        seniorityMonths: 24,
-        maxYearlyCapEnforced: false,
-        unconsumedHolidayCreditsCount: 1,
-      },
-    };
-
     it("computes accurate percentages for standard eligible balance", () => {
       const metrics = computeBalanceProgressMetrics(baseCounter);
       expect(metrics.totalAcquiredRights).toBe(20); // 18 + 2
@@ -195,4 +196,72 @@ describe("Unit: Leave Balance Metrics & Business Logic Utilities", () => {
       expect(metrics.availablePercent).toBe(0);
     });
   });
+
+  describe("computeAggregateMetrics", () => {
+    it("returns zeroed metrics for an empty list of counters", () => {
+      const result = computeAggregateMetrics([]);
+      expect(result).toEqual({
+        totalAccrued: 0,
+        totalTaken: 0,
+        totalRecovery: 0,
+        avgAvailable: 0,
+      });
+    });
+
+    it("aggregates sums and computes average available balance across visible employees", () => {
+      const counter1: EmployeeCounterItem = {
+        ...baseCounter,
+        employeeId: "EMP-01",
+        statutoryAccruedDays: 18,
+        totalApprovedDeductions: 6,
+        activeRecoveryCreditDays: 2,
+        netAvailableBalance: 14,
+      };
+      const counter2: EmployeeCounterItem = {
+        ...baseCounter,
+        employeeId: "EMP-02",
+        statutoryAccruedDays: 12,
+        totalApprovedDeductions: 3,
+        activeRecoveryCreditDays: 1,
+        netAvailableBalance: 10,
+      };
+
+      const result = computeAggregateMetrics([counter1, counter2]);
+      expect(result.totalAccrued).toBe(30);
+      expect(result.totalTaken).toBe(9);
+      expect(result.totalRecovery).toBe(3);
+      expect(result.avgAvailable).toBe(12);
+    });
+
+    it("correctly handles decimal precision with proper rounding", () => {
+      const counter1: EmployeeCounterItem = {
+        ...baseCounter,
+        statutoryAccruedDays: 13.5,
+        totalApprovedDeductions: 4.5,
+        activeRecoveryCreditDays: 1.0,
+        netAvailableBalance: 10.0,
+      };
+      const counter2: EmployeeCounterItem = {
+        ...baseCounter,
+        statutoryAccruedDays: 7.5,
+        totalApprovedDeductions: 1.5,
+        activeRecoveryCreditDays: 0,
+        netAvailableBalance: 6.0,
+      };
+      const counter3: EmployeeCounterItem = {
+        ...baseCounter,
+        statutoryAccruedDays: 6.0,
+        totalApprovedDeductions: 0,
+        activeRecoveryCreditDays: 0,
+        netAvailableBalance: 5.5,
+      };
+
+      const result = computeAggregateMetrics([counter1, counter2, counter3]);
+      expect(result.totalAccrued).toBe(27.0);
+      expect(result.totalTaken).toBe(6.0);
+      expect(result.totalRecovery).toBe(1.0);
+      expect(result.avgAvailable).toBe(7.2);
+    });
+  });
 });
+

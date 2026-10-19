@@ -8,6 +8,7 @@ import type {
   AbsenceFilterTab,
   EmployeeCounterItem,
   BalanceProgressMetrics,
+  AggregateLeaveMetrics,
 } from '@/src/lib/leave-balances/leave-balance.types';
 
 /**
@@ -99,3 +100,33 @@ export function computeBalanceProgressMetrics(
     isNegative,
   };
 }
+
+/**
+ * Computes consolidated aggregate metrics across the visible employee counters page.
+ */
+export function computeAggregateMetrics(
+  counters: EmployeeCounterItem[]
+): AggregateLeaveMetrics {
+  if (counters.length === 0) {
+    return {
+      totalAccrued: 0,
+      totalTaken: 0,
+      totalRecovery: 0,
+      avgAvailable: 0,
+    };
+  }
+
+  const totalAccrued = counters.reduce((sum, c) => sum + c.statutoryAccruedDays, 0);
+  const totalTaken = counters.reduce((sum, c) => sum + c.totalApprovedDeductions, 0);
+  const totalRecovery = counters.reduce((sum, c) => sum + c.activeRecoveryCreditDays, 0);
+  const totalAvailable = counters.reduce((sum, c) => sum + c.netAvailableBalance, 0);
+  const avgAvailable = Math.round((totalAvailable / counters.length) * 10) / 10;
+
+  return {
+    totalAccrued: Math.round(totalAccrued * 10) / 10,
+    totalTaken: Math.round(totalTaken * 10) / 10,
+    totalRecovery: Math.round(totalRecovery * 10) / 10,
+    avgAvailable,
+  };
+}
+

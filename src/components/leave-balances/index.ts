@@ -19,3 +19,16 @@ export { AbsenceHistorySection } from './AbsenceHistorySection';
 export type { AbsenceHistorySectionProps } from './AbsenceHistorySection';
 export { RecoveryCreditsSection } from './RecoveryCreditsSection';
 export type { RecoveryCreditsSectionProps } from './RecoveryCreditsSection';
+
+// Leave Balances Overview Components
+export { LeaveBalancesKpiCards } from './LeaveBalancesKpiCards';
+export type { LeaveBalancesKpiCardsProps } from './LeaveBalancesKpiCards';
+export { LeaveBalancesFilterBar } from './LeaveBalancesFilterBar';
+export type { LeaveBalancesFilterBarProps } from './LeaveBalancesFilterBar';
+export { LeaveBalancesTable } from './LeaveBalancesTable';
+export type { LeaveBalancesTableProps } from './LeaveBalancesTable';
+export { LeaveBalanceMobileCard } from './LeaveBalanceMobileCard';
+export type { LeaveBalanceMobileCardProps } from './LeaveBalanceMobileCard';
+export { LeaveBalancesLegalBanner } from './LeaveBalancesLegalBanner';
+export { getLeaveBalancesTableColumns } from './leave-balance-table-columns';
+
