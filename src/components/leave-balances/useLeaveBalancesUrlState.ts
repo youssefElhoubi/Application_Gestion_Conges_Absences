@@ -14,6 +14,7 @@ import {
   DEFAULT_LEAVE_BALANCES_SORT_BY,
   DEFAULT_LEAVE_BALANCES_SORT_ORDER,
   DEFAULT_LEAVE_BALANCES_PAGE,
+  DEFAULT_LEAVE_BALANCES_ACTIVE,
   DEFAULT_LEAVE_BALANCES_SITE_ID,
 } from "@/src/lib/leave-balances/leave-balance.constants";
 
@@ -89,13 +90,15 @@ export function useLeaveBalancesUrlState(
   // 4. Action handlers
   const handleSearchChange = React.useCallback(
     (value: string) => {
+      const trimmed = value.trim();
       setSearchInput(value);
+      if (trimmed === parsed.search) return;
       updateUrlParams({
-        search: value.trim() || null,
+        search: trimmed || null,
         page: DEFAULT_LEAVE_BALANCES_PAGE,
       });
     },
-    [updateUrlParams]
+    [parsed.search, updateUrlParams]
   );
 
   const handleSiteChange = React.useCallback(
@@ -167,7 +170,10 @@ export function useLeaveBalancesUrlState(
           page: DEFAULT_LEAVE_BALANCES_PAGE,
         });
       } else if (filterId === "active") {
-        updateUrlParams({ active: "all", page: DEFAULT_LEAVE_BALANCES_PAGE });
+        updateUrlParams({
+          active: DEFAULT_LEAVE_BALANCES_ACTIVE,
+          page: DEFAULT_LEAVE_BALANCES_PAGE,
+        });
       } else if (filterId === "sort") {
         updateUrlParams({
           sortBy: DEFAULT_LEAVE_BALANCES_SORT_BY,

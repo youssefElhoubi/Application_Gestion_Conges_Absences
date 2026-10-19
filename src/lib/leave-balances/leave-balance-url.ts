@@ -28,7 +28,7 @@ export function parseLeaveBalancesUrlParams(
 
   const rawActive = searchParams.get('active');
   const active: 'all' | 'true' | 'false' =
-    rawActive === 'true' || rawActive === 'false'
+    rawActive === 'true' || rawActive === 'false' || rawActive === 'all'
       ? rawActive
       : DEFAULT_LEAVE_BALANCES_ACTIVE;
 
@@ -36,7 +36,10 @@ export function parseLeaveBalancesUrlParams(
   const page = Math.max(1, !isNaN(rawPage) && rawPage > 0 ? rawPage : DEFAULT_LEAVE_BALANCES_PAGE);
 
   const rawPageSize = Number(searchParams.get('pageSize'));
-  const pageSize = Math.max(1, !isNaN(rawPageSize) && rawPageSize > 0 ? rawPageSize : DEFAULT_LEAVE_BALANCES_PAGE_SIZE);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, !isNaN(rawPageSize) && rawPageSize > 0 ? rawPageSize : DEFAULT_LEAVE_BALANCES_PAGE_SIZE)
+  );
 
   const sortBy = searchParams.get('sortBy') || DEFAULT_LEAVE_BALANCES_SORT_BY;
 
@@ -97,6 +100,7 @@ export function buildLeaveBalancesQueryString(
 
 /**
  * Derives the active filter chips list from the current URL state and available sites.
+ * Only filters that deviate from standard canonical defaults generate chips.
  */
 export function buildLeaveBalancesActiveFilters(
   params: LeaveBalancesUrlParams,
@@ -112,8 +116,8 @@ export function buildLeaveBalancesActiveFilters(
     });
   }
 
-  if (params.siteId !== 'all') {
-    const site = sites.find((s) => String(s.id) === params.siteId);
+  if (params.siteId !== DEFAULT_LEAVE_BALANCES_SITE_ID) {
+    const site = sites.find((s) => String(s.id).trim() === String(params.siteId).trim());
     list.push({
       id: 'site',
       label: 'Site',
@@ -121,12 +125,12 @@ export function buildLeaveBalancesActiveFilters(
     });
   }
 
-  if (params.active !== 'all') {
+  if (params.active !== DEFAULT_LEAVE_BALANCES_ACTIVE) {
     list.push({
       id: 'active',
       label: 'Statut',
       valueLabel:
-        params.active === 'true' ? 'Actifs uniquement' : 'Inactifs uniquement',
+        params.active === 'false' ? 'Inactifs uniquement' : 'Tous les statuts',
     });
   }
 

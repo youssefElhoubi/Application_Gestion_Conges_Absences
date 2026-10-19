@@ -57,6 +57,12 @@ export function useLeaveBalancesData(
   // Request sequencing tracker to ignore stale async responses
   const activeFetchIdRef = React.useRef(0);
 
+  // Stable ref for pagination correction callback to avoid unnecessary effect triggers
+  const onPaginationCorrectionRef = React.useRef(onPaginationCorrection);
+  React.useEffect(() => {
+    onPaginationCorrectionRef.current = onPaginationCorrection;
+  });
+
   // 1. Fetch sites once on mount for filter dropdown options
   React.useEffect(() => {
     let isMounted = true;
@@ -99,8 +105,8 @@ export function useLeaveBalancesData(
 
         // Correct out-of-bounds pagination if total count changed
         const maxPages = Math.max(1, Math.ceil(response.meta.totalItems / pageSize));
-        if (page > maxPages && onPaginationCorrection) {
-          onPaginationCorrection(maxPages);
+        if (page > maxPages) {
+          onPaginationCorrectionRef.current?.(maxPages);
         }
       })
       .catch((err: unknown) => {
@@ -126,7 +132,6 @@ export function useLeaveBalancesData(
     sortBy,
     sortOrder,
     refreshKey,
-    onPaginationCorrection,
   ]);
 
   // 3. Aggregate stats derived from current loaded view

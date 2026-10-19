@@ -45,12 +45,12 @@ describe('Unit: leave-balance-url utilities', () => {
       expect(parsed.sortOrder).toBe('desc');
     });
 
-    it('safely falls back to defaults on negative, invalid, or NaN numbers', () => {
-      const sp = new URLSearchParams('page=-10&pageSize=invalid&active=bogus&sortOrder=random');
+    it('safely falls back to defaults on negative, invalid, or NaN numbers and clamps pageSize to 100', () => {
+      const sp = new URLSearchParams('page=-10&pageSize=999&active=bogus&sortOrder=random');
       const parsed = parseLeaveBalancesUrlParams(sp);
 
       expect(parsed.page).toBe(1);
-      expect(parsed.pageSize).toBe(DEFAULT_LEAVE_BALANCES_PAGE_SIZE);
+      expect(parsed.pageSize).toBe(100);
       expect(parsed.active).toBe(DEFAULT_LEAVE_BALANCES_ACTIVE);
       expect(parsed.sortOrder).toBe('asc');
     });
@@ -94,23 +94,32 @@ describe('Unit: leave-balance-url utilities', () => {
       { id: 2, name: 'Tanger Port', code: 'TNG', city: 'Tanger', active: true },
     ];
 
-    it('returns empty array when all parameters match default values and active is "all"', () => {
-      const params = {
-        ...parseLeaveBalancesUrlParams(new URLSearchParams('')),
-        active: 'all' as const,
-      };
+    it('returns empty array when all parameters match default canonical values (clean load)', () => {
+      const params = parseLeaveBalancesUrlParams(new URLSearchParams(''));
       const filters = buildLeaveBalancesActiveFilters(params, mockSites);
       expect(filters).toEqual([]);
     });
 
-    it('shows "Actifs uniquement" chip when active defaults to "true"', () => {
-      const params = parseLeaveBalancesUrlParams(new URLSearchParams(''));
+    it('shows "Inactifs uniquement" chip when active is "false"', () => {
+      const params = parseLeaveBalancesUrlParams(new URLSearchParams('active=false'));
       const filters = buildLeaveBalancesActiveFilters(params, mockSites);
       expect(filters).toEqual([
         {
           id: 'active',
           label: 'Statut',
-          valueLabel: 'Actifs uniquement',
+          valueLabel: 'Inactifs uniquement',
+        },
+      ]);
+    });
+
+    it('shows "Tous les statuts" chip when active is explicitly set to "all"', () => {
+      const params = parseLeaveBalancesUrlParams(new URLSearchParams('active=all'));
+      const filters = buildLeaveBalancesActiveFilters(params, mockSites);
+      expect(filters).toEqual([
+        {
+          id: 'active',
+          label: 'Statut',
+          valueLabel: 'Tous les statuts',
         },
       ]);
     });
