@@ -6,10 +6,13 @@
 import {
   CounterApiClient,
   type EmployeeCounterItem,
+  type MultiEmployeeCounterQueryParams,
+  type PaginatedCountersResponse,
 } from '@/src/lib/api/counter-client';
 import {
   EmployeeApiClient,
   type EmployeeDetail,
+  type SiteItem,
 } from '@/src/lib/api/employee-client';
 import {
   AbsenceApiClient,
@@ -30,6 +33,22 @@ export interface CoreLeaveBalanceData {
 }
 
 export class LeaveBalanceService {
+  /**
+   * Retrieves paginated multi-employee counters matching query criteria.
+   */
+  public static async listCounters(
+    params: MultiEmployeeCounterQueryParams
+  ): Promise<PaginatedCountersResponse> {
+    return CounterApiClient.listCounters(params);
+  }
+
+  /**
+   * Retrieves all company sites for filter dropdown options.
+   */
+  public static async listSites(): Promise<SiteItem[]> {
+    return EmployeeApiClient.listSites();
+  }
+
   /**
    * Retrieves both employee details and authoritative dynamic counters concurrently.
    */

@@ -20,7 +20,7 @@ export type { AbsenceHistorySectionProps } from './AbsenceHistorySection';
 export { RecoveryCreditsSection } from './RecoveryCreditsSection';
 export type { RecoveryCreditsSectionProps } from './RecoveryCreditsSection';
 
-// Leave Balances Overview Components
+// Leave Balances Overview Components & Hooks
 export { LeaveBalancesKpiCards } from './LeaveBalancesKpiCards';
 export type { LeaveBalancesKpiCardsProps } from './LeaveBalancesKpiCards';
 export { LeaveBalancesFilterBar } from './LeaveBalancesFilterBar';
@@ -31,4 +31,12 @@ export { LeaveBalanceMobileCard } from './LeaveBalanceMobileCard';
 export type { LeaveBalanceMobileCardProps } from './LeaveBalanceMobileCard';
 export { LeaveBalancesLegalBanner } from './LeaveBalancesLegalBanner';
 export { getLeaveBalancesTableColumns } from './leave-balance-table-columns';
+export { useLeaveBalancesUrlState } from './useLeaveBalancesUrlState';
+export type { UseLeaveBalancesUrlStateResult } from './useLeaveBalancesUrlState';
+export { useLeaveBalancesData } from './useLeaveBalancesData';
+export type {
+  UseLeaveBalancesDataParams,
+  UseLeaveBalancesDataResult,
+} from './useLeaveBalancesData';
+
 

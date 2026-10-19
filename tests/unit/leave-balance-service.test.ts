@@ -147,4 +147,36 @@ describe("Unit: LeaveBalanceService", () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe("listCounters", () => {
+    it("delegates query parameters to CounterApiClient.listCounters", async () => {
+      const mockResponse = {
+        data: [],
+        meta: { totalItems: 0, itemsPerPage: 10, totalPages: 0, currentPage: 1, hasNextPage: false },
+      };
+
+      const listSpy = vi.spyOn(CounterApiClient, "listCounters").mockResolvedValue(mockResponse);
+
+      const query = { page: 1, pageSize: 10, search: "Youssef" };
+      const result = await LeaveBalanceService.listCounters(query);
+
+      expect(listSpy).toHaveBeenCalledWith(query);
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe("listSites", () => {
+    it("delegates to EmployeeApiClient.listSites", async () => {
+      const mockSites = [
+        { id: 1, name: "Siège", code: "SIEGE", city: "Casablanca", active: true },
+      ];
+      const listSpy = vi.spyOn(EmployeeApiClient, "listSites").mockResolvedValue(mockSites);
+
+      const result = await LeaveBalanceService.listSites();
+
+      expect(listSpy).toHaveBeenCalled();
+      expect(result).toEqual(mockSites);
+    });
+  });
 });
+
