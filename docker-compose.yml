@@ -10,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
@@ -22,7 +27,30 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command:
+      - npx
+      - prisma
+      - studio
+      - --port
+      - "5555"
+      - --browser
+      - none
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
+    restart: "no"
+    ports:
+      - "5555:5555"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

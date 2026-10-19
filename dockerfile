@@ -45,16 +45,18 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy Prisma folder and node_modules containing the Prisma client
+# Copy Prisma schema and Prisma 7 config file
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+
+# Copy the full node_modules so Prisma CLI and all transitive dependencies (effect, etc.) exist
+COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Create a startup script to run migrations before starting the server
+# Startup script to run migrations before Next.js
 RUN echo '#!/bin/sh' > start.sh && \
     echo 'npx prisma migrate deploy' >> start.sh && \
     echo 'node server.js' >> start.sh && \
