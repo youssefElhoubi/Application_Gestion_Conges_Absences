@@ -50,5 +50,8 @@
     "typescript": "^5",
     "vite": "^8.3.4",
     "vitest": "^5.0.4"
+  },
+  "optionalDependencies": {
+    "@node-rs/argon2-wasm32-wasi": "^2.2.2"
   }
 }
