@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   RotateCcw,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 
 import { PageContainer } from "@/src/components/layout/PageContainer";

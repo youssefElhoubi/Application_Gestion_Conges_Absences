@@ -9,7 +9,6 @@ import {
   Search,
   ChevronRight,
   User,
-  Settings,
   HelpCircle,
   LogOut,
   Check,
@@ -136,6 +135,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileNav, className }) =>
           type="button"
           className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-muted border border-border/60 rounded-md transition-colors"
           title="Recherche rapide"
+          aria-label="Recherche rapide"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="hidden md:inline">Recherche...</span>

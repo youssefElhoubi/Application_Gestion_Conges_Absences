@@ -126,6 +126,7 @@ export function AbsenceHistorySection({
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   role="tab"
                   id={`tab-${tab.id}-absences`}
                   aria-selected={isSelected}

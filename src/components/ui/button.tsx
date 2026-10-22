@@ -21,6 +21,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       disabled,
       children,
+      type = "button",
       ...props
     },
     ref
@@ -51,6 +52,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={type}
         disabled={disabled || isLoading}
         className={cn(
           "inline-flex items-center justify-center font-medium transition-all duration-150 select-none cursor-pointer",
