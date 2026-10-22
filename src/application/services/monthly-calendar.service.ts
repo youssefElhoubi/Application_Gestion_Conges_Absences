@@ -90,7 +90,7 @@ export class MonthlyCalendarService {
       }),
     ]);
 
-    const formattedHolidays: CalendarPublicHolidayItem[] = publicHolidays.map((h: { date: Date; label: string; isReligious: boolean }) => ({
+    const formattedHolidays: CalendarPublicHolidayItem[] = publicHolidays.map((h) => ({
       date: h.date,
       label: h.label,
       isReligious: h.isReligious,

@@ -32,7 +32,7 @@ export class WorkingDaysService {
     ]);
 
     const weeklyRestDays = site?.weeklyRestDays ?? [0];
-    const holidayDates = publicHolidays.map((h: { date: Date }) => h.date);
+    const holidayDates = publicHolidays.map((h) => h.date);
 
     return WorkingDaysCalculator.calculate({
       startDate,
