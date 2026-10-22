@@ -1,4 +1,5 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
+import { Prisma } from '@/src/generated/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import { DashboardFilter } from './dashboard.schema';
 
@@ -18,16 +19,18 @@ export class DashboardService {
       : new Date(year, 11, 31, 23, 59, 59);
 
     // Build site and role scoping
-    const employeeScope: any = {};
+    const employeeScope: Prisma.EmployeeWhereInput = {};
     if (filter.siteId) employeeScope.siteId = filter.siteId;
 
     if (session.role === 'SUPERVISOR') {
       employeeScope.OR = [
-        { employeeId: session.employeeId },
+        ...(session.employeeId ? [{ employeeId: session.employeeId }] : []),
         { employeeId: { in: session.managedEmployeeIds } },
       ];
     } else if (session.role === 'EMPLOYEE') {
-      employeeScope.employeeId = session.employeeId;
+      if (session.employeeId) {
+        employeeScope.employeeId = session.employeeId;
+      }
     }
 
     const [
@@ -122,10 +125,10 @@ export class DashboardService {
       where: { id: { in: typeIds } },
       select: { id: true, code: true, name: true, colorHex: true },
     });
-    const typeMap = new Map(types.map((t: any) => [t.id, t]));
+    const typeMap = new Map(types.map((t) => [t.id, t]));
 
     let unjustifiedAbsenceDays = 0;
-    const categoryBreakdown = absencesByCategory.map((item: any) => {
+    const categoryBreakdown = absencesByCategory.map((item) => {
       const typeInfo = typeMap.get(item.typeId);
       const days = Number(item._sum.retainedDays ?? 0);
       if (typeInfo?.code === 'ABSENCE_INJUSTIFIEE') {
@@ -162,7 +165,7 @@ export class DashboardService {
         availableRecoveryCredits,
       },
       categoryBreakdown,
-      employeesBySite: employeesBySite.map((s: any) => ({
+      employeesBySite: employeesBySite.map((s) => ({
         siteId: s.id,
         siteName: s.name,
         city: s.city,

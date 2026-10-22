@@ -1,7 +1,14 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
+import { Prisma } from '@/src/generated/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import { CreateSiteSchema, SiteQuerySchema, CreateSiteInput, UpdateSiteInput, SiteQuery } from './site.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
+
+export type SiteWithCount = Prisma.SiteGetPayload<{
+  include: {
+    _count: { select: { employees: true } };
+  };
+}>;
 
 export class SiteService {
   public static async createSite(rawInput: CreateSiteInput, session: AuthSession) {
@@ -26,7 +33,8 @@ export class SiteService {
     });
   }
 
-  public static async getSiteById(siteId: number, _session: AuthSession) {
+  public static async getSiteById(siteId: number, session: AuthSession) {
+    AuthGuard.requireAuthenticated(session);
     return await prisma.site.findUniqueOrThrow({
       where: { id: siteId },
       include: {
@@ -35,11 +43,12 @@ export class SiteService {
     });
   }
 
-  public static async listSites(rawQuery: SiteQuery, _session: AuthSession): Promise<PaginatedResult<any>> {
+  public static async listSites(rawQuery: SiteQuery, session: AuthSession): Promise<PaginatedResult<SiteWithCount>> {
+    AuthGuard.requireAuthenticated(session);
     const query = SiteQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
 
-    const where: any = {};
+    const where: Prisma.SiteWhereInput = {};
     if (query.active === 'true') where.active = true;
     else if (query.active === 'false') where.active = false;
 

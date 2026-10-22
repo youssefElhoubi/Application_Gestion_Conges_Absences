@@ -1,4 +1,5 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
+import { Prisma } from '@/src/generated/prisma';
 import { AuthSession, AuthGuard, ForbiddenError } from '../auth/auth.guard';
 import {
   DashboardMetricsFilter,
@@ -191,8 +192,8 @@ export class DashboardMetricsService {
   /**
    * Enforces role-based employee scoping
    */
-  private static resolveEmployeeScope(filter: DashboardMetricsFilter, session: AuthSession): any {
-    const scope: any = {};
+  private static resolveEmployeeScope(filter: DashboardMetricsFilter, session: AuthSession): Prisma.EmployeeWhereInput {
+    const scope: Prisma.EmployeeWhereInput = {};
 
     if (session.role === 'EMPLOYEE') {
       // Employees are strictly restricted to their own records
@@ -244,8 +245,11 @@ export class DashboardMetricsService {
   /**
    * Builds the WHERE clause for Metric 5 (Pending Requests) incorporating approver scope
    */
-  private static buildPendingRequestsWhere(employeeScope: any, session: AuthSession): any {
-    const where: any = {
+  private static buildPendingRequestsWhere(
+    employeeScope: Prisma.EmployeeWhereInput,
+    session: AuthSession
+  ): Prisma.AbsenceWhereInput {
+    const where: Prisma.AbsenceWhereInput = {
       status: 'PENDING',
       employee: employeeScope,
     };
@@ -255,7 +259,9 @@ export class DashboardMetricsService {
       where.employeeId = { in: session.managedEmployeeIds };
     } else if (session.role === 'EMPLOYEE') {
       // Employee sees only their own pending requests
-      where.employeeId = session.employeeId;
+      if (session.employeeId) {
+        where.employeeId = session.employeeId;
+      }
     }
 
     return where;
@@ -274,7 +280,7 @@ export class DashboardMetricsService {
       where: { id: { in: typeIds } },
       select: { id: true, code: true, name: true },
     });
-    const typeMap = new Map(types.map((t: any) => [t.id, t]));
+    const typeMap = new Map(types.map((t) => [t.id, t]));
 
     return groups.map((g) => {
       const t = typeMap.get(g.typeId);

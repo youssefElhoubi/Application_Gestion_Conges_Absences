@@ -26,7 +26,6 @@ import {
   WorkingDaysResult,
   DynamicBalanceResult,
 } from '../types/business-logic.types';
-import { Fraction } from '@/src/generated/prisma';
 
 export interface SeniorityResult {
   completedMonths: number;

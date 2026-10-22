@@ -1,13 +1,19 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
+import { Prisma } from '@/src/generated/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
-  CreatePublicHolidaySchema,
   CreatePublicHolidayInput,
   UpdatePublicHolidayInput,
   PublicHolidayQuerySchema,
   PublicHolidayQuery,
 } from './public-holiday.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
+
+export type PublicHolidayWithCount = Prisma.PublicHolidayGetPayload<{
+  include: {
+    _count: { select: { holidayWorkCredits: true } };
+  };
+}>;
 
 export class PublicHolidayService {
   public static async createHoliday(input: CreatePublicHolidayInput, session: AuthSession) {
@@ -32,7 +38,8 @@ export class PublicHolidayService {
     });
   }
 
-  public static async getHolidayById(id: bigint, _session: AuthSession) {
+  public static async getHolidayById(id: bigint, session: AuthSession) {
+    AuthGuard.requireAuthenticated(session);
     return await prisma.publicHoliday.findUniqueOrThrow({
       where: { id },
       include: {
@@ -56,20 +63,22 @@ export class PublicHolidayService {
 
   public static async listHolidays(
     rawQuery: PublicHolidayQuery,
-    _session: AuthSession
-  ): Promise<PaginatedResult<any>> {
+    session: AuthSession
+  ): Promise<PaginatedResult<PublicHolidayWithCount>> {
+    AuthGuard.requireAuthenticated(session);
     const query = PublicHolidayQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
-    const where: any = {};
+    const where: Prisma.PublicHolidayWhereInput = {};
 
     if (query.year) {
       const start = new Date(query.year, 0, 1);
       const end = new Date(query.year, 11, 31, 23, 59, 59);
       where.date = { gte: start, lte: end };
     } else if (query.startDate || query.endDate) {
-      where.date = {};
-      if (query.startDate) where.date.gte = query.startDate;
-      if (query.endDate) where.date.lte = query.endDate;
+      const dateFilter: Prisma.DateTimeFilter = {};
+      if (query.startDate) dateFilter.gte = query.startDate;
+      if (query.endDate) dateFilter.lte = query.endDate;
+      where.date = dateFilter;
     }
 
     if (query.search) {

@@ -108,8 +108,7 @@ export class AuthGuard {
    */
   public static canReviewAbsence(
     session: AuthSession,
-    requestApplicantEmployeeId: string,
-    _requestApplicantSiteId?: number
+    requestApplicantEmployeeId: string
   ): boolean {
     this.requireAuthenticated(session);
 

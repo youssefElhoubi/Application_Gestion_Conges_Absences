@@ -1,14 +1,13 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
-  CreateLeaveRuleSchema,
   CreateLeaveRuleInput,
   UpdateLeaveRuleInput,
   LeaveRuleQuerySchema,
   LeaveRuleQuery,
 } from './leave-rule.schema';
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
-import { Prisma } from '@/src/generated/prisma';
+import { Prisma, LeaveRule } from '@/src/generated/prisma';
 
 export class LeaveRuleService {
   public static async createRule(input: CreateLeaveRuleInput, session: AuthSession) {
@@ -29,7 +28,8 @@ export class LeaveRuleService {
     });
   }
 
-  public static async getRuleByCode(code: string, _session: AuthSession) {
+  public static async getRuleByCode(code: string, session: AuthSession) {
+    AuthGuard.requireAuthenticated(session);
     return await prisma.leaveRule.findUniqueOrThrow({
       where: { code },
     });
@@ -37,11 +37,12 @@ export class LeaveRuleService {
 
   public static async listRules(
     rawQuery: LeaveRuleQuery,
-    _session: AuthSession
-  ): Promise<PaginatedResult<any>> {
+    session: AuthSession
+  ): Promise<PaginatedResult<LeaveRule>> {
+    AuthGuard.requireAuthenticated(session);
     const query = LeaveRuleQuerySchema.parse(rawQuery);
     const { skip, take, page, pageSize } = getPrismaPagination(query);
-    const where: any = {};
+    const where: Prisma.LeaveRuleWhereInput = {};
 
     if (query.active === 'true') where.active = true;
     else if (query.active === 'false') where.active = false;

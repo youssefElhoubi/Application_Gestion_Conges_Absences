@@ -1,4 +1,3 @@
-import { Fraction } from '@/src/generated/prisma';
 import { WorkingDaysCalculationContext, WorkingDaysResult } from '../types/business-logic.types';
 
 export class WorkingDaysCalculator {

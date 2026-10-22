@@ -1,4 +1,5 @@
 import { prisma } from '@/src/infrastructure/db/prisma';
+import { Prisma } from '@/src/generated/prisma';
 import { AuthSession, AuthGuard } from '../auth/auth.guard';
 import {
   CreateEmployeeInput,
@@ -8,6 +9,13 @@ import {
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
 import { LeaveCalculationEngine } from '@/src/domain/engine/leave-calculation.engine';
 import { LeaveBalanceService } from '@/src/application/services/leave-balance.service';
+
+export type EmployeeListItem = Prisma.EmployeeGetPayload<{
+  include: {
+    site: { select: { id: true; name: true; city: true } };
+    manager: { select: { employeeId: true; fullName: true } };
+  };
+}>;
 
 export class EmployeeService {
   /**
@@ -105,13 +113,13 @@ export class EmployeeService {
   public static async listEmployees(
     query: EmployeeQuery,
     session: AuthSession
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<EmployeeListItem>> {
     AuthGuard.requireRole(session, ['ADMIN', 'HR_MANAGER', 'SUPERVISOR']);
 
     const { skip, take, page, pageSize } = getPrismaPagination(query);
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.EmployeeWhereInput = {};
 
     if (query.siteId) {
       where.siteId = query.siteId;
@@ -138,7 +146,7 @@ export class EmployeeService {
     // Supervisor scoping
     if (session.role === 'SUPERVISOR') {
       where.OR = [
-        { employeeId: session.employeeId },
+        ...(session.employeeId ? [{ employeeId: session.employeeId }] : []),
         { employeeId: { in: session.managedEmployeeIds } },
       ];
     }

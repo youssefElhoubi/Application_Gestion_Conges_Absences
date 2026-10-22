@@ -2,7 +2,6 @@ import { prisma } from '@/src/infrastructure/db/prisma';
 import {
   HolidayAlreadyCreditedError,
   RecoveryCreditDepletedError,
-  DomainError,
 } from '@/src/domain/errors/domain-errors';
 import { Prisma } from '@/src/generated/prisma';
 

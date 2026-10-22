@@ -4,6 +4,7 @@ import {
   DomainError,
   InvalidStatusTransitionError,
 } from '@/src/domain/errors/domain-errors';
+import { Prisma } from '@/src/generated/prisma';
 
 export interface ApproveAbsenceCommand {
   absenceId: bigint;
@@ -14,7 +15,7 @@ export class ApproveAbsenceUseCase {
   public static async execute(command: ApproveAbsenceCommand) {
     const { absenceId, approverId } = command;
 
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Fetch Absence with Type
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },

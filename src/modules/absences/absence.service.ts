@@ -18,6 +18,14 @@ import { LeaveValidationRules } from '@/src/domain/validation/leave-validation.r
 import { RecoveryCreditService } from '@/src/application/services/recovery-credit.service';
 import { Prisma } from '@/src/generated/prisma';
 
+export type AbsenceWithRelations = Prisma.AbsenceGetPayload<{
+  include: {
+    type: true;
+    reason: true;
+    employee: { select: { employeeId: true; fullName: true; siteId: true; site: { select: { name: true } } } };
+  };
+}>;
+
 export class AbsenceService {
   /**
    * Create an absence request with full statutory validation
@@ -92,7 +100,7 @@ export class AbsenceService {
     const enteredDays = workingDaysCalc.totalCalendarDays;
 
     // 7. Atomic transaction: create Absence + initial ApprovalHistory log
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const createdAbsence = await tx.absence.create({
         data: {
           employeeId: input.employeeId,
@@ -159,24 +167,36 @@ export class AbsenceService {
   public static async listAbsences(
     query: AbsenceQuery,
     session: AuthSession
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<AbsenceWithRelations>> {
     const { skip, take, page, pageSize } = getPrismaPagination(query);
-    const where: any = {};
+    const where: Prisma.AbsenceWhereInput = {};
 
     // Role-based data scoping
     if (session.role === 'EMPLOYEE') {
-      where.employeeId = session.employeeId;
+      if (session.employeeId) {
+        where.employeeId = session.employeeId;
+      }
     } else if (session.role === 'SUPERVISOR') {
       where.OR = [
-        { employeeId: session.employeeId },
+        ...(session.employeeId ? [{ employeeId: session.employeeId }] : []),
         { employeeId: { in: session.managedEmployeeIds } },
       ];
     } else if (query.employeeId) {
       where.employeeId = query.employeeId;
     }
 
-    if (query.siteId) {
-      where.employee = { siteId: query.siteId };
+    if (query.siteId || query.search) {
+      const employeeFilter: Prisma.EmployeeWhereInput = {};
+      if (query.siteId) {
+        employeeFilter.siteId = query.siteId;
+      }
+      if (query.search) {
+        employeeFilter.OR = [
+          { fullName: { contains: query.search, mode: 'insensitive' } },
+          { employeeId: { contains: query.search, mode: 'insensitive' } },
+        ];
+      }
+      where.employee = employeeFilter;
     }
 
     if (query.typeId) {
@@ -188,19 +208,10 @@ export class AbsenceService {
     }
 
     if (query.startDate || query.endDate) {
-      where.AND = [];
-      if (query.startDate) where.AND.push({ endDate: { gte: query.startDate } });
-      if (query.endDate) where.AND.push({ startDate: { lte: query.endDate } });
-    }
-
-    if (query.search) {
-      where.employee = {
-        ...where.employee,
-        OR: [
-          { fullName: { contains: query.search, mode: 'insensitive' } },
-          { employeeId: { contains: query.search, mode: 'insensitive' } },
-        ],
-      };
+      const andConditions: Prisma.AbsenceWhereInput[] = [];
+      if (query.startDate) andConditions.push({ endDate: { gte: query.startDate } });
+      if (query.endDate) andConditions.push({ startDate: { lte: query.endDate } });
+      where.AND = andConditions;
     }
 
     const [totalItems, absences] = await Promise.all([
@@ -234,7 +245,7 @@ export class AbsenceService {
     session: AuthSession
   ) {
     const input = ApproveAbsenceSchema.parse(rawInput);
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },
         include: { type: true, employee: true },
@@ -302,7 +313,7 @@ export class AbsenceService {
     session: AuthSession
   ) {
     const input = RejectAbsenceSchema.parse(rawInput);
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },
       });
@@ -351,7 +362,7 @@ export class AbsenceService {
     session: AuthSession
   ) {
     const input = CancelAbsenceSchema.parse(rawInput);
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const absence = await tx.absence.findUniqueOrThrow({
         where: { id: absenceId },
       });
@@ -472,7 +483,7 @@ export class AbsenceService {
     const retainedDays = workingDaysCalc.calculatedWorkingDays;
     const enteredDays = workingDaysCalc.totalCalendarDays;
 
-    return await prisma.$transaction(async (tx: any) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.absence.update({
         where: { id: absenceId },
         data: {

@@ -2,7 +2,6 @@ import { MOROCCAN_LABOR_RULES } from '../constants/moroccan-labor-rules';
 import { AgeSeniorityCalculator } from '../calculations/age-seniority.calculator';
 import { AnnualLeaveAccrualCalculator } from '../calculations/annual-leave-accrual.calculator';
 import { WorkingDaysCalculator } from '../calculations/working-days.calculator';
-import { Fraction } from '@/src/generated/prisma'; 
 export interface EdgeCaseAnalysis {
   scenarioName: string;
   description: string;

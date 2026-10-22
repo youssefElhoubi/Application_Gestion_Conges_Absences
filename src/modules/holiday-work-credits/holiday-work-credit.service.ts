@@ -8,6 +8,20 @@ import {
 import { getPrismaPagination, buildPaginationMeta, PaginatedResult } from '@/src/lib/pagination/pagination';
 import { Prisma } from '@/src/generated/prisma';
 
+export type HolidayWorkCreditWithRelations = Prisma.HolidayWorkCreditGetPayload<{
+  include: {
+    employee: {
+      select: {
+        employeeId: true;
+        fullName: true;
+        jobTitle: true;
+        site: { select: { name: true } };
+      };
+    };
+    publicHoliday: true;
+  };
+}>;
+
 export class HolidayWorkCreditService {
   /**
    * Record that an employee worked on a public holiday (ADMIN or HR_MANAGER)
@@ -101,15 +115,17 @@ export class HolidayWorkCreditService {
   public static async listCredits(
     query: HolidayCreditQuery,
     session: AuthSession
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult<HolidayWorkCreditWithRelations>> {
     const { skip, take, page, pageSize } = getPrismaPagination(query);
-    const where: any = {};
+    const where: Prisma.HolidayWorkCreditWhereInput = {};
 
     if (session.role === 'EMPLOYEE') {
-      where.employeeId = session.employeeId;
+      if (session.employeeId) {
+        where.employeeId = session.employeeId;
+      }
     } else if (session.role === 'SUPERVISOR') {
       where.OR = [
-        { employeeId: session.employeeId },
+        ...(session.employeeId ? [{ employeeId: session.employeeId }] : []),
         { employeeId: { in: session.managedEmployeeIds } },
       ];
     } else if (query.employeeId) {
@@ -153,8 +169,8 @@ export class HolidayWorkCreditService {
   /**
    * Retrieve a credit by ID with full employee and public holiday context
    */
-  public static async getCreditById(creditId: bigint, _session: AuthSession) {
-    return await prisma.holidayWorkCredit.findUniqueOrThrow({
+  public static async getCreditById(creditId: bigint, session: AuthSession) {
+    const credit = await prisma.holidayWorkCredit.findUniqueOrThrow({
       where: { id: creditId },
       include: {
         employee: {
@@ -168,6 +184,10 @@ export class HolidayWorkCreditService {
         publicHoliday: true,
       },
     });
+
+    AuthGuard.requireAccessEmployee(session, credit.employeeId);
+
+    return credit;
   }
 
   /**

@@ -96,7 +96,7 @@ export class MonthlyCalendarService {
       isReligious: h.isReligious,
     }));
 
-    const formattedAbsences: CalendarAbsenceItem[] = absences.map((a: any) => ({
+    const formattedAbsences: CalendarAbsenceItem[] = absences.map((a) => ({
       id: a.id.toString(),
       employeeId: a.employeeId,
       employeeName: a.employee.fullName,
@@ -110,7 +110,7 @@ export class MonthlyCalendarService {
       isDeductible: a.type.isDeductible,
     }));
 
-    const formattedCredits: CalendarHolidayCreditItem[] = holidayCredits.map((c: any) => ({
+    const formattedCredits: CalendarHolidayCreditItem[] = holidayCredits.map((c) => ({
       id: c.id.toString(),
       employeeId: c.employeeId,
       publicHolidayDate: c.publicHoliday.date,
