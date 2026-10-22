@@ -58,11 +58,11 @@ export class AuthGuard {
   /**
    * Enforces that the authenticated user possesses one of the authorized roles.
    */
-  public static requireRole(session: AuthSession, allowedRoles: Role[]): void {
-    this.requireAuthenticated(session);
-    if (!allowedRoles.includes(session.role)) {
+  public static requireRole(session: AuthSession | null | undefined, allowedRoles: Role[]): void {
+    const validSession = this.requireAuthenticated(session);
+    if (!allowedRoles.includes(validSession.role)) {
       throw new ForbiddenError(
-        `Role "${session.role}" is not authorized. Required: [${allowedRoles.join(', ')}]`
+        `Role "${validSession.role}" is not authorized. Required: [${allowedRoles.join(', ')}]`
       );
     }
   }
@@ -73,25 +73,25 @@ export class AuthGuard {
    * - SUPERVISOR: Can access themselves or subordinates in their reporting line
    * - EMPLOYEE: Can strictly access only their own record
    */
-  public static canAccessEmployee(session: AuthSession, targetEmployeeId: string): boolean {
-    this.requireAuthenticated(session);
+  public static canAccessEmployee(session: AuthSession | null | undefined, targetEmployeeId: string): boolean {
+    const validSession = this.requireAuthenticated(session);
 
-    if (session.role === 'ADMIN' || session.role === 'HR_MANAGER') {
+    if (validSession.role === 'ADMIN' || validSession.role === 'HR_MANAGER') {
       return true;
     }
 
-    if (session.employeeId === targetEmployeeId) {
+    if (validSession.employeeId === targetEmployeeId) {
       return true;
     }
 
-    if (session.role === 'SUPERVISOR' && session.managedEmployeeIds.includes(targetEmployeeId)) {
+    if (validSession.role === 'SUPERVISOR' && validSession.managedEmployeeIds.includes(targetEmployeeId)) {
       return true;
     }
 
     return false;
   }
 
-  public static requireAccessEmployee(session: AuthSession, targetEmployeeId: string): void {
+  public static requireAccessEmployee(session: AuthSession | null | undefined, targetEmployeeId: string): void {
     if (!this.canAccessEmployee(session, targetEmployeeId)) {
       throw new ForbiddenError(
         `Access denied: You do not have permission to view or manage employee "${targetEmployeeId}".`
@@ -107,38 +107,38 @@ export class AuthGuard {
    * - Universal Invariant: Self-approval is strictly forbidden across all roles
    */
   public static canReviewAbsence(
-    session: AuthSession,
+    session: AuthSession | null | undefined,
     requestApplicantEmployeeId: string
   ): boolean {
-    this.requireAuthenticated(session);
+    const validSession = this.requireAuthenticated(session);
 
     // Self-approval prohibition rule
-    if (session.employeeId && session.employeeId === requestApplicantEmployeeId) {
+    if (validSession.employeeId && validSession.employeeId === requestApplicantEmployeeId) {
       return false;
     }
 
-    if (session.role === 'ADMIN' || session.role === 'HR_MANAGER') {
+    if (validSession.role === 'ADMIN' || validSession.role === 'HR_MANAGER') {
       return true;
     }
 
-    if (session.role === 'SUPERVISOR') {
-      return session.managedEmployeeIds.includes(requestApplicantEmployeeId);
+    if (validSession.role === 'SUPERVISOR') {
+      return validSession.managedEmployeeIds.includes(requestApplicantEmployeeId);
     }
 
     return false;
   }
 
   public static requireCanReviewAbsence(
-    session: AuthSession,
+    session: AuthSession | null | undefined,
     requestApplicantEmployeeId: string
   ): void {
-    this.requireAuthenticated(session);
+    const validSession = this.requireAuthenticated(session);
 
-    if (session.employeeId && session.employeeId === requestApplicantEmployeeId) {
+    if (validSession.employeeId && validSession.employeeId === requestApplicantEmployeeId) {
       throw new ForbiddenError('Self-approval violation: An approver cannot approve or reject their own leave request.');
     }
 
-    if (!this.canReviewAbsence(session, requestApplicantEmployeeId)) {
+    if (!this.canReviewAbsence(validSession, requestApplicantEmployeeId)) {
       throw new ForbiddenError(
         `Review permission denied: You are not authorized to review leave requests for employee "${requestApplicantEmployeeId}".`
       );

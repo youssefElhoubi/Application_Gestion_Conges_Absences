@@ -5,16 +5,17 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { CounterService } from '@/src/modules/counters/counter.service';
 import { MultiEmployeeCounterQuerySchema } from '@/src/modules/counters/counter.schema';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
 import { Prisma } from '@/src/generated/prisma';
+import type { Site } from '@/src/generated/prisma';
 
 describe('Integration: Organization-Wide Leave Balances & Counter Service', () => {
-  let site1: { id: number };
-  let site2: { id: number };
-  let types: any;
-  let hrSession: any;
-  let supervisorSession: any;
-  let employeeSession: any;
+  let site1: Site;
+  let site2: Site;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
+  let hrSession: AuthSession;
+  let supervisorSession: AuthSession;
+  let employeeSession: AuthSession;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -136,7 +137,7 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
     expect(result.meta.totalItems).toBe(3);
     expect(result.meta.totalPages).toBe(1);
 
-    const amina = result.data.find((e: any) => e.employeeId === 'EMP-BAL-01');
+    const amina = result.data.find((e) => e.employeeId === 'EMP-BAL-01');
     expect(amina).toBeDefined();
     expect(amina.fullName).toBe('Amina Mansouri');
     expect(amina.siteName).toBe('Casablanca Headquarter');
@@ -162,7 +163,7 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
     const activeQuery = MultiEmployeeCounterQuerySchema.parse({ active: 'true' });
     const activeResult = await CounterService.getMultiEmployeeCounters(activeQuery, hrSession);
     expect(activeResult.data).toHaveLength(2);
-    expect(activeResult.data.some((e: any) => e.employeeId === 'EMP-BAL-03')).toBe(false);
+    expect(activeResult.data.some((e) => e.employeeId === 'EMP-BAL-03')).toBe(false);
 
     const site2Query = MultiEmployeeCounterQuerySchema.parse({ siteId: site2.id, active: 'all' });
     const site2Result = await CounterService.getMultiEmployeeCounters(site2Query, hrSession);
@@ -192,7 +193,7 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
 
     const supervisorResult = await CounterService.getMultiEmployeeCounters(query, supervisorSession);
     expect(supervisorResult.data).toHaveLength(2);
-    expect(supervisorResult.data.map((e: any) => e.employeeId).sort()).toEqual([
+    expect(supervisorResult.data.map((e) => e.employeeId).sort()).toEqual([
       'EMP-BAL-01',
       'EMP-BAL-02',
     ]);
@@ -204,7 +205,7 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
       MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'employeeId', sortOrder: 'asc' }),
       hrSession
     );
-    expect(sortIdAsc.data.map((e: any) => e.employeeId)).toEqual([
+    expect(sortIdAsc.data.map((e) => e.employeeId)).toEqual([
       'EMP-BAL-01',
       'EMP-BAL-02',
       'EMP-BAL-03',
@@ -214,7 +215,7 @@ describe('Integration: Organization-Wide Leave Balances & Counter Service', () =
       MultiEmployeeCounterQuerySchema.parse({ active: 'all', sortBy: 'employeeId', sortOrder: 'desc' }),
       hrSession
     );
-    expect(sortIdDesc.data.map((e: any) => e.employeeId)).toEqual([
+    expect(sortIdDesc.data.map((e) => e.employeeId)).toEqual([
       'EMP-BAL-03',
       'EMP-BAL-02',
       'EMP-BAL-01',

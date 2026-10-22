@@ -5,17 +5,16 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { DashboardMetricsService } from '@/src/modules/dashboard/dashboard-metrics.service';
 import { Prisma } from '@/src/generated/prisma';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
+import type { Site, Employee } from '@/src/generated/prisma';
 
 describe('Integration: Dashboard Aggregation Metrics and Real Database Queries', () => {
-  let site1: any;
-  let site2: any;
-  let types: any;
-  let emp1: any;
-  let emp2: any;
-  let empInactive: any;
-  let empSite2: any;
-  let hrSession: any;
+  let site1: Site;
+  let site2: Site;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
+  let emp1: Employee;
+  let emp2: Employee;
+  let hrSession: AuthSession;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -54,7 +53,7 @@ describe('Integration: Dashboard Aggregation Metrics and Real Database Queries',
       },
     });
 
-    empInactive = await prisma.employee.create({
+    await prisma.employee.create({
       data: {
         employeeId: 'EMP-DASH-INACT',
         cin: 'DASH03',
@@ -67,7 +66,7 @@ describe('Integration: Dashboard Aggregation Metrics and Real Database Queries',
     });
 
     // Site 2 Employee
-    empSite2 = await prisma.employee.create({
+    await prisma.employee.create({
       data: {
         employeeId: 'EMP-DASH-S2',
         cin: 'DASH04',

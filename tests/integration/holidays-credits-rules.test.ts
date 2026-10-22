@@ -6,12 +6,14 @@ import { PublicHolidayService } from '@/src/modules/public-holidays/public-holid
 import { HolidayWorkCreditService } from '@/src/modules/holiday-work-credits/holiday-work-credit.service';
 import { LeaveRuleService } from '@/src/modules/leave-rules/leave-rule.service';
 import { CounterService } from '@/src/modules/counters/counter.service';
-import { Prisma } from '@/src/generated/prisma';
+import { AuthSession } from '@/src/modules/auth/auth.guard';
+import { HolidayCreditQuerySchema } from '@/src/modules/holiday-work-credits/holiday-work-credit.schema';
+import type { Site, Employee } from '@/src/generated/prisma';
 
 describe('Integration: Public Holidays, Holiday Work Credits, Leave Rules & Counters', () => {
-  let adminSession: any;
-  let site: any;
-  let employee: any;
+  let adminSession: AuthSession;
+  let site: Site;
+  let employee: Employee;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -53,7 +55,7 @@ describe('Integration: Public Holidays, Holiday Work Credits, Leave Rules & Coun
 
     // 2. List Holidays
     const holidays = await PublicHolidayService.listHolidays({ year: 2026 }, adminSession);
-    expect(holidays.data.some((h: any) => h.label === 'Fête du Trône')).toBe(true);
+    expect(holidays.data.some((h) => h.label === 'Fête du Trône')).toBe(true);
 
     // 3. Update Holiday
     const updated = await PublicHolidayService.updateHoliday(
@@ -87,7 +89,7 @@ describe('Integration: Public Holidays, Holiday Work Credits, Leave Rules & Coun
 
     // 2. List credits for employee
     const credits = await HolidayWorkCreditService.listCredits(
-      { employeeId: employee.employeeId } as any,
+      HolidayCreditQuerySchema.parse({ employeeId: employee.employeeId }),
       adminSession
     );
     expect(credits.data).toHaveLength(1);
@@ -111,8 +113,8 @@ describe('Integration: Public Holidays, Holiday Work Credits, Leave Rules & Coun
     expect(rule.code).toBe('MAX_CARRYOVER_DAYS');
 
     // 2. List rules
-    const rules = await LeaveRuleService.listRules({ active: 'true' } as any, adminSession);
-    expect(rules.data.some((r: any) => r.code === 'MAX_CARRYOVER_DAYS')).toBe(true);
+    const rules = await LeaveRuleService.listRules({ active: 'true' }, adminSession);
+    expect(rules.data.some((r) => r.code === 'MAX_CARRYOVER_DAYS')).toBe(true);
   });
 
   it('Scenario 4: Counter Service computes dynamic balance breakdown', async () => {

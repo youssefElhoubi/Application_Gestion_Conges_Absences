@@ -3,14 +3,11 @@ import assert from 'node:assert/strict';
 
 import { LeaveCalculationEngine } from '../src/domain/engine/leave-calculation.engine';
 import { LeaveValidationRules } from '../src/domain/validation/leave-validation.rules';
-import { AuthGuard, AuthSession, ForbiddenError, UnauthorizedError } from '../src/modules/auth/auth.guard';
+import { AuthGuard, AuthSession, ForbiddenError } from '../src/modules/auth/auth.guard';
 import { MoroccanLeaveEdgeCases } from '../src/domain/validation/edge-cases';
 import {
   SeniorityThresholdNotMetError,
   ExceptionalPermissionQuotaExceededError,
-  OverlappingAbsenceError,
-  ZeroWorkingDaysError,
-  RecoveryCreditDepletedError,
 } from '../src/domain/errors/domain-errors';
 
 test('1. Age Calculation Engine', () => {
@@ -164,7 +161,7 @@ test('6. Leave Validation Rules: Invariants & Quotas', () => {
         hasOverlappingAbsence: false,
       });
     },
-    (err: any) => err instanceof SeniorityThresholdNotMetError
+    (err: unknown) => err instanceof SeniorityThresholdNotMetError
   );
 
   // 2. Exceptional permission exceeding statutory quota (Marriage of child allowed: 2 days, requested: 3 days)
@@ -183,7 +180,7 @@ test('6. Leave Validation Rules: Invariants & Quotas', () => {
         hasOverlappingAbsence: false,
       });
     },
-    (err: any) => err instanceof ExceptionalPermissionQuotaExceededError
+    (err: unknown) => err instanceof ExceptionalPermissionQuotaExceededError
   );
 });
 

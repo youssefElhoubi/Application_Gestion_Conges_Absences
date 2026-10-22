@@ -7,7 +7,6 @@ import { seedDatabase } from '@/prisma/seed';
 describe('Integration: Authentication Database Foundation', () => {
   const testEmail = 'foundation.test@entreprise.ma';
   const testPassword = 'SecureFoundationPassword#2026';
-  let createdUserId: string;
 
   beforeEach(async () => {
     // Clean up test data
@@ -41,7 +40,6 @@ describe('Integration: Authentication Database Foundation', () => {
       },
     });
 
-    createdUserId = user.id;
     expect(user.id).toBeDefined();
     expect(user.email).toBe(testEmail);
     expect(user.passwordHash).toBe(passwordHash);

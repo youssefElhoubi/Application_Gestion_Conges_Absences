@@ -2,17 +2,17 @@ import { test, expect } from '@playwright/test';
 import { prisma } from '@/src/infrastructure/db/prisma';
 import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { cleanDatabase } from '@/tests/helpers/db-cleanup';
-import { Prisma } from '@/src/generated/prisma';
+import type { Site, Employee, User } from '@/src/generated/prisma';
 
 test.describe('E2E Backend API: Absence Management & HR Workflow', () => {
-  let site: any;
-  let types: any;
-  let aliceEmp: any;
-  let bobEmp: any;
-  let hrEmp: any;
-  let aliceUser: any;
-  let bobUser: any;
-  let hrUser: any;
+  let site: Site;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
+  let aliceEmp: Employee;
+  let bobEmp: Employee;
+  let hrEmp: Employee;
+  let aliceUser: User;
+  let bobUser: User;
+  let hrUser: User;
 
   test.beforeAll(async () => {
     await cleanDatabase();

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { WorkingDaysCalculator } from '@/src/domain/calculations/working-days.calculator';
-import { AgeSeniorityCalculator } from '@/src/domain/calculations/age-seniority.calculator';
 
 describe('Unit: Working Days & Duration Calculations', () => {
   it('Scenario 1: Start date equals end date (Single working day)', () => {

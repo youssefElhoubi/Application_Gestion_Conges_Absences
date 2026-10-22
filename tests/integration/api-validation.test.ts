@@ -5,18 +5,18 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import {
   CreateAbsenceSchema,
-  ApproveAbsenceSchema,
   RejectAbsenceSchema,
   AbsenceQuerySchema,
 } from '@/src/modules/absences/absence.schema';
 import { CreateEmployeeSchema } from '@/src/modules/employees/employee.schema';
 import { DashboardMetricsFilterSchema } from '@/src/modules/dashboard/dashboard-metrics.schema';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
+import type { Site, Employee } from '@/src/generated/prisma';
 
 describe('Integration: API Validation & Schema Boundary Enforcement', () => {
-  let site: any;
-  let employee: any;
-  let types: any;
+  let site: Site;
+  let employee: Employee;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -43,7 +43,7 @@ describe('Integration: API Validation & Schema Boundary Enforcement', () => {
   });
 
   it('Scenario 1: Missing required fields in absence creation payload are rejected by Zod schema', () => {
-    const invalidInputs: any[] = [
+    const invalidInputs: unknown[] = [
       {}, // empty
       { employeeId: 'EMP-1' }, // missing dates, typeId
       { employeeId: 'EMP-1', typeId: 1 }, // missing dates
@@ -90,7 +90,7 @@ describe('Integration: API Validation & Schema Boundary Enforcement', () => {
   });
 
   it('Scenario 5: Pagination query parameters enforce positive integers', () => {
-    const invalidQueries: any[] = [
+    const invalidQueries: unknown[] = [
       { page: 0 }, // must be >= 1
       { page: -5 },
       { pageSize: 0 },

@@ -3,9 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   DashboardMetricsFilterSchema,
-  DashboardMetricsResponse,
 } from '../src/modules/dashboard/dashboard-metrics.schema';
-import { AuthSession, ForbiddenError, UnauthorizedError, AuthGuard } from '../src/modules/auth/auth.guard';
+import { AuthSession, AuthGuard } from '../src/modules/auth/auth.guard';
 import { serializeForClient } from '../src/server/serializers/response.serializer';
 
 test('1. DashboardMetricsFilterSchema: Validation & Date Boundaries', () => {
@@ -31,7 +30,7 @@ test('1. DashboardMetricsFilterSchema: Validation & Date Boundaries', () => {
         endDate: '2026-01-01',
       });
     },
-    (err: any) => err.name === 'ZodError'
+    (err: unknown) => err instanceof Error && err.name === 'ZodError'
   );
 });
 

@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { prisma } from '@/src/infrastructure/db/prisma';
 import { cleanDatabase } from '@/tests/helpers/db-cleanup';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
 import { SiteService } from '@/src/modules/sites/site.service';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { EmployeeQuerySchema } from '@/src/modules/employees/employee.schema';
 
 describe('Integration: Employee & Site Management Services', () => {
-  let adminSession: any;
-  let employeeSession: any;
+  let adminSession: AuthSession;
+  let employeeSession: AuthSession;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -43,8 +43,8 @@ describe('Integration: Employee & Site Management Services', () => {
     ).rejects.toThrow(ForbiddenError);
 
     // 3. List sites
-    const sites = await SiteService.listSites({ active: 'true' } as any, adminSession);
-    expect(sites.data.some((s: any) => s.code === 'SITE-MAR')).toBe(true);
+    const sites = await SiteService.listSites({ active: 'true' }, adminSession);
+    expect(sites.data.some((s) => s.code === 'SITE-MAR')).toBe(true);
 
     // 4. Update site
     const updated = await SiteService.updateSite(
@@ -94,7 +94,7 @@ describe('Integration: Employee & Site Management Services', () => {
 
     // 3. Admin lists employees with search query
     const searchRes = await EmployeeService.listEmployees(
-      { search: 'Amrani', active: 'all' } as any,
+      EmployeeQuerySchema.parse({ search: 'Amrani', active: 'all' }),
       adminSession
     );
     expect(searchRes.data).toHaveLength(1);

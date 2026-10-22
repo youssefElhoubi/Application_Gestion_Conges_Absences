@@ -6,17 +6,18 @@ import { createMockSession } from '@/tests/helpers/auth-mock';
 import { CounterService } from '@/src/modules/counters/counter.service';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { HolidayWorkCreditService } from '@/src/modules/holiday-work-credits/holiday-work-credit.service';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
 import { Prisma } from '@/src/generated/prisma';
+import type { Site, Employee } from '@/src/generated/prisma';
 
 describe('Integration: Employee-Specific Leave Balance Details & Calculations', () => {
-  let site: { id: number };
-  let types: any;
-  let hrSession: any;
-  let supervisorSession: any;
-  let employeeSession: any;
-  let emp1: any;
-  let emp2: any;
+  let site: Site;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
+  let hrSession: AuthSession;
+  let supervisorSession: AuthSession;
+  let employeeSession: AuthSession;
+  let emp1: Employee;
+  let emp2: Employee;
 
   beforeEach(async () => {
     await cleanDatabase();

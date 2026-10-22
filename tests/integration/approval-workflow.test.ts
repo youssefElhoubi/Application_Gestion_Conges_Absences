@@ -4,17 +4,19 @@ import { cleanDatabase } from '@/tests/helpers/db-cleanup';
 import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
+import { AbsenceQuerySchema } from '@/src/modules/absences/absence.schema';
 import { LeaveBalanceService } from '@/src/application/services/leave-balance.service';
 import { Prisma } from '@/src/generated/prisma';
+import type { Site, Employee, User } from '@/src/generated/prisma';
 
 describe('Integration: Complete Absence Request Approval Workflow Lifecycle', () => {
-  let site: any;
-  let employee: any;
-  let supervisor: any;
-  let hrUser: any;
-  let employeeUser: any;
-  let supervisorUser: any;
-  let types: any;
+  let site: Site;
+  let employee: Employee;
+  let supervisor: Employee;
+  let hrUser: User;
+  let employeeUser: User;
+  let supervisorUser: User;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -114,10 +116,10 @@ describe('Integration: Complete Absence Request Approval Workflow Lifecycle', ()
 
     // 2. Query Pending Absences
     const pendingList = await AbsenceService.listAbsences(
-      { status: 'PENDING' } as any,
+      AbsenceQuerySchema.parse({ status: 'PENDING' }),
       hrSession
     );
-    expect(pendingList.data.some((a: any) => a.id === absence.id)).toBe(true);
+    expect(pendingList.data.some((a) => a.id === absence.id)).toBe(true);
 
     // Initial Audit Trail recorded
     const history1 = await prisma.approvalHistory.findMany({

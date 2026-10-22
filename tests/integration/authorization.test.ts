@@ -6,14 +6,14 @@ import { createMockSession } from '@/tests/helpers/auth-mock';
 import { AuthGuard, ForbiddenError, UnauthorizedError } from '@/src/modules/auth/auth.guard';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
-import { SessionResolver } from '@/src/modules/auth/session.resolver';
+import type { Site, Employee } from '@/src/generated/prisma';
 
 describe('Integration: Authentication and Authorization Security Boundaries', () => {
-  let site: any;
-  let employee1: any;
-  let employee2: any;
-  let supervisor: any;
-  let types: any;
+  let site: Site;
+  let employee1: Employee;
+  let employee2: Employee;
+  let supervisor: Employee;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
 
   beforeEach(async () => {
     await cleanDatabase();
@@ -69,7 +69,7 @@ describe('Integration: Authentication and Authorization Security Boundaries', ()
     }).toThrow(UnauthorizedError);
 
     expect(() => {
-      AuthGuard.requireAccessEmployee(null as any, 'EMP-SEC-01');
+      AuthGuard.requireAccessEmployee(null, 'EMP-SEC-01');
     }).toThrow(UnauthorizedError);
   });
 

@@ -4,22 +4,23 @@ import { cleanDatabase } from '@/tests/helpers/db-cleanup';
 import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
+import type { Site, Employee, User } from '@/src/generated/prisma';
 
 describe('Integration: Additional Absence-Request Actions (HR Creation, Editing, Cancellation, Document Handling)', () => {
-  let site: any;
-  let employeeA: any;
-  let employeeB: any;
-  let supervisor: any;
-  let hrUser: any;
-  let supervisorUser: any;
-  let userA: any;
-  let userB: any;
-  let hrSession: any;
-  let supervisorSession: any;
-  let sessionA: any;
-  let sessionB: any;
-  let types: any;
+  let site: Site;
+  let employeeA: Employee;
+  let employeeB: Employee;
+  let supervisor: Employee;
+  let hrUser: User;
+  let supervisorUser: User;
+  let userA: User;
+  let userB: User;
+  let hrSession: AuthSession;
+  let supervisorSession: AuthSession;
+  let sessionA: AuthSession;
+  let sessionB: AuthSession;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
 
   beforeEach(async () => {
     await cleanDatabase();

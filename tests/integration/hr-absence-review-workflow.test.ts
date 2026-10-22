@@ -5,20 +5,21 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { createMockSession } from '@/tests/helpers/auth-mock';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { RejectAbsenceSchema } from '@/src/modules/absences/absence.schema';
-import { ForbiddenError } from '@/src/modules/auth/auth.guard';
+import { AuthSession, ForbiddenError } from '@/src/modules/auth/auth.guard';
+import type { Site, Employee, User } from '@/src/generated/prisma';
 
 describe('Integration: HR Absence Review Workflow & Invariants', () => {
-  let site: any;
-  let employeeA: any;
-  let employeeHr: any;
-  let userHr: any;
-  let userEmployeeA: any;
-  let hrSession: any;
-  let employeeASession: any;
-  let hrSelfSession: any;
-  let supervisorUser: any;
-  let supervisorSession: any;
-  let types: any;
+  let site: Site;
+  let employeeA: Employee;
+  let employeeHr: Employee;
+  let userHr: User;
+  let userEmployeeA: User;
+  let hrSession: AuthSession;
+  let employeeASession: AuthSession;
+  let hrSelfSession: AuthSession;
+  let supervisorUser: User;
+  let supervisorSession: AuthSession;
+  let types: Awaited<ReturnType<typeof seedCoreTypesAndRules>>;
 
   beforeEach(async () => {
     await cleanDatabase();
