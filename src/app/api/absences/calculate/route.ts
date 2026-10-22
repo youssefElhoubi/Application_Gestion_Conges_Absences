@@ -6,6 +6,7 @@ import { serializeForClient } from '@/src/server/serializers/response.serializer
 import { Fraction } from '@/src/generated/prisma';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AuthGuard } from '@/src/modules/auth/auth.guard';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,9 +64,8 @@ export async function POST(request: NextRequest) {
         currentBalance: dynamicBalance,
       })
     );
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    const msg = error instanceof Error ? error.message : 'Calculation preview failed.';
-    return NextResponse.json({ error: msg }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message || 'Calculation preview failed.' }, { status: statusCode });
   }
 }

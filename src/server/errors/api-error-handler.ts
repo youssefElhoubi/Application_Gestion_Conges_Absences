@@ -3,6 +3,7 @@ import { DomainError } from '@/src/domain/errors/domain-errors';
 export interface ErrorInfo {
   statusCode: number;
   message: string;
+  code?: string;
 }
 
 /**
@@ -14,11 +15,12 @@ export function extractErrorInfo(error: unknown, defaultStatusCode = 400): Error
     return {
       statusCode: error.statusCode,
       message: error.message,
+      code: error.code,
     };
   }
 
   if (typeof error === 'object' && error !== null) {
-    const candidate = error as { statusCode?: unknown; message?: unknown };
+    const candidate = error as { statusCode?: unknown; message?: unknown; code?: unknown };
     const statusCode =
       typeof candidate.statusCode === 'number' && Number.isInteger(candidate.statusCode)
         ? candidate.statusCode
@@ -27,7 +29,11 @@ export function extractErrorInfo(error: unknown, defaultStatusCode = 400): Error
       typeof candidate.message === 'string' && candidate.message.trim().length > 0
         ? candidate.message
         : 'An error occurred';
-    return { statusCode, message };
+    const code =
+      typeof candidate.code === 'string' && candidate.code.trim().length > 0
+        ? candidate.code
+        : undefined;
+    return { statusCode, message, code };
   }
 
   if (typeof error === 'string' && error.trim().length > 0) {

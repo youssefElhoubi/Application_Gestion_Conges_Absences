@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { ApproveAbsenceSchema } from '@/src/modules/absences/absence.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function POST(
   request: NextRequest,
@@ -26,8 +26,8 @@ export async function POST(
     revalidateAbsencePaths(approved.id, approved.employeeId);
 
     return NextResponse.json(serializeForClient(approved));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

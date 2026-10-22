@@ -3,6 +3,7 @@ import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
 import { UpdateEmployeeSchema } from '@/src/modules/employees/employee.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function GET(
   _request: NextRequest,
@@ -13,9 +14,9 @@ export async function GET(
     const { id } = await params;
     const employee = await EmployeeService.getEmployeeById(id, session);
     return NextResponse.json(serializeForClient(employee));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 
@@ -30,8 +31,8 @@ export async function PATCH(
     const validated = UpdateEmployeeSchema.parse(body);
     const updated = await EmployeeService.updateEmployee(id, validated, session);
     return NextResponse.json(serializeForClient(updated));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

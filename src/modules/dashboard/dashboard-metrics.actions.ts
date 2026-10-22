@@ -7,6 +7,7 @@ import {
   DashboardMetricsFilterInput,
 } from './dashboard-metrics.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function getDashboardMetricsAction(rawFilter: DashboardMetricsFilterInput = {}) {
   try {
@@ -14,11 +15,12 @@ export async function getDashboardMetricsAction(rawFilter: DashboardMetricsFilte
     const validated = DashboardMetricsFilterSchema.parse(rawFilter);
     const result = await DashboardMetricsService.getDashboardMetrics(validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const { message, code } = extractErrorInfo(error);
     return {
       success: false,
-      error: error.message || 'Failed to retrieve dashboard metrics.',
-      code: error.code ?? 'DASHBOARD_METRICS_ERROR',
+      error: message || 'Failed to retrieve dashboard metrics.',
+      code: code ?? 'DASHBOARD_METRICS_ERROR',
     };
   }
 }

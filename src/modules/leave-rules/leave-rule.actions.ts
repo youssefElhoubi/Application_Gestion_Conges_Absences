@@ -9,6 +9,7 @@ import {
   UpdateLeaveRuleInput,
 } from './leave-rule.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function createLeaveRuleAction(rawInput: CreateLeaveRuleInput) {
   try {
@@ -16,8 +17,9 @@ export async function createLeaveRuleAction(rawInput: CreateLeaveRuleInput) {
     const validated = CreateLeaveRuleSchema.parse(rawInput);
     const result = await LeaveRuleService.createRule(validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create leave rule.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to create leave rule.' };
   }
 }
 
@@ -27,8 +29,9 @@ export async function updateLeaveRuleAction(id: string | number | bigint, rawInp
     const validated = UpdateLeaveRuleSchema.parse(rawInput);
     const result = await LeaveRuleService.updateRule(BigInt(id), validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update leave rule.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to update leave rule.' };
   }
 }
 
@@ -37,7 +40,8 @@ export async function toggleLeaveRuleActiveAction(id: string | number | bigint, 
     const session = await SessionResolver.require();
     const result = await LeaveRuleService.setRuleActive(BigInt(id), active, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to toggle rule status.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to toggle rule status.' };
   }
 }

@@ -3,6 +3,7 @@ import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { DashboardMetricsService } from '@/src/modules/dashboard/dashboard-metrics.service';
 import { DashboardMetricsFilterSchema } from '@/src/modules/dashboard/dashboard-metrics.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,14 +12,14 @@ export async function GET(request: NextRequest) {
     const filter = DashboardMetricsFilterSchema.parse(searchParams);
     const metrics = await DashboardMetricsService.getDashboardMetrics(filter, session);
     return NextResponse.json(serializeForClient(metrics));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
+  } catch (error: unknown) {
+    const { statusCode, message, code } = extractErrorInfo(error);
     return NextResponse.json(
       {
-        error: error.message || 'Failed to retrieve dashboard metrics.',
-        code: error.code ?? 'DASHBOARD_METRICS_ERROR',
+        error: message || 'Failed to retrieve dashboard metrics.',
+        code: code ?? 'DASHBOARD_METRICS_ERROR',
       },
-      { status }
+      { status: statusCode }
     );
   }
 }

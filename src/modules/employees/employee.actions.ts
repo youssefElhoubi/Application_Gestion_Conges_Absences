@@ -9,6 +9,7 @@ import {
   UpdateEmployeeInput,
 } from './employee.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function createEmployeeAction(rawInput: CreateEmployeeInput) {
   try {
@@ -16,8 +17,9 @@ export async function createEmployeeAction(rawInput: CreateEmployeeInput) {
     const validated = CreateEmployeeSchema.parse(rawInput);
     const result = await EmployeeService.createEmployee(validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create employee.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to create employee.' };
   }
 }
 
@@ -27,8 +29,9 @@ export async function updateEmployeeAction(employeeId: string, rawInput: UpdateE
     const validated = UpdateEmployeeSchema.parse(rawInput);
     const result = await EmployeeService.updateEmployee(employeeId, validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update employee.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to update employee.' };
   }
 }
 
@@ -37,7 +40,8 @@ export async function toggleEmployeeActiveAction(employeeId: string, active: boo
     const session = await SessionResolver.require();
     const result = await EmployeeService.setEmployeeStatus(employeeId, active, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to change employee status.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to change employee status.' };
   }
 }

@@ -3,6 +3,7 @@ import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { SiteService } from '@/src/modules/sites/site.service';
 import { CreateSiteSchema, SiteQuerySchema } from '@/src/modules/sites/site.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +12,9 @@ export async function GET(request: NextRequest) {
     const query = SiteQuerySchema.parse(searchParams);
     const result = await SiteService.listSites(query, session);
     return NextResponse.json(serializeForClient(result));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 
@@ -24,8 +25,8 @@ export async function POST(request: NextRequest) {
     const validated = CreateSiteSchema.parse(body);
     const site = await SiteService.createSite(validated, session);
     return NextResponse.json(serializeForClient(site), { status: 201 });
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

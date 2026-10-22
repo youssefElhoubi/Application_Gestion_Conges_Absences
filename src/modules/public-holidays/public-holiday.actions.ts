@@ -9,6 +9,7 @@ import {
   UpdatePublicHolidayInput,
 } from './public-holiday.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function createPublicHolidayAction(rawInput: CreatePublicHolidayInput) {
   try {
@@ -16,8 +17,9 @@ export async function createPublicHolidayAction(rawInput: CreatePublicHolidayInp
     const validated = CreatePublicHolidaySchema.parse(rawInput);
     const result = await PublicHolidayService.createHoliday(validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to create holiday.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to create holiday.' };
   }
 }
 
@@ -27,8 +29,9 @@ export async function updatePublicHolidayAction(id: string | number | bigint, ra
     const validated = UpdatePublicHolidaySchema.parse(rawInput);
     const result = await PublicHolidayService.updateHoliday(BigInt(id), validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update holiday.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to update holiday.' };
   }
 }
 
@@ -37,7 +40,8 @@ export async function deletePublicHolidayAction(id: string | number | bigint) {
     const session = await SessionResolver.require();
     const result = await PublicHolidayService.deleteHoliday(BigInt(id), session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to delete holiday.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to delete holiday.' };
   }
 }

@@ -6,6 +6,7 @@ import {
   PublicHolidayQuerySchema,
 } from '@/src/modules/public-holidays/public-holiday.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,9 +15,9 @@ export async function GET(request: NextRequest) {
     const query = PublicHolidayQuerySchema.parse(searchParams);
     const result = await PublicHolidayService.listHolidays(query, session);
     return NextResponse.json(serializeForClient(result));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 
@@ -27,8 +28,8 @@ export async function POST(request: NextRequest) {
     const validated = CreatePublicHolidaySchema.parse(body);
     const holiday = await PublicHolidayService.createHoliday(validated, session);
     return NextResponse.json(serializeForClient(holiday), { status: 201 });
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

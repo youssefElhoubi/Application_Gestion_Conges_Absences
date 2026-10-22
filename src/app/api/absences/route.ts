@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { SessionResolver } from '@/src/modules/auth/session.resolver';
 import { AbsenceService } from '@/src/modules/absences/absence.service';
 import { CreateAbsenceSchema, AbsenceQuerySchema } from '@/src/modules/absences/absence.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 import { revalidateAbsencePaths } from '@/src/modules/absences/absence-revalidation';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,9 +13,9 @@ export async function GET(request: NextRequest) {
     const query = AbsenceQuerySchema.parse(searchParams);
     const result = await AbsenceService.listAbsences(query, session);
     return NextResponse.json(serializeForClient(result));
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }
 
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     const created = await AbsenceService.createAbsenceRequest(validated, session);
     revalidateAbsencePaths(created.id, created.employeeId);
     return NextResponse.json(serializeForClient(created), { status: 201 });
-  } catch (error: any) {
-    const status = error.statusCode ?? 400;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error: unknown) {
+    const { statusCode, message } = extractErrorInfo(error);
+    return NextResponse.json({ error: message }, { status: statusCode });
   }
 }

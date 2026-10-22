@@ -59,4 +59,14 @@ describe('extractErrorInfo', () => {
     expect(result2.statusCode).toBe(400);
     expect(result2.message).toBe('An unexpected error occurred');
   });
+
+  it('extracts code when present on DomainError or object', () => {
+    const error = new InsufficientLeaveBalanceError(2, 5);
+    const result = extractErrorInfo(error);
+    expect(result.code).toBe('INSUFFICIENT_LEAVE_BALANCE');
+
+    const customObj = { message: 'Failed', code: 'CUSTOM_CODE', statusCode: 422 };
+    const resultCustom = extractErrorInfo(customObj);
+    expect(resultCustom.code).toBe('CUSTOM_CODE');
+  });
 });

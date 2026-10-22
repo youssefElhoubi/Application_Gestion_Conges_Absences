@@ -14,6 +14,7 @@ import {
 } from './absence.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
 import { revalidateAbsencePaths } from './absence-revalidation';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function createAbsenceAction(rawInput: CreateAbsenceInput) {
   try {
@@ -22,8 +23,9 @@ export async function createAbsenceAction(rawInput: CreateAbsenceInput) {
     const result = await AbsenceService.createAbsenceRequest(validated, session);
     revalidateAbsencePaths(result.id, result.employeeId);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to submit absence request.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to submit absence request.' };
   }
 }
 
@@ -34,8 +36,9 @@ export async function approveAbsenceAction(absenceId: string | number | bigint, 
     const result = await AbsenceService.approveAbsence(BigInt(absenceId), validated, session);
     revalidateAbsencePaths(result.id, result.employeeId);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to approve absence.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to approve absence.' };
   }
 }
 
@@ -46,8 +49,9 @@ export async function rejectAbsenceAction(absenceId: string | number | bigint, r
     const result = await AbsenceService.rejectAbsence(BigInt(absenceId), validated, session);
     revalidateAbsencePaths(result.id, result.employeeId);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to reject absence.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to reject absence.' };
   }
 }
 
@@ -58,8 +62,9 @@ export async function cancelAbsenceAction(absenceId: string | number | bigint, r
     const result = await AbsenceService.cancelAbsence(BigInt(absenceId), validated, session);
     revalidateAbsencePaths(result.id, result.employeeId);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to cancel absence.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to cancel absence.' };
   }
 }
 
@@ -70,7 +75,8 @@ export async function updateAbsenceAction(absenceId: string | number | bigint, r
     const result = await AbsenceService.updateAbsenceRequest(BigInt(absenceId), validated, session);
     revalidateAbsencePaths(result.id, result.employeeId);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to update absence request.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to update absence request.' };
   }
 }

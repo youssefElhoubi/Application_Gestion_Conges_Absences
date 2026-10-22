@@ -9,6 +9,7 @@ import {
   CorrectHolidayCreditInput,
 } from './holiday-work-credit.schema';
 import { serializeForClient } from '@/src/server/serializers/response.serializer';
+import { extractErrorInfo } from '@/src/server/errors/api-error-handler';
 
 export async function grantHolidayCreditAction(rawInput: GrantHolidayCreditInput) {
   try {
@@ -16,8 +17,9 @@ export async function grantHolidayCreditAction(rawInput: GrantHolidayCreditInput
     const validated = GrantHolidayCreditSchema.parse(rawInput);
     const result = await HolidayWorkCreditService.grantCredit(validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to grant recovery credit.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to grant recovery credit.' };
   }
 }
 
@@ -27,7 +29,8 @@ export async function correctHolidayCreditAction(creditId: string | number | big
     const validated = CorrectHolidayCreditSchema.parse(rawInput);
     const result = await HolidayWorkCreditService.correctCredit(BigInt(creditId), validated, session);
     return { success: true, data: serializeForClient(result) };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Failed to correct recovery credit.' };
+  } catch (error: unknown) {
+    const { message } = extractErrorInfo(error);
+    return { success: false, error: message || 'Failed to correct recovery credit.' };
   }
 }
