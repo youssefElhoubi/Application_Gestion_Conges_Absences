@@ -27,12 +27,27 @@ COPY . .
 
 # Run the Next.js build
 RUN npm run build
-# Seed runner: retains dev dependencies and source files
-FROM builder AS seeder
+
+# Step 3: Seed runner (based on deps with source files needed for seeding)
+FROM deps AS seeder
+WORKDIR /app
+COPY tsconfig.json ./
+COPY src ./src
+COPY tests ./tests
+COPY prisma ./prisma
 
 CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
 
-# Step 3: Production environment
+# Step 4: Prisma Studio runner
+FROM deps AS studio
+WORKDIR /app
+COPY scripts ./scripts
+EXPOSE 5555
+ENV NODE_OPTIONS="--require /app/scripts/prisma-studio-host.cjs"
+
+CMD ["npx", "prisma", "studio", "--port", "5555", "--browser", "none"]
+
+# Step 5: Production application runner
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -49,17 +64,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/prisma ./prisma
 
-# Copy the full node_modules so Prisma CLI and all transitive dependencies (effect, etc.) exist
-COPY --from=deps /app/node_modules ./node_modules
-
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Startup script to run migrations before Next.js
-RUN echo '#!/bin/sh' > start.sh && \
-    echo 'npx prisma migrate deploy' >> start.sh && \
-    echo 'node server.js' >> start.sh && \
-    chmod +x start.sh
-
-CMD ["./start.sh"]
+CMD ["node", "server.js"]
