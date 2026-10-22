@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarDays,
   Clock,
   CheckCircle2,
   XCircle,
@@ -14,7 +13,6 @@ import {
   FileX2,
   History,
   Info,
-  RotateCcw,
   PlusCircle,
   Send,
   Building2,
@@ -37,7 +35,6 @@ import { formatDate } from "@/src/lib/utils";
 
 function RequestDetailContent() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [absence, setAbsence] = React.useState<AbsenceDetail | null>(null);
@@ -51,28 +48,44 @@ function RequestDetailContent() {
   const [cancelReason, setCancelReason] = React.useState("");
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-
-  const loadData = React.useCallback(async () => {
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0);
+  const reloadData = React.useCallback(() => {
     setIsLoading(true);
-    setError(null);
-    try {
-      const [absenceData, profile] = await Promise.all([
-        PortalApiClient.getMyRequest(id),
-        PortalApiClient.getPortalData().catch(() => null),
-      ]);
-      setAbsence(absenceData);
-      setProfileData(profile);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erreur de chargement de la demande.";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   React.useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let isMounted = true;
+
+    async function fetchData() {
+      try {
+        const [absenceData, profile] = await Promise.all([
+          PortalApiClient.getMyRequest(id),
+          PortalApiClient.getPortalData().catch(() => null),
+        ]);
+        if (isMounted) {
+          setAbsence(absenceData);
+          setProfileData(profile);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : "Erreur de chargement de la demande.";
+          setError(msg);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, refreshTrigger]);
 
   const handleCancelRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +97,7 @@ function RequestDetailContent() {
       setCancelOpen(false);
       setSuccessMessage("Votre demande d'absence a été annulée avec succès.");
       // Reload updated request data
-      await loadData();
+      reloadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Échec de l'annulation.";
       setError(msg);
@@ -122,7 +135,7 @@ function RequestDetailContent() {
           <ErrorState
             title="Demande introuvable ou accès non autorisé"
             message={error || "Cette demande d'absence n'existe pas ou vous n'avez pas l'autorisation d'y accéder."}
-            onRetry={loadData}
+            onRetry={reloadData}
           />
         </div>
       </PageContainer>
@@ -521,7 +534,7 @@ function RequestDetailContent() {
           onClose={() => setEditModalOpen(false)}
           onSuccess={() => {
             setSuccessMessage("Votre demande d'absence a été modifiée avec succès.");
-            loadData();
+            reloadData();
           }}
           mode="edit"
           initialData={absence}

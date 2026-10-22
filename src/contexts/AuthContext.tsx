@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export type UserRole = 'ADMIN' | 'HR_MANAGER' | 'SUPERVISOR' | 'EMPLOYEE';
 
@@ -35,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const router = useRouter();
-  const pathname = usePathname();
 
   // Concurrency guard: prevents race conditions across simultaneous refresh requests
   const activeRefreshPromiseRef = React.useRef<Promise<boolean> | null>(null);
@@ -96,136 +95,148 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Restores session on initial mount or route navigation
    */
-  const checkAuth = React.useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  React.useEffect(() => {
+    let isMounted = true;
 
-      // 1. Attempt to fetch current user profile
-      const res = await fetch('/api/me', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
+    async function checkAuth() {
+      try {
+        // 1. Attempt to fetch current user profile
+        const res = await fetch('/api/me', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.user) {
-          setUser({
-            ...data.user,
-            fullName: data.employee?.fullName,
-            jobTitle: data.employee?.jobTitle,
-            department: data.employee?.department,
-            siteId: data.employee?.siteId,
-          });
-          hasFailedRefreshRef.current = false;
-          return;
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user && isMounted) {
+            setUser({
+              ...data.user,
+              fullName: data.employee?.fullName,
+              jobTitle: data.employee?.jobTitle,
+              department: data.employee?.department,
+              siteId: data.employee?.siteId,
+            });
+            hasFailedRefreshRef.current = false;
+            return;
+          }
         }
-      }
 
-      // 2. If access token expired (401), try one silent refresh
-      if (res.status === 401 && !hasFailedRefreshRef.current) {
-        const refreshed = await refreshSession();
-        if (refreshed) {
-          // Re-fetch profile with fresh access token
-          const retryRes = await fetch('/api/me', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-          });
+        // 2. If access token expired (401), try one silent refresh
+        if (res.status === 401 && !hasFailedRefreshRef.current) {
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            // Re-fetch profile with fresh access token
+            const retryRes = await fetch('/api/me', {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+            });
 
-          if (retryRes.ok) {
-            const data = await retryRes.json();
-            if (data.user) {
-              setUser({
-                ...data.user,
-                fullName: data.employee?.fullName,
-                jobTitle: data.employee?.jobTitle,
-                department: data.employee?.department,
-                siteId: data.employee?.siteId,
-              });
-              return;
+            if (retryRes.ok) {
+              const data = await retryRes.json();
+              if (data.user && isMounted) {
+                setUser({
+                  ...data.user,
+                  fullName: data.employee?.fullName,
+                  jobTitle: data.employee?.jobTitle,
+                  department: data.employee?.department,
+                  siteId: data.employee?.siteId,
+                });
+                return;
+              }
             }
           }
         }
+
+        // If unauthenticated, clear user
+        if (isMounted) {
+          setUser(null);
+        }
+      } catch {
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-
-      // If unauthenticated, clear user
-      setUser(null);
-    } catch {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
     }
-  }, [refreshSession]);
 
-  React.useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshSession]);
 
   /**
    * Submits credentials to POST /api/auth/login
    */
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    setError(null);
+  const login = React.useCallback(
+    async (
+      email: string,
+      password: string
+    ): Promise<{ success: boolean; error?: string }> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errorMessage =
-          data.error || 'Identifiants invalides. Veuillez réessayer.';
-        setError(errorMessage);
-        setIsLoading(false);
-        return { success: false, error: errorMessage };
-      }
-
-      hasFailedRefreshRef.current = false;
-
-      // Fetch complete employee details
-      const meRes = await fetch('/api/me', {
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        setUser({
-          ...data.user,
-          fullName: meData.employee?.fullName,
-          jobTitle: meData.employee?.jobTitle,
-          department: meData.employee?.department,
-          siteId: meData.employee?.siteId,
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
         });
-      } else {
-        setUser(data.user);
-      }
 
-      setIsLoading(false);
-      return { success: true };
-    } catch {
-      const msg = 'Impossible de contacter le serveur d\'authentification.';
-      setError(msg);
-      setIsLoading(false);
-      return { success: false, error: msg };
-    }
-  };
+        const data = await res.json();
+
+        if (!res.ok) {
+          const errorMessage =
+            data.error || 'Identifiants invalides. Veuillez réessayer.';
+          setError(errorMessage);
+          setIsLoading(false);
+          return { success: false, error: errorMessage };
+        }
+
+        hasFailedRefreshRef.current = false;
+
+        // Fetch complete employee details
+        const meRes = await fetch('/api/me', {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          setUser({
+            ...data.user,
+            fullName: meData.employee?.fullName,
+            jobTitle: meData.employee?.jobTitle,
+            department: meData.employee?.department,
+            siteId: meData.employee?.siteId,
+          });
+        } else {
+          setUser(data.user);
+        }
+
+        setIsLoading(false);
+        return { success: true };
+      } catch {
+        const msg = 'Impossible de contacter le serveur d\'authentification.';
+        setError(msg);
+        setIsLoading(false);
+        return { success: false, error: msg };
+      }
+    },
+    []
+  );
 
   /**
    * Logs out the user and cleans up state
    */
-  const logout = async (): Promise<void> => {
+  const logout = React.useCallback(async (): Promise<void> => {
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
@@ -239,9 +250,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       hasFailedRefreshRef.current = false;
       router.push('/login');
     }
-  };
+  }, [router]);
 
-  const clearError = () => setError(null);
+  const clearError = React.useCallback(() => setError(null), []);
 
   const value = React.useMemo(
     () => ({
@@ -254,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshSession,
       clearError,
     }),
-    [user, isLoading, error, refreshSession]
+    [user, isLoading, error, login, logout, refreshSession, clearError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

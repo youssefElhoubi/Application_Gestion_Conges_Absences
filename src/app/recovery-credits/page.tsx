@@ -37,10 +37,14 @@ function RecoveryCreditsContent() {
   const [consumedFilter, setConsumedFilter] = React.useState<"all" | "false" | "true">("all");
   const [searchQuery, setSearchQuery] = React.useState(initialSearch);
 
-  React.useEffect(() => {
+  // Sync state if URL query params change across navigations
+  const currentParamsStr = searchParams.toString();
+  const [prevParamsStr, setPrevParamsStr] = React.useState(currentParamsStr);
+  if (prevParamsStr !== currentParamsStr) {
+    setPrevParamsStr(currentParamsStr);
     const q = searchParams.get("search") || searchParams.get("employeeId") || "";
     if (q) setSearchQuery(q);
-  }, [searchParams]);
+  }
 
   // Data
   const [credits, setCredits] = React.useState<HolidayWorkCreditItem[]>([]);

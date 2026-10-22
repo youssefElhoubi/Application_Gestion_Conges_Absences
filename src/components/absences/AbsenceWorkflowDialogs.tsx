@@ -33,12 +33,14 @@ export function ApproveAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setComment("");
       setError(null);
     }
-  }, [isOpen]);
+  }
 
   if (!absence) return null;
 
@@ -150,12 +152,14 @@ export function RejectAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setReason("");
       setError(null);
     }
-  }, [isOpen]);
+  }
 
   if (!absence) return null;
 
@@ -277,12 +281,14 @@ export function CancelAbsenceDialog({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setReason("");
       setError(null);
     }
-  }, [isOpen]);
+  }
 
   if (!absence) return null;
 

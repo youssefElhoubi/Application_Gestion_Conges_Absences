@@ -52,6 +52,18 @@ export function PortalRequestDetailsModal({
   const [cancelReason, setCancelReason] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
+  // Reset state when closing the modal
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setDetail(null);
+      setCancelConfirmOpen(false);
+      setCancelReason("");
+      setError(null);
+    }
+  }
+
   // Fetch full details (with approval history) whenever the modal is opened
   React.useEffect(() => {
     let isMounted = true;
@@ -63,11 +75,6 @@ export function PortalRequestDetailsModal({
         .catch(() => {
           // Fall back gracefully to the passed absence
         });
-    } else {
-      setDetail(null);
-      setCancelConfirmOpen(false);
-      setCancelReason("");
-      setError(null);
     }
     return () => {
       isMounted = false;

@@ -13,24 +13,33 @@ export interface AppLayoutProps {
   className?: string;
 }
 
+const subscribeSidebar = (callback: () => void) => {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+};
+
+const getSidebarSnapshot = (): boolean => {
+  try {
+    return localStorage.getItem("absencemanager_sidebar_collapsed") === "true";
+  } catch {
+    return false;
+  }
+};
+
+const getSidebarServerSnapshot = (): boolean => false;
+
 export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const storedCollapsed = React.useSyncExternalStore(
+    subscribeSidebar,
+    getSidebarSnapshot,
+    getSidebarServerSnapshot
+  );
+  const [collapsedOverride, setCollapsedOverride] = React.useState<boolean | null>(null);
+  const sidebarCollapsed = collapsedOverride ?? storedCollapsed;
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
-
-  // Restore sidebar preference from localStorage
-  React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem("absencemanager_sidebar_collapsed");
-      if (stored !== null) {
-        setSidebarCollapsed(stored === "true");
-      }
-    } catch {
-      // Ignore localStorage read errors in SSR or restricted contexts
-    }
-  }, []);
 
   // Redirect to login if unauthenticated on protected pages
   React.useEffect(() => {
@@ -40,15 +49,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, className }) => 
   }, [isLoading, isAuthenticated, pathname, router]);
 
   const toggleSidebarCollapse = () => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem("absencemanager_sidebar_collapsed", String(next));
-      } catch {
-        // Ignore write errors
-      }
-      return next;
-    });
+    const next = !sidebarCollapsed;
+    setCollapsedOverride(next);
+    try {
+      localStorage.setItem("absencemanager_sidebar_collapsed", String(next));
+    } catch {
+      // Ignore write errors
+    }
   };
 
   // Dedicated layout for authentication pages (Login)

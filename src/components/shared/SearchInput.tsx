@@ -31,11 +31,11 @@ export function SearchInput({
   const currentValue = isControlled ? controlledValue : internalValue;
 
   // Sync internalValue when controlledValue changes from parent
-  React.useEffect(() => {
-    if (controlledValue !== undefined) {
-      setInternalValue(controlledValue);
-    }
-  }, [controlledValue]);
+  const [prevControlledValue, setPrevControlledValue] = React.useState(controlledValue);
+  if (controlledValue !== undefined && prevControlledValue !== controlledValue) {
+    setPrevControlledValue(controlledValue);
+    setInternalValue(controlledValue);
+  }
 
   React.useEffect(() => {
     const handler = setTimeout(() => {

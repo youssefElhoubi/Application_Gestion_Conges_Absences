@@ -70,12 +70,16 @@ function AbsencesDirectoryContent() {
   const [startDateFilter, setStartDateFilter] = React.useState<string>("");
   const [endDateFilter, setEndDateFilter] = React.useState<string>("");
 
-  React.useEffect(() => {
+  // Sync state if URL query params change across navigations
+  const currentParamsStr = searchParams.toString();
+  const [prevParamsStr, setPrevParamsStr] = React.useState(currentParamsStr);
+  if (prevParamsStr !== currentParamsStr) {
+    setPrevParamsStr(currentParamsStr);
     const q = searchParams.get("search") || searchParams.get("employeeId") || "";
     if (q) setSearchQuery(q);
     const s = searchParams.get("status") as AbsenceStatus | "ALL" | null;
     if (s) setSelectedStatus(s);
-  }, [searchParams]);
+  }
 
   // Modals & Dialogs State
   const [formModalOpen, setFormModalOpen] = React.useState(false);
