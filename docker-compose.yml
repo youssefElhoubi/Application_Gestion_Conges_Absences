@@ -33,7 +33,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
       target: runner
     restart: always
     ports:
