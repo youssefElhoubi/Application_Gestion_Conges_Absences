@@ -120,7 +120,7 @@ export class DashboardService {
     ]);
 
     // Enrich absence categories with type labels
-    const typeIds = absencesByCategory.map((a: { typeId: number }) => a.typeId);
+    const typeIds = absencesByCategory.map((a) => a.typeId);
     const types = await prisma.absenceType.findMany({
       where: { id: { in: typeIds } },
       select: { id: true, code: true, name: true, colorHex: true },

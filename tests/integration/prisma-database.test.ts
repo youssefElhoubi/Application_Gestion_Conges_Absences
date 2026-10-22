@@ -164,7 +164,7 @@ describe('Integration: Prisma & Database Operations', () => {
     });
 
     await expect(
-      prisma.$transaction(async (tx) => {
+      prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Step 1: Create an employee (should roll back if step 2 fails)
         await tx.employee.create({
           data: {
