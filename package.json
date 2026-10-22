@@ -14,7 +14,8 @@
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
-    "postinstall": "prisma skills sync || exit 0",
+    "postinstall": "prisma generate && (prisma skills sync || exit 0)",
+    "prisma:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

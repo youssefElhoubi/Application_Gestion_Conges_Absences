@@ -7,16 +7,16 @@ import { PasswordService } from '@/src/modules/auth/password.service';
 import { AuthGuard, ForbiddenError, AuthSession } from '@/src/modules/auth/auth.guard';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
 import { middleware } from '@/src/middleware';
-import type { SiteModel, EmployeeModel, UserModel } from '@/src/generated/prisma/models';
+import type { Site, Employee, User } from '@/src/generated/prisma';
 
 describe('Integration: Backend Authorization, IDOR Prevention & Edge Middleware', () => {
-  let site: SiteModel;
-  let empAlice: EmployeeModel;
-  let empBob: EmployeeModel;
-  let empManager: EmployeeModel;
-  let userAlice: UserModel;
-  let userManager: UserModel;
-  let userAdmin: UserModel;
+  let site: Site;
+  let empAlice: Employee;
+  let empBob: Employee;
+  let empManager: Employee;
+  let userAlice: User;
+  let userManager: User;
+  let userAdmin: User;
 
   beforeEach(async () => {
     await cleanDatabase();
