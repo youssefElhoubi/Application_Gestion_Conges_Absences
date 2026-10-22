@@ -30,7 +30,7 @@ RUN npm run build
 # Seed runner: retains dev dependencies and source files
 FROM builder AS seeder
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
 
 # Step 3: Production environment
 FROM base AS runner

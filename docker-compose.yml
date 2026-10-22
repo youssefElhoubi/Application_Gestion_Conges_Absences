@@ -1,3 +1,4 @@
+
 services:
   db:
     image: postgres:15-alpine
@@ -16,24 +17,38 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  seeder:
     build:
       context: .
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "3000:3000"
+      dockerfile: dockerfile
+      target: seeder
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
+      NODE_ENV: production
+      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
+    restart: "no"
     depends_on:
       db:
         condition: service_healthy
 
-  prisma-studio:
+  web:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
+    depends_on:
+      seeder:
+        condition: service_completed_successfully
+
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: dockerfile
       target: builder
     command:
       - npx
@@ -44,7 +59,7 @@ services:
       - --browser
       - none
     environment:
-      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
+      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase?schema=public
     restart: "no"
     ports:
       - "5555:5555"

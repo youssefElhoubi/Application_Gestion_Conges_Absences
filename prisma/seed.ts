@@ -3,39 +3,43 @@ import { seedCoreTypesAndRules } from '../tests/fixtures/factories';
 import { PasswordService } from '../src/modules/auth/password.service';
 
 export async function seedDatabase() {
+  console.log('🌱 Starting database seeding...');
+
+  // 1. Core Lookups & Rules
   console.log('Seeding core types and rules...');
   const types = await seedCoreTypesAndRules();
 
+  // 2. Sites
   console.log('Seeding sites...');
   const siteCasa = await prisma.site.upsert({
     where: { code: 'CASABLANCA' },
-    update: {},
+    update: { name: 'Siège Social Casablanca', city: 'Casablanca' },
     create: {
       code: 'CASABLANCA',
       name: 'Siège Social Casablanca',
       city: 'Casablanca',
       timezone: 'Africa/Casablanca',
-      weeklyRestDays: [0], // Dimanche
+      weeklyRestDays: [0],
       active: true,
     },
   });
 
   const siteTanger = await prisma.site.upsert({
     where: { code: 'TANGER' },
-    update: {},
+    update: { name: 'Usine Tanger Automotive', city: 'Tanger' },
     create: {
       code: 'TANGER',
       name: 'Usine Tanger Automotive',
       city: 'Tanger',
       timezone: 'Africa/Casablanca',
-      weeklyRestDays: [0, 6], // Samedi et Dimanche
+      weeklyRestDays: [0, 6],
       active: true,
     },
   });
 
   const siteRabat = await prisma.site.upsert({
     where: { code: 'RABAT' },
-    update: {},
+    update: { name: 'Hub Technologique Rabat Technopolis', city: 'Rabat' },
     create: {
       code: 'RABAT',
       name: 'Hub Technologique Rabat Technopolis',
@@ -46,12 +50,15 @@ export async function seedDatabase() {
     },
   });
 
-  console.log('Seeding HR Administrator and employees...');
-
-  // 1. HR Manager / Admin
+  // 3. HR Admin Employee & User
+  console.log('Seeding HR Administrator and user...');
   const adminEmp = await prisma.employee.upsert({
     where: { employeeId: 'MAT-0042' },
-    update: {},
+    update: {
+      fullName: 'Karim Bennani',
+      email: 'admin@entreprise.ma',
+      siteId: siteCasa.id,
+    },
     create: {
       employeeId: 'MAT-0042',
       cin: 'BE123456',
@@ -68,15 +75,13 @@ export async function seedDatabase() {
     },
   });
 
-  // Admin user
   const adminPasswordHash = await PasswordService.hash(
     process.env.SEED_ADMIN_PASSWORD || 'AdminPassword123!'
   );
+
   await prisma.user.upsert({
     where: { id: 'usr-admin-default' },
-    update: {
-      passwordHash: adminPasswordHash,
-    },
+    update: { passwordHash: adminPasswordHash },
     create: {
       id: 'usr-admin-default',
       email: 'admin@entreprise.ma',
@@ -87,7 +92,8 @@ export async function seedDatabase() {
     },
   });
 
-  // 2. Sample Employees
+  // 4. Employees
+  console.log('Seeding sample employees...');
   const employeeData = [
     {
       employeeId: 'EMP-0101',
@@ -242,22 +248,21 @@ export async function seedDatabase() {
   ];
 
   for (const emp of employeeData) {
+    const { employeeId, ...fields } = emp;
     await prisma.employee.upsert({
-      where: { employeeId: emp.employeeId },
-      update: {},
+      where: { employeeId },
+      update: fields,
       create: emp,
     });
   }
 
-  // Employee user for portal testing
+  // 5. Test Portal User
   const employeePasswordHash = await PasswordService.hash(
     process.env.SEED_EMPLOYEE_PASSWORD || 'EmployeePassword123!'
   );
   await prisma.user.upsert({
     where: { id: 'usr-emp-alami' },
-    update: {
-      passwordHash: employeePasswordHash,
-    },
+    update: { passwordHash: employeePasswordHash },
     create: {
       id: 'usr-emp-alami',
       email: 'fz.alami@entreprise.ma',
@@ -268,11 +273,11 @@ export async function seedDatabase() {
     },
   });
 
-  // 3. Seed sample absences and holiday credits for testing profile views
-  console.log('Seeding sample absences and holiday credits...');
+  // 6. Public Holidays & Credits
+  console.log('Seeding public holidays and credits...');
   const publicHoliday = await prisma.publicHoliday.upsert({
     where: { date: new Date('2026-05-01') },
-    update: {},
+    update: { label: 'Fête du Travail' },
     create: {
       label: 'Fête du Travail',
       date: new Date('2026-05-01'),
@@ -281,7 +286,6 @@ export async function seedDatabase() {
     },
   });
 
-  // Grant holiday credits to Fatima-Zahra and Mehdi
   const credit1 = await prisma.holidayWorkCredit.findFirst({
     where: { employeeId: 'EMP-0101', publicHolidayId: publicHoliday.id },
   });
@@ -314,7 +318,7 @@ export async function seedDatabase() {
     });
   }
 
-  // Sample Absence for Fatima-Zahra
+  // 7. Absences
   const existingAbsence = await prisma.absence.findFirst({
     where: { employeeId: 'EMP-0101', startDate: new Date('2026-07-10') },
   });
@@ -357,16 +361,18 @@ export async function seedDatabase() {
     });
   }
 
-  console.log('Database seeded successfully!');
+  console.log('✅ Database seeded successfully!');
 }
 
-if (process.argv[1]?.includes('seed')) {
-  seedDatabase()
-    .catch((e) => {
-      console.error(e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
+async function main() {
+  await seedDatabase();
 }
+
+main()
+  .catch((e) => {
+    console.error('❌ Error during seeding:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
