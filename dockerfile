@@ -66,19 +66,33 @@ ENV NODE_ENV=production
 # Install openssl for Prisma runtime
 RUN apk add --no-cache openssl
 
-# Copy standalone output and static files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Create dedicated unprivileged system user and group (GID/UID 1001)
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S -u 1001 -G nodejs nextjs
 
-# Copy Prisma schema and Prisma 7 config file
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/prisma ./prisma
-# Copy generated Prisma runtime artifacts
-COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
+# Copy static assets and public directory with unprivileged ownership
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy Next.js standalone server and static chunks with unprivileged ownership
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy Prisma schema, Prisma 7 config, and generated client runtime artifacts
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/src/generated/prisma ./src/generated/prisma
+
+# Ensure .next cache directory is owned by nextjs for runtime image optimization & prerender cache
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app/.next
+
+USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Health check probing the lightweight database readiness endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["node", "server.js"]
