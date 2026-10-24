@@ -28,7 +28,12 @@ COPY . .
 # Run the Next.js build
 RUN npm run build
 
-# Step 3: Seed runner (based on deps with source files needed for seeding)
+# Step 3: Database migration runner
+FROM deps AS migrator
+WORKDIR /app
+CMD ["npx", "prisma", "migrate", "deploy"]
+
+# Step 4: Seed runner (based on deps with source files needed for seeding)
 FROM deps AS seeder
 WORKDIR /app
 COPY tsconfig.json ./
@@ -36,9 +41,9 @@ COPY src ./src
 COPY tests ./tests
 COPY prisma ./prisma
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+CMD ["npx", "prisma", "db", "seed"]
 
-# Step 4: Prisma Studio runner
+# Step 5: Prisma Studio runner
 FROM deps AS studio
 WORKDIR /app
 COPY scripts ./scripts

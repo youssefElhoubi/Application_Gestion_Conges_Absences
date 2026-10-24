@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypassword}
       POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -15,6 +15,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migration:
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: migrator
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-myuser}:${POSTGRES_PASSWORD:-mypassword}@db:5432/${POSTGRES_DB:-mydatabase}?schema=public
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "prisma", "migrate", "deploy"]
+    profiles:
+      - tools
+      - migration
 
   seeder:
     build:
@@ -30,6 +46,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: ["npx", "prisma", "db", "seed"]
+    profiles:
+      - dev
+      - seed
 
   web:
     build:
@@ -42,11 +62,11 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-myuser}:${POSTGRES_PASSWORD:-mypassword}@db:5432/${POSTGRES_DB:-mydatabase}?schema=public
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-absnace-super-secret-jwt-key-min-32-chars-long-2026!}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET must be set}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
-      seeder:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
 
   prisma-studio:
     build:
@@ -57,10 +77,13 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-myuser}:${POSTGRES_PASSWORD:-mypassword}@db:5432/${POSTGRES_DB:-mydatabase}?schema=public
     restart: "no"
     ports:
-      - "${PRISMA_STUDIO_PORT:-5555}:5555"
+      - "127.0.0.1:${PRISMA_STUDIO_PORT:-5555}:5555"
     depends_on:
       db:
         condition: service_healthy
+    profiles:
+      - dev
+      - studio
 
 volumes:
   postgres_data:
