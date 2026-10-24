@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 // Public endpoints and static assets exempt from authentication requirements
 const PUBLIC_PATHS = [
   '/login',
+  '/api/health',
   '/api/auth/login',
   '/api/auth/refresh',
   '/api/auth/logout',

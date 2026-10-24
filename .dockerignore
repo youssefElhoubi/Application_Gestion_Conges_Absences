@@ -14,3 +14,4 @@ yarn-error.log*
 .claude
 .cursor
 .devin
+src/generated
