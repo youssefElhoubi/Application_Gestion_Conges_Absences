@@ -64,6 +64,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-myuser}:${POSTGRES_PASSWORD:-mypassword}@db:5432/${POSTGRES_DB:-mydatabase}?schema=public
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET must be set}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-false}
     depends_on:
       db:
         condition: service_healthy
