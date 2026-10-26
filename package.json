@@ -14,9 +14,13 @@
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
-    "postinstall": "prisma generate && (prisma skills sync || exit 0)",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

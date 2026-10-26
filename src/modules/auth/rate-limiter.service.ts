@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { prisma } from '@/src/infrastructure/db/prisma';
 
 export interface RateLimitCheckResult {
@@ -23,23 +24,39 @@ export class RateLimiterService {
   };
 
   /**
-   * Resolves client IP address with proxy-trust verification.
-   * Only trusts forwarded headers (X-Forwarded-For / X-Real-IP) when TRUSTED_PROXY is enabled.
+   * Resolves client IP address with proxy-trust verification and platform-aware header defense.
+   * Only trusts forwarded headers when TRUSTED_PROXY is explicitly enabled.
+   * Prioritizes platform-verified edge headers (x-vercel-ip, x-real-ip) over untrusted forwarding chains.
+   * Validates IPv4/IPv6 integrity to prevent header injection and spoofing.
    */
   public static extractClientIp(headers: Headers): string {
     const isTrustedProxy = process.env.TRUSTED_PROXY === 'true';
 
-    if (isTrustedProxy) {
-      const forwardedFor = headers.get('x-forwarded-for');
-      if (forwardedFor) {
-        // First IP in comma-separated list is the original client
-        const clientIp = forwardedFor.split(',')[0].trim();
-        if (clientIp) return clientIp;
-      }
+    if (!isTrustedProxy) {
+      return '127.0.0.1';
+    }
 
-      const realIp = headers.get('x-real-ip');
-      if (realIp?.trim()) {
-        return realIp.trim();
+    // 1. Vercel platform-verified edge header (cannot be spoofed by client)
+    const vercelIp = headers.get('x-vercel-ip')?.trim();
+    if (vercelIp && isIP(vercelIp) !== 0) {
+      return vercelIp;
+    }
+
+    // 2. Terminating reverse-proxy header (standard Nginx / reverse proxy)
+    const realIp = headers.get('x-real-ip')?.trim();
+    if (realIp && isIP(realIp) !== 0) {
+      return realIp;
+    }
+
+    // 3. Forwarded-for chain with IP validation
+    const forwardedFor = headers.get('x-forwarded-for');
+    if (forwardedFor) {
+      const parts = forwardedFor.split(',');
+      for (const part of parts) {
+        const candidate = part.trim();
+        if (candidate && isIP(candidate) !== 0) {
+          return candidate;
+        }
       }
     }
 

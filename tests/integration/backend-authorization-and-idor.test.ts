@@ -6,7 +6,7 @@ import { seedCoreTypesAndRules } from '@/tests/fixtures/factories';
 import { PasswordService } from '@/src/modules/auth/password.service';
 import { AuthGuard, ForbiddenError, AuthSession } from '@/src/modules/auth/auth.guard';
 import { EmployeeService } from '@/src/modules/employees/employee.service';
-import { middleware } from '@/src/middleware';
+import { proxy as middleware } from '@/src/proxy';
 import type { Site, Employee, User } from '@/src/generated/prisma';
 
 describe('Integration: Backend Authorization, IDOR Prevention & Edge Middleware', () => {

@@ -13,7 +13,7 @@ const PUBLIC_PATHS = [
   '/api-docs',
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // 1. Static asset and Next.js internal bypass
@@ -64,6 +64,9 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+// Backwards-compatibility alias for test suites and external callers
+export { proxy as middleware };
 
 export const config = {
   matcher: [

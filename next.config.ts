@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: "standalone",
+  // Standalone output is required for local Docker self-hosting, but unnecessary on Vercel
+  output: process.env.VERCEL ? undefined : "standalone",
   experimental: {
     agentFeedback: true,
   },
