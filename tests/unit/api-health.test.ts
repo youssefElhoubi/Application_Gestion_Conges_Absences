@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '@/src/app/api/health/route';
 import { prisma } from '@/src/infrastructure/db/prisma';
-import { middleware } from '@/src/middleware';
+import { proxy } from '@/src/proxy';
 import { NextRequest } from 'next/server';
 
 describe('Unit: Health Endpoint (GET /api/health)', () => {
@@ -47,12 +47,12 @@ describe('Unit: Health Endpoint (GET /api/health)', () => {
     expect(serialized).not.toContain('stack');
   });
 
-  it('allows unauthenticated health check probe requests through middleware', () => {
+  it('allows unauthenticated health check probe requests through proxy', () => {
     const req = new NextRequest('http://localhost:3000/api/health', {
       method: 'GET',
     });
 
-    const res = middleware(req);
+    const res = proxy(req);
 
     // Should not redirect to /login and should not return 401
     expect(res.status).toBe(200);
