@@ -28,9 +28,6 @@ services:
       db:
         condition: service_healthy
     command: ["npx", "prisma", "migrate", "deploy"]
-    profiles:
-      - tools
-      - migration
 
   seeder:
     build:
@@ -44,12 +41,9 @@ services:
       SEED_EMPLOYEE_PASSWORD: ${SEED_EMPLOYEE_PASSWORD:-EmployeePassword123!}
     restart: "no"
     depends_on:
-      db:
-        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     command: ["npx", "prisma", "db", "seed"]
-    profiles:
-      - dev
-      - seed
 
   web:
     build:
@@ -68,6 +62,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      seeder:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s

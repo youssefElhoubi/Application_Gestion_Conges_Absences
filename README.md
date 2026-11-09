@@ -34,24 +34,39 @@ cp .env.example .env
 ---
 
 ### Starting the Stack
-Start all services in detached mode:
+Start all core services with the standard Compose command:
 ```bash
-docker compose up -d
+docker compose up --build
+```
+Or in detached mode:
+```bash
+docker compose up -d --build
 ```
 
 ### Deterministic Startup Sequence
 The stack initializes using strict health and completion conditions:
 1. **`db` (PostgreSQL 15)** starts and passes its healthcheck (`pg_isready`).
-2. **`seeder`** starts once `db` is healthy, executes `npx prisma migrate deploy`, runs `npx prisma db seed`, and reports success (`Exited (0)`).
-3. **`web` (Next.js Application)** starts **only after** `seeder` completes successfully (`condition: service_completed_successfully`).
-4. **`prisma-studio`** starts as soon as `db` is healthy and binds to `0.0.0.0:5555` via a dedicated host-binding hook.
+2. **`migration`** starts once `db` is healthy (`condition: service_healthy`), applies pending Prisma migrations (`npx prisma migrate deploy`), and reports completion (`condition: service_completed_successfully`).
+3. **`seeder`** starts once `migration` completes successfully (`condition: service_completed_successfully`), executes idempotent database seeding (`npx prisma db seed`), and reports completion (`condition: service_completed_successfully`).
+4. **`web` (Next.js Application)** starts **only after** `db` is healthy and both `migration` and `seeder` have completed successfully.
+5. **`prisma-studio`** is isolated under development profiles (`profiles: [dev, studio]`) and is not started by default.
+
+> [!NOTE]
+> **Local Development vs. Production Deployment Architecture**
+> Automatic database seeding is intended exclusively for the local Docker Compose development environment to provide instant test accounts and statutory reference data. In production environments (such as Vercel deployments connecting to Neon/PostgreSQL or AWS RDS), migrations are executed during CI/CD build or release steps (`npx prisma migrate deploy`), and database seeding is strictly excluded to prevent overwriting or polluting production data.
 
 ---
 
 ### Accessing the Services
 - **Web Application**: [http://localhost:3000](http://localhost:3000)
 - **Interactive API Documentation (Swagger)**: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
-- **Prisma Studio**: [http://localhost:5555](http://localhost:5555)
+- **Prisma Studio**: [http://localhost:5555](http://localhost:5555) (when started with `--profile studio`)
+
+#### Starting Prisma Studio Separately
+Prisma Studio is profile-gated to avoid unnecessary resource consumption during standard development. To start Prisma Studio:
+```bash
+docker compose --profile studio up -d prisma-studio
+```
 
 #### Seeded Accounts for Testing
 - **HR Administrator**: `admin@entreprise.ma` / `AdminPassword123!` (Role: `ADMIN`, Matricule: `MAT-0042`)
@@ -62,16 +77,19 @@ The stack initializes using strict health and completion conditions:
 ### Inspecting Service Logs
 To view logs for all or specific services:
 ```bash
-# View status of all containers
+# View status of all containers (including completed one-shot tasks)
 docker compose ps -a
 
-# Follow logs across all services
+# Follow logs across all running services
 docker compose logs -f
 
-# Follow logs for specific services
+# Inspect migration and seeder initialization logs
+docker compose logs migration
+docker compose logs seeder
+
+# Follow logs for runtime services
 docker compose logs -f web
 docker compose logs -f db
-docker compose logs seeder
 docker compose logs -f prisma-studio
 ```
 
@@ -80,9 +98,9 @@ docker compose logs -f prisma-studio
 ### Safe Database Operations
 
 #### Rerunning Migrations Safely
-Migrations are automatically applied by the `seeder` container during startup. To run pending migrations independently without restarting the entire stack:
+Migrations are automatically applied by the `migration` container during startup. To run pending migrations independently without restarting the entire stack:
 ```bash
-docker compose run --rm seeder npx prisma migrate deploy
+docker compose run --rm migration
 ```
 
 #### Rerunning the Database Seeder
@@ -118,15 +136,20 @@ docker compose exec db psql -U myuser -d mydatabase
 
 ### Diagnosing Common Startup Failures
 
-1. **`web` container does not start (`waiting on seeder`)**:
-   - Check `docker compose logs seeder`.
-   - If a migration or seed step fails, `seeder` exits with code 1, which intentionally prevents `web` from starting.
-   - Fix the issue in migrations or seed data and rerun: `docker compose run --rm seeder`.
+1. **`web` container does not start (`waiting on migration or seeder`)**:
+   - Check status: `docker compose ps -a`.
+   - If `migration` failed (exited with non-zero status):
+     - Inspect logs: `docker compose logs migration`.
+     - Resolve schema or migration conflict, then retry: `docker compose run --rm migration`.
+   - If `seeder` failed (exited with non-zero status):
+     - Inspect logs: `docker compose logs seeder`.
+     - Resolve data or constraint issue, then rerun: `docker compose run --rm seeder`.
+   - Once both complete successfully, `web` will start automatically.
 2. **Port conflict on `3000`, `5432`, or `5555`**:
    - If a local PostgreSQL or dev server is running on the host, override the exposed port in `.env` (e.g. `POSTGRES_PORT=5433` or `PRISMA_STUDIO_PORT=5556`) and run `docker compose up -d`.
 3. **Prisma Studio unreachable from host**:
    - Prisma Studio in Prisma 7 binds strictly to `127.0.0.1` by default. This project includes `scripts/prisma-studio-host.cjs` to intercept this and bind to `0.0.0.0:5555`.
-   - Ensure the Studio container was built with the `studio` target: `docker compose build prisma-studio`.
+   - Ensure you start Studio with the profile flag: `docker compose --profile studio up -d prisma-studio`.
 4. **Authentication 500 error in production mode**:
    - `JWT_ACCESS_SECRET` must be set with at least 32 characters in production mode.
    - For local HTTP development, `COOKIE_SECURE` should be set to `false`.
